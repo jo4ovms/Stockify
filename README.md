@@ -1,18 +1,22 @@
 # React + Vite
 
 - Setup Instructions
-Clone the Repository:
+  Clone the Repository:
 
 ```
-git clone https://github.com/yourusername/StockifyWeb.git
+git clone https://github.com/jo4ovms/StockifyWeb.git
 cd StockifyWeb
 ```
+
 - Install Dependencies:
+
 ```
 npm install
 ```
+
 - To start the project locally, use:
-``` 
+
+```
 npm run dev
 ```
 
