@@ -10,9 +10,8 @@ const Footer = () => {
         color: "white",
         padding: "10px 0",
         textAlign: "center",
-        position: "fixed",
-        left: 0,
-        bottom: 0,
+        position: "relative",
+        bottom: -60,
       }}
     >
       <Typography variant="body1">

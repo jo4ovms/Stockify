@@ -1,5 +1,7 @@
+import React from "react";
 import { Box, AppBar, Toolbar, styled, Stack, IconButton } from "@mui/material";
 import PropTypes from "prop-types";
+
 import Profile from "./Profile";
 import { IconMenu } from "@tabler/icons-react";
 
@@ -9,7 +11,6 @@ const Header = (props) => {
     background: theme.palette.background.paper,
     justifyContent: "center",
     backdropFilter: "blur(4px)",
-    position: "fixed",
     [theme.breakpoints.up("lg")]: {
       minHeight: "70px",
     },
@@ -36,6 +37,7 @@ const Header = (props) => {
         >
           <IconMenu width="20" height="20" />
         </IconButton>
+
         <Box flexGrow={1} />
 
         <Stack spacing={1} direction="row" alignItems="center">

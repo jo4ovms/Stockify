@@ -9,7 +9,6 @@ const MainWrapper = styled("div")(({ theme }) => ({
   display: "flex",
   minHeight: "100vh",
   width: "100%",
-  //flexDirection: "row", //nao funcionou
   [theme.breakpoints.down("md")]: {
     flexDirection: "column",
   },
@@ -17,7 +16,7 @@ const MainWrapper = styled("div")(({ theme }) => ({
 
 const PageWrapper = styled("div")(() => ({
   display: "flex",
-  flexGrown: 1,
+  flexGrow: 1,
   flexDirection: "column",
   zIndex: 1,
   backgroundColor: "transparent",
@@ -28,27 +27,32 @@ const ContentWrapper = styled("div")(() => ({
 }));
 
 const FullLayout = () => {
-  const theme = useTheme();
-  const [isSideBarOpen, setIsSideBarOpen] = useState(true);
-  const isMediumUp = useMediaQuery(theme.breakpoints.up("md"));
+  const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [isMobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const theme = useTheme();
+  const isMediumUp = useMediaQuery(theme.breakpoints.up("md"));
 
   return (
     <MainWrapper>
       {isMediumUp && (
         <Sidebar
-          isSideBarOpen={isSideBarOpen}
+          isSidebarOpen={isSidebarOpen}
           isMobileSidebarOpen={isMobileSidebarOpen}
           onSidebarClose={() => setMobileSidebarOpen(false)}
         />
       )}
       <PageWrapper>
         <Header
-          toggleSidebar={() => setIsSideBarOpen(!isSideBarOpen)}
+          toggleSidebar={() => setSidebarOpen(!isSidebarOpen)}
           toggleMobileSidebar={() => setMobileSidebarOpen(true)}
         />
         <ContentWrapper>
-          <Container sx={{ paddingTop: "20px", maxWidth: "none" }}>
+          <Container
+            sx={{
+              paddingTop: "20px",
+              maxWidth: "1200px",
+            }}
+          >
             <Box sx={{ minHeight: "calc(100vh - 170px)" }}>
               <Outlet />
             </Box>
@@ -58,7 +62,7 @@ const FullLayout = () => {
       </PageWrapper>
       {!isMediumUp && (
         <Sidebar
-          isSideBarOpen={isSideBarOpen}
+          isSidebarOpen={isSidebarOpen}
           isMobileSidebarOpen={isMobileSidebarOpen}
           onSidebarClose={() => setMobileSidebarOpen(false)}
         />

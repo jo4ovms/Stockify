@@ -1,4 +1,4 @@
-import { createTheme } from "@mui/material";
+import { createTheme } from "@mui/material/styles";
 import typography from "./Typography";
 import { shadows } from "./Shadows";
 
