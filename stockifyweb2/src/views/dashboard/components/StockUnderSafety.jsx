@@ -38,34 +38,35 @@ const StockUnderSafety = () => {
           <IconAlertTriangle width={24} />
         </Fab>
       }
-      sx={{ width: "100%", height: "260px" }}
+      sx={{ width: "125%", height: "270px", maxWidth: "600px" }}
     >
       <Box
         display="flex"
         flexDirection="column"
         alignItems="center"
+        justifyContent="center"
         height="100%"
       >
         <Typography variant="h4" fontWeight="700" mb={1}>
           {/* {products.length} */}
-          "5" Produtos
         </Typography>
         <Grid
           container
           spacing={2}
-          style={{ overflowY: "auto", maxHeight: "300px", width: "120%" }}
+          style={{ overflowY: "auto", maxHeight: "300px", width: "100%" }}
         >
           {/* {products.length === 0 ? ( */}
           <Box
             display="flex"
-            justifyContent={"center"}
+            justifyContent="center"
             alignItems="center"
             height="100%"
+            width="85%"
           >
             <Typography
-              variant="body2"
+              variant="h7"
               color="textSecondary"
-              sx={{ ml: 10, mt: 2, textAlign: "center" }}
+              sx={{ ml: 10, mt: 3, textAlign: "center" }}
             >
               Nenhum produto abaixo da quantidade segura.
             </Typography>

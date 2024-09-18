@@ -138,7 +138,7 @@ const SalesOverview = () => {
           <MenuItem value={12}>Dezembro</MenuItem>
         </Select>
       }
-      sx={{ height: "100%", width: "110%" }}
+      sx={{ height: "100%", width: "100%" }}
     >
       <Box sx={{ height: 400, width: "100%" }}>
         <Chart

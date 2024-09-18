@@ -11,31 +11,29 @@ const Dashboard = () => {
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   return (
-    <PageContainer title="Dashboard" description="This is Dashboard">
+    <PageContainer title="Dashboard" description="this is Dashboard">
       <Box
         sx={{
           display: "flex",
-          justifyContent: "center",
+          justifyContent: "left",
           alignItems: "center",
           minHeight: "100vh",
           padding: isSmallScreen ? theme.spacing(2) : theme.spacing(8),
         }}
       >
-        <Grid container spacing={2} maxWidth={"100%"}>
-          <Grid size={{ xs: 12, lg: 8 }}>
+        <Grid container spacing={1} maxWidth={isSmallScreen ? "100%" : "100%"}>
+          <Grid size={{ xs: 12, sm: 15, lg: 7 }}>
             <SalesOverview />
           </Grid>
-          <Grid
-            size={{ xs: 12, lg: 4 }}
-            container
-            direction="column"
-            spacing={2}
-          >
-            <Grid>
-              <StockOverview />
-            </Grid>
-            <Grid>
-              <StockUnderSafety />
+          <Grid size={{ xs: 12, lg: 5 }}>
+            <Grid container spacing={1}>
+              <Grid size={{ xs: 12, sm: 15, lg: 12 }}>
+                <StockOverview />
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 15, lg: 12 }}>
+                <StockUnderSafety />
+              </Grid>
             </Grid>
           </Grid>
         </Grid>
