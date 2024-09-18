@@ -26,27 +26,27 @@ const Menuitems = [
     id: uniqueId(),
     title: "Fornecedores",
     icon: IconAperture,
-    href: "/fornecedor",
+    href: "/supplier",
   },
 
   {
     id: uniqueId(),
     title: "Produtos",
     icon: IconAperture,
-    href: "/produtos",
+    href: "/products",
   },
 
   {
     id: uniqueId(),
     title: "Relatórios",
     icon: IconAperture,
-    href: "/relatorios",
+    href: "/logs",
   },
   {
     id: uniqueId(),
     title: "Registrar Venda",
     icon: IconAperture,
-    href: "/vendas",
+    href: "/sales",
   },
   {
     navlabel: true,
