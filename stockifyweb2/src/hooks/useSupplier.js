@@ -48,11 +48,10 @@ const useSupplier = () => {
       .getAll()
       .then((response) => {
         const productsForSupplier =
-          response.data.embedded?.productDTOList?.filter(
-            (product) => product.supplierId === supplier.id
-          ) || [];
+          response.data._embedded?.productDTOList || [];
         setProducts(productsForSupplier);
         setVisibleProducts((prev) => ({ ...prev, [supplier.id]: true }));
+        console.log(productsForSupplier);
       })
       .catch(console.log);
   };
@@ -173,6 +172,7 @@ const useSupplier = () => {
 
   return {
     suppliers,
+    allSuppliers,
     currentSupplier,
     currentProduct,
     products,

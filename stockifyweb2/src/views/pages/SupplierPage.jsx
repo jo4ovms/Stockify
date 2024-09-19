@@ -13,6 +13,7 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
+import { useMemo } from "react";
 import {
   Delete as DeleteIcon,
   Edit as EditIcon,
@@ -27,6 +28,7 @@ import useSupplier from "../../hooks/useSupplier";
 const SupplierPage = () => {
   const {
     suppliers,
+    allSuppliers,
     currentSupplier,
     currentProduct,
     products,
@@ -52,8 +54,9 @@ const SupplierPage = () => {
     deleteProduct,
   } = useSupplier();
 
-  const allProductTypes = Array.from(
-    new Set(suppliers.map((s) => s.productType))
+  const allProductTypes = useMemo(
+    () => ["", ...Array.from(new Set(allSuppliers.map((s) => s.productType)))],
+    [allSuppliers]
   );
 
   return (
@@ -75,6 +78,7 @@ const SupplierPage = () => {
                 <MenuItem value="">
                   <em>Todos</em>
                 </MenuItem>
+
                 {allProductTypes.map((productType, index) => (
                   <MenuItem key={index} value={productType}>
                     {productType}
@@ -178,41 +182,46 @@ const SupplierPage = () => {
                   </Box>
                 </Box>
 
-                {/* Exibir produtos do fornecedor */}
                 {visibleProducts[supplier.id] && (
                   <Box mt={2} pl={2} pr={2} pb={2}>
-                    {products.length > 0 ? (
-                      products.map((product) => (
-                        <Box
-                          key={product.id}
-                          display="flex"
-                          alignItems="center"
-                          justifyContent="space-between"
-                          p={2}
-                          borderBottom="1px solid #ccc"
-                        >
-                          <Box>
-                            <Typography variant="h6">{product.name}</Typography>
-                            <Typography variant="body2">
-                              Valor: {product.value}
-                            </Typography>
-                            <Typography variant="body2">
-                              Quantidade: {product.quantity}
-                            </Typography>
-                            <Typography variant="body2">
-                              Fornecedor: {product.supplierName}
-                            </Typography>
+                    {products.filter(
+                      (product) => product.supplierId === supplier.id
+                    ).length > 0 ? (
+                      products
+                        .filter((product) => product.supplierId === supplier.id)
+                        .map((product) => (
+                          <Box
+                            key={product.id}
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="space-between"
+                            p={2}
+                            borderBottom="1px solid #ccc"
+                          >
+                            <Box>
+                              <Typography variant="h6">
+                                {product.name}
+                              </Typography>
+                              <Typography variant="body2">
+                                Valor: R$ {product.value}
+                              </Typography>
+                              <Typography variant="body2">
+                                Quantidade: {product.quantity}
+                              </Typography>
+                              <Typography variant="body2">
+                                Fornecedor: {product.supplierName}
+                              </Typography>
+                            </Box>
+                            <Box>
+                              <IconButton
+                                color="secondary"
+                                onClick={() => deleteProduct(product.id)}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </Box>
                           </Box>
-                          <Box>
-                            <IconButton
-                              color="secondary"
-                              onClick={() => deleteProduct(product.id)}
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </Box>
-                        </Box>
-                      ))
+                        ))
                     ) : (
                       <Typography variant="h6">
                         Nenhum produto registrado ainda.
