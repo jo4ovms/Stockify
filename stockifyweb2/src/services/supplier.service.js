@@ -1,6 +1,6 @@
 import axiosInstance from "./axiosInstance";
 
-const API_URL = "http://localhost:8080/api/suppliers";
+const API_URL = "http://localhost:8081/api/suppliers";
 
 class SupplierService {
   getAll() {

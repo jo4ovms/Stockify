@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import {
   Typography,
   Button,
@@ -21,25 +20,41 @@ import {
   List as ListIcon,
 } from "@mui/icons-material";
 import PageContainer from "../../components/container/PageContainer";
-import PageCard from "../../components/shared/PageCard";
-import supplierService from "../../services/supplier.service";
 import SupplierForm from "./Supplier/SupplierForm";
-import DashboardCard from "../../components/shared/PageCard";
+import DashboardCard from "../../components/shared/DashboardCard";
 import useSupplier from "../../hooks/useSupplier";
 
 const SupplierPage = () => {
   const {
     suppliers,
     currentSupplier,
+    currentProduct,
+    products,
+    visibleProducts,
     open,
+    openProductDialog,
     editMode,
+    searchTerm,
+    filterProductType,
     handleClickOpen,
     handleClickEdit,
+    handleClickCreateProduct,
+    handleClickShowProducts,
     handleClose,
+    handleCloseProductDialog,
     handleChange,
+    handleChangeProduct,
+    handleSearchChange,
+    handleFilterProductTypeChange,
     saveSupplier,
+    saveProduct,
     deleteSupplier,
+    deleteProduct,
   } = useSupplier();
+
+  const allProductTypes = Array.from(
+    new Set(suppliers.map((s) => s.productType))
+  );
 
   return (
     <PageContainer title="Suppliers" description="this is Suppliers page">
@@ -53,20 +68,25 @@ const SupplierPage = () => {
               <Select
                 labelId="filter-tipo-produto-label"
                 id="filter-tipo-produto"
-                // value={currentFornecedor.typeProduct || ""}
+                value={filterProductType}
                 label="Tipo de Produto"
-                // onChange={(e) => handleChange(e)}
+                onChange={handleFilterProductTypeChange}
               >
                 <MenuItem value="">
                   <em>Todos</em>
                 </MenuItem>
+                {allProductTypes.map((productType, index) => (
+                  <MenuItem key={index} value={productType}>
+                    {productType}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
             <TextField
               label="Pesquisar Fornecedor"
               variant="outlined"
-              // value={currentSupplier.name}
-              // onChange={(e) => handleChange(e)}
+              value={searchTerm}
+              onChange={handleSearchChange}
               sx={{ minWidth: 200 }}
             />
           </Box>
@@ -88,12 +108,11 @@ const SupplierPage = () => {
               marginLeft: 4,
             }}
           >
-            {/*} <ImportExportButtonsFornecedor
+            {/* <ImportExportButtonsFornecedor
               iconSize={35}
               iconStyle={{ color: "green" }}
               containerStyle={{ display: "flex", justifyContent: "center" }}
-            />
-            */}
+            /> */}
           </Box>
         </Box>
 
@@ -135,20 +154,72 @@ const SupplierPage = () => {
                     >
                       <EditIcon />
                     </IconButton>
+
+                    <IconButton
+                      color="primary"
+                      onClick={() => handleClickCreateProduct(supplier)}
+                    >
+                      <AddIcon />
+                    </IconButton>
+
+                    <IconButton
+                      color="primary"
+                      onClick={() => handleClickShowProducts(supplier)}
+                    >
+                      <ListIcon />
+                    </IconButton>
+
                     <IconButton
                       color="secondary"
                       onClick={() => deleteSupplier(supplier.id)}
                     >
                       <DeleteIcon />
                     </IconButton>
-                    <IconButton
-                      color="primary"
-                      onClick={() => console.log("Show products")}
-                    >
-                      <ListIcon />
-                    </IconButton>
                   </Box>
                 </Box>
+
+                {/* Exibir produtos do fornecedor */}
+                {visibleProducts[supplier.id] && (
+                  <Box mt={2} pl={2} pr={2} pb={2}>
+                    {products.length > 0 ? (
+                      products.map((product) => (
+                        <Box
+                          key={product.id}
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="space-between"
+                          p={2}
+                          borderBottom="1px solid #ccc"
+                        >
+                          <Box>
+                            <Typography variant="h6">{product.name}</Typography>
+                            <Typography variant="body2">
+                              Valor: {product.value}
+                            </Typography>
+                            <Typography variant="body2">
+                              Quantidade: {product.quantity}
+                            </Typography>
+                            <Typography variant="body2">
+                              Fornecedor: {product.supplierName}
+                            </Typography>
+                          </Box>
+                          <Box>
+                            <IconButton
+                              color="secondary"
+                              onClick={() => deleteProduct(product.id)}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Box>
+                        </Box>
+                      ))
+                    ) : (
+                      <Typography variant="h6">
+                        Nenhum produto registrado ainda.
+                      </Typography>
+                    )}
+                  </Box>
+                )}
               </Box>
             ))
           ) : (
@@ -167,6 +238,48 @@ const SupplierPage = () => {
         editMode={editMode}
         handleChange={handleChange}
       />
+
+      <Dialog open={openProductDialog} onClose={handleCloseProductDialog}>
+        <DialogTitle>Criar Produto para {currentSupplier.name}</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            name="name"
+            label="Nome"
+            type="text"
+            fullWidth
+            value={currentProduct.name}
+            onChange={handleChangeProduct}
+          />
+          <TextField
+            margin="dense"
+            name="value"
+            label="Valor"
+            type="number"
+            fullWidth
+            value={currentProduct.value}
+            onChange={handleChangeProduct}
+          />
+          <TextField
+            margin="dense"
+            name="quantity"
+            label="Quantidade"
+            type="number"
+            fullWidth
+            value={currentProduct.quantity}
+            onChange={handleChangeProduct}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseProductDialog} color="primary">
+            Cancelar
+          </Button>
+          <Button onClick={saveProduct} color="primary">
+            Criar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </PageContainer>
   );
 };
