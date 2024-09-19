@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 
 const FullLayout = lazy(() => import("../layouts/full/FullLayout"));
 
-const SupplierPage = lazy(() => import("../views/pages/SupplierPage"));
+const SupplierPage = lazy(() => import("../views/pages/Supplier/SupplierPage"));
 const Dashboard = lazy(() => import("../views/dashboard/Dashboard"));
 
 const Router = [

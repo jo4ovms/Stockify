@@ -20,10 +20,10 @@ import {
   Add as AddIcon,
   List as ListIcon,
 } from "@mui/icons-material";
-import PageContainer from "../../components/container/PageContainer";
-import SupplierForm from "./Supplier/SupplierForm";
-import DashboardCard from "../../components/shared/DashboardCard";
-import useSupplier from "../../hooks/useSupplier";
+import PageContainer from "../../../components/container/PageContainer";
+import SupplierForm from "./SupplierForm";
+import DashboardCard from "../../../components/shared/DashboardCard";
+import useSupplier from "../../../hooks/useSupplier";
 
 const SupplierPage = () => {
   const {
