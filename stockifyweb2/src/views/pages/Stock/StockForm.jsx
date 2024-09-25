@@ -29,15 +29,29 @@ const StockForm = ({
   });
   const [products, setProducts] = useState([]);
 
+  const resetForm = () => {
+    setStock({
+      productId: "",
+      quantity: "",
+      value: "",
+    });
+  };
+
   useEffect(() => {
     productService.getAllProducts().then((response) => {
       setProducts(response);
     });
 
-    if (editMode) {
-      setStock(currentStock);
+    if (editMode && currentStock) {
+      setStock({
+        productId: currentStock.productId,
+        quantity: currentStock.quantity,
+        value: currentStock.value,
+      });
+    } else if (!editMode) {
+      resetForm();
     }
-  }, [editMode, currentStock]);
+  }, [editMode, currentStock, open]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -61,7 +75,7 @@ const StockForm = ({
       fullWidth
       PaperProps={{
         sx: {
-          minWidth: "500px", // Define uma largura mínima para manter o diálogo consistente
+          minWidth: "500px",
         },
       }}
     >
@@ -75,7 +89,7 @@ const StockForm = ({
             <Select
               labelId="product-select-label"
               name="productId"
-              value={stock.productId}
+              value={stock.productId || ""}
               onChange={handleChange}
               fullWidth
             >
