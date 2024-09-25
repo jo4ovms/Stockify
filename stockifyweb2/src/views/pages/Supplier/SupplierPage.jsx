@@ -184,44 +184,38 @@ const SupplierPage = () => {
 
                 {visibleProducts[supplier.id] && (
                   <Box mt={2} pl={2} pr={2} pb={2}>
-                    {products.filter(
-                      (product) => product.supplierId === supplier.id
-                    ).length > 0 ? (
-                      products
-                        .filter((product) => product.supplierId === supplier.id)
-                        .map((product) => (
-                          <Box
-                            key={product.id}
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="space-between"
-                            p={2}
-                            borderBottom="1px solid #ccc"
-                          >
-                            <Box>
-                              <Typography variant="h6">
-                                {product.name}
-                              </Typography>
-                              <Typography variant="body2">
-                                Valor: R$ {product.value}
-                              </Typography>
-                              <Typography variant="body2">
-                                Quantidade: {product.quantity}
-                              </Typography>
-                              <Typography variant="body2">
-                                Fornecedor: {product.supplierName}
-                              </Typography>
-                            </Box>
-                            <Box>
-                              <IconButton
-                                color="secondary"
-                                onClick={() => deleteProduct(product.id)}
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                            </Box>
+                    {products.length > 0 ? (
+                      products.map((product) => (
+                        <Box
+                          key={product.id}
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="space-between"
+                          p={2}
+                          borderBottom="1px solid #ccc"
+                        >
+                          <Box>
+                            <Typography variant="h6">{product.name}</Typography>
+                            <Typography variant="body2">
+                              Valor: R$ {product.value}
+                            </Typography>
+                            <Typography variant="body2">
+                              Quantidade: {product.quantity}
+                            </Typography>
+                            <Typography variant="body2">
+                              Fornecedor: {product.supplierName}
+                            </Typography>
                           </Box>
-                        ))
+                          <Box>
+                            <IconButton
+                              color="secondary"
+                              onClick={() => deleteProduct(product.id)}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Box>
+                        </Box>
+                      ))
                     ) : (
                       <Typography variant="h6">
                         Nenhum produto registrado ainda.

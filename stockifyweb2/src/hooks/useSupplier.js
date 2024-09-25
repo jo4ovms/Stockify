@@ -45,13 +45,14 @@ const useSupplier = () => {
 
   const retrieveProducts = (supplier) => {
     productService
-      .getAll()
+      .getAllProducts()
       .then((response) => {
-        const productsForSupplier =
-          response.data._embedded?.productDTOList || [];
+        // Acessando os produtos corretamente dentro da resposta paginada
+        const productsForSupplier = response.filter(
+          (product) => product.supplierId === supplier.id
+        );
         setProducts(productsForSupplier);
         setVisibleProducts((prev) => ({ ...prev, [supplier.id]: true }));
-        console.log(productsForSupplier);
       })
       .catch(console.log);
   };
