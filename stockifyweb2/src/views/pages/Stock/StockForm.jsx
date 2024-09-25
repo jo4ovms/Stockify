@@ -7,10 +7,8 @@ import {
   Button,
   DialogActions,
   FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Box,
+  Autocomplete,
 } from "@mui/material";
 import productService from "../../../services/productService";
 import stockService from "../../../services/stockService";
@@ -85,26 +83,22 @@ const StockForm = ({
       <DialogContent>
         <Box sx={{ mt: 2 }}>
           <FormControl fullWidth margin="normal">
-            <InputLabel id="product-select-label">Produto</InputLabel>
-            <Select
-              labelId="product-select-label"
-              name="productId"
-              value={stock.productId || ""}
-              onChange={handleChange}
-              fullWidth
-            >
-              {products.length > 0 ? (
-                products.map((product) => (
-                  <MenuItem key={product.id} value={product.id}>
-                    {product.name} - {product.supplierName}
-                  </MenuItem>
-                ))
-              ) : (
-                <MenuItem disabled value="">
-                  Nenhum produto disponível
-                </MenuItem>
+            <Autocomplete
+              options={products}
+              getOptionLabel={(product) =>
+                `${product.name} - ${product.supplierName}`
+              }
+              value={products.find((p) => p.id === stock.productId) || null}
+              onChange={(event, newValue) => {
+                setStock((prev) => ({
+                  ...prev,
+                  productId: newValue ? newValue.id : "",
+                }));
+              }}
+              renderInput={(params) => (
+                <TextField {...params} label="Produto" variant="outlined" />
               )}
-            </Select>
+            />
           </FormControl>
 
           <TextField
