@@ -29,15 +29,33 @@ const StockForm = ({
   });
   const [products, setProducts] = useState([]);
 
+  // Função para resetar o estado ao abrir o formulário para criar um novo item
+  const resetForm = () => {
+    setStock({
+      productId: "",
+      quantity: "",
+      value: "",
+    });
+  };
+
   useEffect(() => {
+    // Carregar os produtos disponíveis
     productService.getAllProducts().then((response) => {
       setProducts(response);
     });
 
-    if (editMode) {
-      setStock(currentStock);
+    if (editMode && currentStock) {
+      // Se estiver no modo de edição, carregar os dados do item atual no estado
+      setStock({
+        productId: currentStock.productId, // Certifique-se de que productId está sendo carregado corretamente
+        quantity: currentStock.quantity,
+        value: currentStock.value,
+      });
+    } else if (!editMode) {
+      // Se estiver criando um novo item, resetar o formulário
+      resetForm();
     }
-  }, [editMode, currentStock]);
+  }, [editMode, currentStock, open]); // Adicione `open` para garantir que o reset ocorra ao abrir o diálogo
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -61,7 +79,7 @@ const StockForm = ({
       fullWidth
       PaperProps={{
         sx: {
-          minWidth: "500px", // Define uma largura mínima para manter o diálogo consistente
+          minWidth: "500px",
         },
       }}
     >
@@ -75,7 +93,7 @@ const StockForm = ({
             <Select
               labelId="product-select-label"
               name="productId"
-              value={stock.productId}
+              value={stock.productId || ""} // Certifique-se de que o valor do produto está definido
               onChange={handleChange}
               fullWidth
             >
