@@ -33,7 +33,7 @@ const Menuitems = [
     id: uniqueId(),
     title: "Produtos",
     icon: IconAperture,
-    href: "/products",
+    href: "/stock",
   },
 
   {

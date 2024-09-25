@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import supplierService from "../services/supplier.service";
-import productService from "../services/product.service";
+import productService from "../services/productService";
 
 const useSupplier = () => {
   const [suppliers, setSuppliers] = useState([]);

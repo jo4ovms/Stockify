@@ -4,6 +4,7 @@ import { Navigate } from "react-router-dom";
 const FullLayout = lazy(() => import("../layouts/full/FullLayout"));
 
 const SupplierPage = lazy(() => import("../views/pages/Supplier/SupplierPage"));
+const StockPage = lazy(() => import("../views/pages/Stock/StockPage"));
 const Dashboard = lazy(() => import("../views/dashboard/Dashboard"));
 
 const Router = [
@@ -22,6 +23,10 @@ const Router = [
       {
         path: "/supplier",
         element: <SupplierPage />,
+      },
+      {
+        path: "/stock",
+        element: <StockPage />,
       },
     ],
   },
