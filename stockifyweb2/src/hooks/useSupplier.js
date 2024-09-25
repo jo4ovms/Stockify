@@ -8,6 +8,10 @@ const useSupplier = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [suppliers, setSuppliers] = useState([]);
   const [allSuppliers, setAllSuppliers] = useState([]);
+  const [productsBySupplier, setProductsBySupplier] = useState({});
+  const [productsPage, setProductsPage] = useState({}); // Controle de página por fornecedor
+  const [productsTotalPages, setProductsTotalPages] = useState({});
+
   const [currentSupplier, setCurrentSupplier] = useState({
     id: null,
     name: "",
@@ -62,17 +66,39 @@ const useSupplier = () => {
     }
   };
 
-  const retrieveProducts = (supplier) => {
+  const retrieveProducts = (supplier, page = 0, size = 10) => {
     productService
-      .getAllProducts()
+      .getProductsBySupplier(supplier.id, page, size)
       .then((response) => {
-        const productsForSupplier = response.filter(
-          (product) => product.supplierId === supplier.id
-        );
-        setProducts(productsForSupplier);
-        setVisibleProducts((prev) => ({ ...prev, [supplier.id]: true }));
+        if (response && Array.isArray(response)) {
+          // Verifique se a resposta é um array
+          const productsForSupplier = response;
+
+          // Armazena os produtos por fornecedor usando seu ID
+          setProductsBySupplier((prev) => ({
+            ...prev,
+            [supplier.id]: productsForSupplier,
+          }));
+
+          // Atualiza a paginação, mesmo que a resposta esteja correta
+          setProductsPage((prev) => ({
+            ...prev,
+            [supplier.id]: page,
+          }));
+
+          setProductsTotalPages((prev) => ({
+            ...prev,
+            [supplier.id]: 1, // Assumindo que você tem apenas 1 página por fornecedor
+          }));
+
+          setVisibleProducts((prev) => ({ ...prev, [supplier.id]: true }));
+        } else {
+          console.error("Nenhum produto encontrado para o fornecedor.");
+        }
       })
-      .catch(console.log);
+      .catch((error) => {
+        console.error("Erro ao buscar produtos:", error);
+      });
   };
 
   const handleClickOpen = () => {
@@ -197,6 +223,9 @@ const useSupplier = () => {
     currentProduct,
     products,
     visibleProducts,
+    productsBySupplier,
+    productsPage,
+    productsTotalPages,
     open,
     openProductDialog,
     editMode,

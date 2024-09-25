@@ -31,6 +31,9 @@ const SupplierPage = () => {
     currentSupplier,
     currentProduct,
     products,
+    productsBySupplier,
+    productsPage,
+    productsTotalPages,
     visibleProducts,
     open,
     openProductDialog,
@@ -172,8 +175,8 @@ const SupplierPage = () => {
 
                 {visibleProducts[supplier.id] && (
                   <Box mt={2} pl={2} pr={2} pb={2}>
-                    {products.length > 0 ? (
-                      products.map((product) => (
+                    {productsBySupplier[supplier.id]?.length > 0 ? (
+                      productsBySupplier[supplier.id].map((product) => (
                         <Box
                           key={product.id}
                           display="flex"
@@ -189,9 +192,6 @@ const SupplierPage = () => {
                             </Typography>
                             <Typography variant="body2">
                               Quantidade: {product.quantity}
-                            </Typography>
-                            <Typography variant="body2">
-                              Fornecedor: {product.supplierName}
                             </Typography>
                           </Box>
                           <Box>
@@ -209,6 +209,53 @@ const SupplierPage = () => {
                         Nenhum produto registrado ainda.
                       </Typography>
                     )}
+
+                    {/* Controles de paginação por fornecedor */}
+                    <Box
+                      display="flex"
+                      justifyContent="space-between"
+                      alignItems="center"
+                      mt={3}
+                    >
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() =>
+                          retrieveProducts(
+                            supplier,
+                            Math.max(productsPage[supplier.id] - 1, 0)
+                          )
+                        }
+                        disabled={productsPage[supplier.id] === 0}
+                      >
+                        Página Anterior
+                      </Button>
+
+                      <Typography>
+                        Página {productsPage[supplier.id] + 1} de{" "}
+                        {productsTotalPages[supplier.id]}
+                      </Typography>
+
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() =>
+                          retrieveProducts(
+                            supplier,
+                            Math.min(
+                              productsPage[supplier.id] + 1,
+                              productsTotalPages[supplier.id] - 1
+                            )
+                          )
+                        }
+                        disabled={
+                          productsPage[supplier.id] >=
+                          productsTotalPages[supplier.id] - 1
+                        }
+                      >
+                        Próxima Página
+                      </Button>
+                    </Box>
                   </Box>
                 )}
               </Box>
