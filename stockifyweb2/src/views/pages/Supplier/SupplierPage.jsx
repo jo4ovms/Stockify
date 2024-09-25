@@ -3,14 +3,14 @@ import {
   Button,
   Box,
   TextField,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
   FormControl,
   InputLabel,
   Select,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
   MenuItem,
 } from "@mui/material";
 import { useMemo } from "react";
@@ -28,7 +28,6 @@ import useSupplier from "../../../hooks/useSupplier";
 const SupplierPage = () => {
   const {
     suppliers,
-    allSuppliers,
     currentSupplier,
     currentProduct,
     products,
@@ -52,12 +51,17 @@ const SupplierPage = () => {
     saveProduct,
     deleteSupplier,
     deleteProduct,
+    page,
+    setPage,
+    totalPages,
   } = useSupplier();
 
-  const allProductTypes = useMemo(
-    () => ["", ...Array.from(new Set(allSuppliers.map((s) => s.productType)))],
-    [allSuppliers]
-  );
+  const allProductTypes = useMemo(() => {
+    if (Array.isArray(suppliers)) {
+      return ["", ...Array.from(new Set(suppliers.map((s) => s.productType)))];
+    }
+    return [];
+  }, [suppliers]);
 
   return (
     <PageContainer title="Suppliers" description="this is Suppliers page">
@@ -78,7 +82,6 @@ const SupplierPage = () => {
                 <MenuItem value="">
                   <em>Todos</em>
                 </MenuItem>
-
                 {allProductTypes.map((productType, index) => (
                   <MenuItem key={index} value={productType}>
                     {productType}
@@ -103,21 +106,6 @@ const SupplierPage = () => {
           >
             Criar Fornecedor
           </Button>
-
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              marginLeft: 4,
-            }}
-          >
-            {/* <ImportExportButtonsFornecedor
-              iconSize={35}
-              iconStyle={{ color: "green" }}
-              containerStyle={{ display: "flex", justifyContent: "center" }}
-            /> */}
-          </Box>
         </Box>
 
         <Box mt={2}>
@@ -230,6 +218,37 @@ const SupplierPage = () => {
               Nenhum Fornecedor registrado ainda.
             </Typography>
           )}
+        </Box>
+
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mt={3}
+        >
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+            disabled={page === 0}
+          >
+            Página Anterior
+          </Button>
+
+          <Typography>
+            Página {page + 1} de {totalPages}
+          </Typography>
+
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() =>
+              setPage((prev) => Math.min(prev + 1, totalPages - 1))
+            }
+            disabled={page >= totalPages - 1}
+          >
+            Próxima Página
+          </Button>
         </Box>
       </DashboardCard>
 

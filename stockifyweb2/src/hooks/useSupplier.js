@@ -3,6 +3,9 @@ import supplierService from "../services/supplier.service";
 import productService from "../services/productService";
 
 const useSupplier = () => {
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
   const [suppliers, setSuppliers] = useState([]);
   const [allSuppliers, setAllSuppliers] = useState([]);
   const [currentSupplier, setCurrentSupplier] = useState({
@@ -31,23 +34,38 @@ const useSupplier = () => {
 
   useEffect(() => {
     retrieveSuppliers();
-  }, []);
+  }, [page, size, searchTerm]);
 
   const retrieveSuppliers = () => {
-    supplierService
-      .getAll()
-      .then((response) => {
-        setAllSuppliers(response.data);
-        setSuppliers(response.data);
-      })
-      .catch(console.log);
+    if (searchTerm) {
+      supplierService
+        .searchByName(searchTerm, page, size)
+        .then((response) => {
+          const suppliersData = response.data._embedded?.supplierDTOList || [];
+          const pageData = response.data.page || { totalPages: 1 };
+
+          setSuppliers(suppliersData);
+          setTotalPages(pageData.totalPages);
+        })
+        .catch(console.log);
+    } else {
+      supplierService
+        .getAll(page, size)
+        .then((response) => {
+          const suppliersData = response.data._embedded?.supplierDTOList || [];
+          const pageData = response.data.page || { totalPages: 1 };
+
+          setSuppliers(suppliersData);
+          setTotalPages(pageData.totalPages);
+        })
+        .catch(console.log);
+    }
   };
 
   const retrieveProducts = (supplier) => {
     productService
       .getAllProducts()
       .then((response) => {
-        // Acessando os produtos corretamente dentro da resposta paginada
         const productsForSupplier = response.filter(
           (product) => product.supplierId === supplier.id
         );
@@ -157,6 +175,7 @@ const useSupplier = () => {
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
+    setPage(0);
   };
 
   const handleFilterProductTypeChange = (e) =>
@@ -197,6 +216,9 @@ const useSupplier = () => {
     saveProduct,
     deleteSupplier,
     deleteProduct,
+    page,
+    setPage,
+    totalPages,
   };
 };
 
