@@ -44,6 +44,7 @@ const StockForm = ({
   };
 
   const loadProducts = async (searchTerm = "", page = 0) => {
+    if (loading || !hasMore) return; // Evita requisições duplas.
     setLoading(true);
     try {
       const newProducts = await productService.searchProducts(
@@ -52,7 +53,7 @@ const StockForm = ({
         10
       );
       if (newProducts.length === 0) {
-        setHasMore(false);
+        setHasMore(false); // Define que não há mais produtos.
       } else {
         setProducts((prevProducts) =>
           uniqueProducts(prevProducts, newProducts)
@@ -76,9 +77,9 @@ const StockForm = ({
 
   useEffect(() => {
     if (open) {
-      loadProducts("", 0);
+      loadProducts("", 0); // Carrega a primeira página ao abrir o modal.
       setPage(0);
-      setHasMore(true);
+      setHasMore(true); // Reseta a flag de mais produtos.
     }
 
     if (editMode && currentStock) {
@@ -110,9 +111,10 @@ const StockForm = ({
   const handleInputChange = (event, newInputValue) => {
     setInputValue(newInputValue);
     if (newInputValue.trim()) {
-      loadProducts(newInputValue, 0);
-      setPage(0);
-      setProducts([]);
+      setProducts([]); // Limpa os produtos ao pesquisar algo novo.
+      loadProducts(newInputValue, 0); // Reseta para a página 0 com a nova pesquisa.
+      setPage(0); // Reseta o contador de página.
+      setHasMore(true); // Permite carregamento de mais produtos novamente.
     }
   };
 
@@ -161,7 +163,7 @@ const StockForm = ({
               getOptionLabel={(product) =>
                 `${product.name} - ${product.supplierName}`
               }
-              filterOptions={(options) => options}
+              filterOptions={(options) => options} // Não filtra localmente, já que vem do servidor.
               value={selectedProduct}
               onChange={handleProductChange}
               inputValue={inputValue}
@@ -187,6 +189,10 @@ const StockForm = ({
               )}
               ListboxProps={{
                 onScroll: handleScroll,
+                style: {
+                  maxHeight: "300px",
+                  overflow: "auto",
+                },
               }}
             />
           </FormControl>
