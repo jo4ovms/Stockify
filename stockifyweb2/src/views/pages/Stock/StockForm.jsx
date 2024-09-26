@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -9,6 +9,7 @@ import {
   FormControl,
   Box,
   Autocomplete,
+  CircularProgress,
 } from "@mui/material";
 import productService from "../../../services/productService";
 import stockService from "../../../services/stockService";
@@ -26,6 +27,43 @@ const StockForm = ({
     value: "",
   });
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [inputValue, setInputValue] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
+  const listRef = useRef(null);
+
+  const uniqueProducts = (existingProducts, newProducts) => {
+    const combinedProducts = [...existingProducts, ...newProducts];
+    const unique = Array.from(
+      new Map(combinedProducts.map((product) => [product.id, product])).values()
+    );
+    return unique;
+  };
+
+  const loadProducts = async (searchTerm = "", page = 0) => {
+    setLoading(true);
+    try {
+      const newProducts = await productService.searchProducts(
+        searchTerm,
+        page,
+        10
+      );
+      if (newProducts.length === 0) {
+        setHasMore(false);
+      } else {
+        setProducts((prevProducts) =>
+          uniqueProducts(prevProducts, newProducts)
+        );
+      }
+    } catch (error) {
+      console.error("Error loading products:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const resetForm = () => {
     setStock({
@@ -33,14 +71,20 @@ const StockForm = ({
       quantity: "",
       value: "",
     });
+    setSelectedProduct(null);
   };
 
   useEffect(() => {
-    productService.getAllProducts().then((response) => {
-      setProducts(response);
-    });
+    if (open) {
+      loadProducts("", 0);
+      setPage(0);
+      setHasMore(true);
+    }
 
     if (editMode && currentStock) {
+      const selectedProd =
+        products.find((p) => p.id === currentStock.productId) || null;
+      setSelectedProduct(selectedProd);
       setStock({
         productId: currentStock.productId,
         quantity: currentStock.quantity,
@@ -50,6 +94,35 @@ const StockForm = ({
       resetForm();
     }
   }, [editMode, currentStock, open]);
+
+  const handleScroll = (event) => {
+    if (
+      event.target.scrollTop + event.target.clientHeight >=
+      event.target.scrollHeight - 50
+    ) {
+      if (hasMore && !loading) {
+        loadProducts(inputValue, page + 1);
+        setPage((prevPage) => prevPage + 1);
+      }
+    }
+  };
+
+  const handleInputChange = (event, newInputValue) => {
+    setInputValue(newInputValue);
+    if (newInputValue.trim()) {
+      loadProducts(newInputValue, 0);
+      setPage(0);
+      setProducts([]);
+    }
+  };
+
+  const handleProductChange = (event, newValue) => {
+    setSelectedProduct(newValue);
+    setStock((prev) => ({
+      ...prev,
+      productId: newValue ? newValue.id : "",
+    }));
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -80,7 +153,7 @@ const StockForm = ({
       <DialogTitle>
         {editMode ? "Editar Estoque" : "Adicionar ao Estoque"}
       </DialogTitle>
-      <DialogContent>
+      <DialogContent ref={listRef} onScroll={handleScroll}>
         <Box sx={{ mt: 2 }}>
           <FormControl fullWidth margin="normal">
             <Autocomplete
@@ -88,16 +161,33 @@ const StockForm = ({
               getOptionLabel={(product) =>
                 `${product.name} - ${product.supplierName}`
               }
-              value={products.find((p) => p.id === stock.productId) || null}
-              onChange={(event, newValue) => {
-                setStock((prev) => ({
-                  ...prev,
-                  productId: newValue ? newValue.id : "",
-                }));
-              }}
+              filterOptions={(options) => options}
+              value={selectedProduct}
+              onChange={handleProductChange}
+              inputValue={inputValue}
+              onInputChange={handleInputChange}
+              loading={loading}
               renderInput={(params) => (
-                <TextField {...params} label="Produto" variant="outlined" />
+                <TextField
+                  {...params}
+                  label="Produto"
+                  variant="outlined"
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        {loading ? (
+                          <CircularProgress color="inherit" size={20} />
+                        ) : null}
+                        {params.InputProps.endAdornment}
+                      </>
+                    ),
+                  }}
+                />
               )}
+              ListboxProps={{
+                onScroll: handleScroll,
+              }}
             />
           </FormControl>
 

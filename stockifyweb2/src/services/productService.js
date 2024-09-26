@@ -2,7 +2,7 @@ import axios from "axios";
 import axiosInstance from "./axiosInstance";
 const API_URL = "http://localhost:8081/api/products";
 
-const getAllProducts = async (page = 0, size = 10) => {
+const getAllProducts = async (page = 0, size = 100) => {
   const response = await axios.get(API_URL, { params: { page, size } });
 
   console.log("API Response:", response.data);
@@ -28,7 +28,6 @@ const getProductsBySupplier = async (supplierId, page = 0, size = 10) => {
     return response.data._embedded.productDTOList;
   }
 
-  // Se a estrutura _embedded não existir, retorna um array vazio
   return [];
 };
 
@@ -38,12 +37,22 @@ const createProduct = async (product) => {
 };
 
 const updateProduct = async (id, product) => {
-  const response = await axios.put(`${API_URL}/${id}`, product); // Corrigido: interpolação de string com crase
+  const response = await axios.put(`${API_URL}/${id}`, product);
   return response.data;
 };
 
 const deleteProduct = async (id) => {
-  await axios.delete(`${API_URL}/${id}`); // Corrigido: interpolação de string com crase
+  await axios.delete(`${API_URL}/${id}`);
+};
+
+const searchProducts = async (searchTerm, page = 0, size = 100) => {
+  const response = await axios.get(`${API_URL}/search`, {
+    params: { searchTerm, page, size },
+  });
+
+  console.log("API Response:", response.data);
+
+  return response.data._embedded?.productDTOList || [];
 };
 
 export default {
@@ -51,5 +60,6 @@ export default {
   createProduct,
   updateProduct,
   deleteProduct,
+  searchProducts,
   getProductsBySupplier,
 };
