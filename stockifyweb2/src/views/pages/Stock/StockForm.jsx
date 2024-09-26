@@ -44,7 +44,7 @@ const StockForm = ({
   };
 
   const loadProducts = async (searchTerm = "", page = 0) => {
-    if (loading || !hasMore) return; // Evita requisições duplas.
+    if (loading || !hasMore) return;
     setLoading(true);
     try {
       const newProducts = await productService.searchProducts(
@@ -53,7 +53,7 @@ const StockForm = ({
         10
       );
       if (newProducts.length === 0) {
-        setHasMore(false); // Define que não há mais produtos.
+        setHasMore(false);
       } else {
         setProducts((prevProducts) =>
           uniqueProducts(prevProducts, newProducts)
@@ -77,9 +77,9 @@ const StockForm = ({
 
   useEffect(() => {
     if (open) {
-      loadProducts("", 0); // Carrega a primeira página ao abrir o modal.
+      loadProducts("", 0);
       setPage(0);
-      setHasMore(true); // Reseta a flag de mais produtos.
+      setHasMore(true);
     }
 
     if (editMode && currentStock) {
@@ -111,10 +111,10 @@ const StockForm = ({
   const handleInputChange = (event, newInputValue) => {
     setInputValue(newInputValue);
     if (newInputValue.trim()) {
-      setProducts([]); // Limpa os produtos ao pesquisar algo novo.
-      loadProducts(newInputValue, 0); // Reseta para a página 0 com a nova pesquisa.
-      setPage(0); // Reseta o contador de página.
-      setHasMore(true); // Permite carregamento de mais produtos novamente.
+      setProducts([]);
+      loadProducts(newInputValue, 0);
+      setPage(0);
+      setHasMore(true);
     }
   };
 
@@ -163,7 +163,13 @@ const StockForm = ({
               getOptionLabel={(product) =>
                 `${product.name} - ${product.supplierName}`
               }
-              filterOptions={(options) => options} // Não filtra localmente, já que vem do servidor.
+              renderOption={(props, product) => (
+                <li {...props} key={product.id}>
+                  {" "}
+                  {`${product.name} - ${product.supplierName}`}
+                </li>
+              )}
+              filterOptions={(options) => options}
               value={selectedProduct}
               onChange={handleProductChange}
               inputValue={inputValue}
