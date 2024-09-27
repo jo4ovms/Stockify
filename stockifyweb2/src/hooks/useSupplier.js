@@ -9,7 +9,7 @@ const useSupplier = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [allSuppliers, setAllSuppliers] = useState([]);
   const [productsBySupplier, setProductsBySupplier] = useState({});
-  const [productsPage, setProductsPage] = useState({}); // Controle de página por fornecedor
+  const [productsPage, setProductsPage] = useState({});
   const [productsTotalPages, setProductsTotalPages] = useState({});
 
   const [currentSupplier, setCurrentSupplier] = useState({
@@ -69,32 +69,23 @@ const useSupplier = () => {
   const retrieveProducts = (supplier, page = 0, size = 10) => {
     productService
       .getProductsBySupplier(supplier.id, page, size)
-      .then((response) => {
-        if (response && Array.isArray(response)) {
-          // Verifique se a resposta é um array
-          const productsForSupplier = response;
+      .then(({ products, totalPages }) => {
+        setProductsBySupplier((prev) => ({
+          ...prev,
+          [supplier.id]: products,
+        }));
 
-          // Armazena os produtos por fornecedor usando seu ID
-          setProductsBySupplier((prev) => ({
-            ...prev,
-            [supplier.id]: productsForSupplier,
-          }));
+        setProductsPage((prev) => ({
+          ...prev,
+          [supplier.id]: page,
+        }));
 
-          // Atualiza a paginação, mesmo que a resposta esteja correta
-          setProductsPage((prev) => ({
-            ...prev,
-            [supplier.id]: page,
-          }));
+        setProductsTotalPages((prev) => ({
+          ...prev,
+          [supplier.id]: totalPages,
+        }));
 
-          setProductsTotalPages((prev) => ({
-            ...prev,
-            [supplier.id]: 1, // Assumindo que você tem apenas 1 página por fornecedor
-          }));
-
-          setVisibleProducts((prev) => ({ ...prev, [supplier.id]: true }));
-        } else {
-          console.error("Nenhum produto encontrado para o fornecedor.");
-        }
+        setVisibleProducts((prev) => ({ ...prev, [supplier.id]: true }));
       })
       .catch((error) => {
         console.error("Erro ao buscar produtos:", error);
@@ -218,6 +209,7 @@ const useSupplier = () => {
 
   return {
     suppliers,
+    retrieveProducts,
     allSuppliers,
     currentSupplier,
     currentProduct,

@@ -20,15 +20,20 @@ const getProductsBySupplier = async (supplierId, page = 0, size = 10) => {
     }
   );
 
-  if (
-    response.data &&
-    response.data._embedded &&
-    response.data._embedded.productDTOList
-  ) {
-    return response.data._embedded.productDTOList;
+  if (response.data && response.data.page) {
+    const { totalPages, totalElements } = response.data.page;
+    console.log(
+      `Total de páginas: ${totalPages}, Total de produtos: ${totalElements}`
+    );
+
+    return {
+      products: response.data._embedded?.productDTOList || [],
+      totalPages,
+      totalElements,
+    };
   }
 
-  return [];
+  return { products: [], totalPages: 1, totalElements: 0 };
 };
 
 const createProduct = async (product) => {

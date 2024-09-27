@@ -29,6 +29,7 @@ const SupplierPage = () => {
   const {
     suppliers,
     currentSupplier,
+    retrieveProducts,
     currentProduct,
     products,
     productsBySupplier,
@@ -210,7 +211,6 @@ const SupplierPage = () => {
                       </Typography>
                     )}
 
-                    {/* Controles de paginação por fornecedor */}
                     <Box
                       display="flex"
                       justifyContent="space-between"
