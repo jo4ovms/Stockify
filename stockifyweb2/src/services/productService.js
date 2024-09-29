@@ -9,6 +9,17 @@ const getAllProducts = async (page = 0, size = 100) => {
 
   return response.data._embedded?.productDTOList || [];
 };
+
+const getProductById = async (id) => {
+  try {
+    const response = await axios.get(`${API_URL}/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Erro ao buscar o produto com id ${id}:`, error);
+    throw error;
+  }
+};
+
 const getProductsBySupplier = async (supplierId, page = 0, size = 10) => {
   const response = await axiosInstance.get(
     `${API_URL}/supplier/${supplierId}`,
@@ -67,4 +78,5 @@ export default {
   deleteProduct,
   searchProducts,
   getProductsBySupplier,
+  getProductById,
 };

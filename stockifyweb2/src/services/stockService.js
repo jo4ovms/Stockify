@@ -8,6 +8,11 @@ const getAllStock = async (page = 0, size = 10) => {
   return response.data._embedded?.stockDTOList || [];
 };
 
+const getStockById = async (id) => {
+  const response = await axios.get(`${API_URL}/${id}`);
+  return response.data;
+};
+
 const createStock = async (stock) => {
   const response = await axios.post(API_URL, stock);
   return response.data;
@@ -22,4 +27,10 @@ const deleteStock = async (id) => {
   await axios.delete(`${API_URL}/${id}`);
 };
 
-export default { getAllStock, createStock, updateStock, deleteStock };
+export default {
+  getAllStock,
+  createStock,
+  updateStock,
+  deleteStock,
+  getStockById,
+};

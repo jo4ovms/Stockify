@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -6,13 +6,10 @@ import {
   TextField,
   Button,
   DialogActions,
-  FormControl,
   Box,
-  Autocomplete,
-  CircularProgress,
 } from "@mui/material";
-import productService from "../../../services/productService";
 import stockService from "../../../services/stockService";
+import ProductSearch from "./ProductSearch";
 
 const StockForm = ({
   open,
@@ -26,43 +23,18 @@ const StockForm = ({
     quantity: "",
     value: "",
   });
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [inputValue, setInputValue] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const listRef = useRef(null);
-
-  const uniqueProducts = (existingProducts, newProducts) => {
-    const combinedProducts = [...existingProducts, ...newProducts];
-    const unique = Array.from(
-      new Map(combinedProducts.map((product) => [product.id, product])).values()
-    );
-    return unique;
-  };
-
-  const loadProducts = async (searchTerm = "", page = 0) => {
-    if (loading || !hasMore) return;
-    setLoading(true);
+  const loadStockById = async (stockId) => {
     try {
-      const newProducts = await productService.searchProducts(
-        searchTerm,
-        page,
-        10
-      );
-      if (newProducts.length === 0) {
-        setHasMore(false);
-      } else {
-        setProducts((prevProducts) =>
-          uniqueProducts(prevProducts, newProducts)
-        );
-      }
+      const stock = await stockService.getStockById(stockId);
+      setStock({
+        productId: stock.productId,
+        quantity: stock.quantity,
+        value: stock.value,
+      });
     } catch (error) {
-      console.error("Error loading products:", error);
-    } finally {
-      setLoading(false);
+      console.error("Erro ao carregar o estoque:", error);
     }
   };
 
@@ -77,54 +49,12 @@ const StockForm = ({
 
   useEffect(() => {
     if (open) {
-      loadProducts("", 0);
-      setPage(0);
-      setHasMore(true);
-    }
-
-    if (editMode && currentStock) {
-      const selectedProd =
-        products.find((p) => p.id === currentStock.productId) || null;
-      setSelectedProduct(selectedProd);
-      setStock({
-        productId: currentStock.productId,
-        quantity: currentStock.quantity,
-        value: currentStock.value,
-      });
-    } else if (!editMode) {
       resetForm();
-    }
-  }, [editMode, currentStock, open]);
-
-  const handleScroll = (event) => {
-    if (
-      event.target.scrollTop + event.target.clientHeight >=
-      event.target.scrollHeight - 50
-    ) {
-      if (hasMore && !loading) {
-        loadProducts(inputValue, page + 1);
-        setPage((prevPage) => prevPage + 1);
+      if (editMode && currentStock?.id) {
+        loadStockById(currentStock.id);
       }
     }
-  };
-
-  const handleInputChange = (event, newInputValue) => {
-    setInputValue(newInputValue);
-    if (newInputValue.trim()) {
-      setProducts([]);
-      loadProducts(newInputValue, 0);
-      setPage(0);
-      setHasMore(true);
-    }
-  };
-
-  const handleProductChange = (event, newValue) => {
-    setSelectedProduct(newValue);
-    setStock((prev) => ({
-      ...prev,
-      productId: newValue ? newValue.id : "",
-    }));
-  };
+  }, [open, editMode, currentStock]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -133,75 +63,31 @@ const StockForm = ({
 
   const handleSubmit = () => {
     if (editMode) {
-      stockService.updateStock(currentStock.id, stock).then(retrieveStocks);
+      stockService.updateStock(currentStock.id, stock).then(() => {
+        retrieveStocks();
+        resetForm();
+        handleClose();
+      });
     } else {
-      stockService.createStock(stock).then(retrieveStocks);
+      stockService.createStock(stock).then(() => {
+        retrieveStocks();
+        resetForm();
+        handleClose();
+      });
     }
-    handleClose();
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      maxWidth="sm"
-      fullWidth
-      PaperProps={{
-        sx: {
-          minWidth: "500px",
-        },
-      }}
-    >
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>
         {editMode ? "Editar Estoque" : "Adicionar ao Estoque"}
       </DialogTitle>
-      <DialogContent ref={listRef} onScroll={handleScroll}>
+      <DialogContent>
         <Box sx={{ mt: 2 }}>
-          <FormControl fullWidth margin="normal">
-            <Autocomplete
-              options={products}
-              getOptionLabel={(product) =>
-                `${product.name} - ${product.supplierName}`
-              }
-              renderOption={(props, product) => (
-                <li {...props} key={product.id}>
-                  {" "}
-                  {`${product.name} - ${product.supplierName}`}
-                </li>
-              )}
-              filterOptions={(options) => options}
-              value={selectedProduct}
-              onChange={handleProductChange}
-              inputValue={inputValue}
-              onInputChange={handleInputChange}
-              loading={loading}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Produto"
-                  variant="outlined"
-                  InputProps={{
-                    ...params.InputProps,
-                    endAdornment: (
-                      <>
-                        {loading ? (
-                          <CircularProgress color="inherit" size={20} />
-                        ) : null}
-                        {params.InputProps.endAdornment}
-                      </>
-                    ),
-                  }}
-                />
-              )}
-              ListboxProps={{
-                onScroll: handleScroll,
-                style: {
-                  maxHeight: "300px",
-                  overflow: "auto",
-                },
-              }}
-            />
-          </FormControl>
+          <ProductSearch
+            setSelectedProduct={setSelectedProduct}
+            setStock={setStock}
+          />
 
           <TextField
             margin="normal"

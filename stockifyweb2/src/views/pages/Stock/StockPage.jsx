@@ -12,13 +12,14 @@ const StockPage = () => {
   const [currentStock, setCurrentStock] = useState(null);
   const [page, setPage] = useState(0);
   const [size] = useState(10);
-
   useEffect(() => {
     retrieveStocks();
   }, [page]);
 
   const retrieveStocks = () => {
-    stockService.getAllStock(page, size).then(setStocks);
+    stockService.getAllStock(page, size).then((response) => {
+      setStocks(response);
+    });
   };
 
   const handleClickOpen = () => {
@@ -103,7 +104,11 @@ const StockPage = () => {
         >
           Página Anterior
         </Button>
-        <Button variant="contained" onClick={handleNextPage}>
+        <Button
+          variant="contained"
+          onClick={handleNextPage}
+          disabled={stocks.length < size}
+        >
           Próxima Página
         </Button>
       </Box>
