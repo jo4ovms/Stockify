@@ -1,9 +1,9 @@
-import React, { useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import { CircularProgress, TextField, Box } from "@mui/material";
 import { useAutocomplete } from "@mui/base";
 import productService from "../../../services/productService";
 
-const ProductSearch = ({ setSelectedProduct, setStock }) => {
+const ProductSearch = ({ setSelectedProduct, setStock, selectedProduct }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -63,12 +63,17 @@ const ProductSearch = ({ setSelectedProduct, setStock }) => {
       debounceTimeout.current = setTimeout(() => {
         setHasMoreProducts(true);
         loadProducts(newInputValue, true);
-      }, 300); // debounce
+      }, 300);
     },
     onChange: (event, newValue) => {
-      setSelectedProduct(newValue);
+      console.log("Produto selecionado:", newValue);
       if (newValue) {
-        setStock((prev) => ({ ...prev, productId: newValue.id }));
+        setSelectedProduct(newValue);
+        setStock((prev) => ({
+          ...prev,
+          productId: newValue.id,
+        }));
+        setInputValue(newValue.name);
       }
     },
   });
@@ -88,6 +93,7 @@ const ProductSearch = ({ setSelectedProduct, setStock }) => {
         variant="outlined"
         margin="normal"
         autoComplete="off"
+        value={inputValue}
         slotProps={{
           input: {
             ...getInputProps(),

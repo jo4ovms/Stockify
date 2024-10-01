@@ -25,6 +25,13 @@ const StockForm = ({
   });
   const [selectedProduct, setSelectedProduct] = useState(null);
 
+  useEffect(() => {
+    if (selectedProduct) {
+      document.getElementsByName("selectedProduct")[0].value =
+        selectedProduct.productName;
+    }
+  }, [selectedProduct]);
+
   const loadStockById = async (stockId) => {
     try {
       const stock = await stockService.getStockById(stockId);
@@ -32,6 +39,14 @@ const StockForm = ({
         productId: stock.productId,
         quantity: stock.quantity,
         value: stock.value,
+      });
+      setSelectedProduct({
+        productId: stock.productId,
+        productName: stock.productName,
+      });
+      console.log("Selected Product after load:", {
+        productId: stock.productId,
+        productName: stock.productName,
       });
     } catch (error) {
       console.error("Erro ao carregar o estoque:", error);
@@ -50,11 +65,22 @@ const StockForm = ({
   useEffect(() => {
     if (open) {
       resetForm();
+      console.log("Edit mode:", editMode);
+      console.log("Current stock:", currentStock);
       if (editMode && currentStock?.id) {
         loadStockById(currentStock.id);
       }
     }
   }, [open, editMode, currentStock]);
+
+  useEffect(() => {
+    if (selectedProduct) {
+      setStock((prev) => ({
+        ...prev,
+        productId: selectedProduct.productId || selectedProduct.id,
+      }));
+    }
+  }, [selectedProduct]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -62,6 +88,8 @@ const StockForm = ({
   };
 
   const handleSubmit = () => {
+    console.log("Stock antes de submeter:", stock);
+
     if (editMode) {
       stockService.updateStock(currentStock.id, stock).then(() => {
         retrieveStocks();
@@ -87,7 +115,18 @@ const StockForm = ({
           <ProductSearch
             setSelectedProduct={setSelectedProduct}
             setStock={setStock}
+            selectedProduct={selectedProduct}
           />
+
+          <TextField
+            margin="normal"
+            name="selectedProduct"
+            value={selectedProduct?.productName || selectedProduct?.name || ""}
+            label="Produto Selecionado"
+            fullWidth
+            disabled
+          />
+          {console.log("Selected Product:", selectedProduct)}
 
           <TextField
             margin="normal"
