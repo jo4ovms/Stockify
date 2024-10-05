@@ -58,14 +58,8 @@ const SupplierPage = () => {
     page,
     setPage,
     totalPages,
+    allProductTypes,
   } = useSupplier();
-
-  const allProductTypes = useMemo(() => {
-    if (Array.isArray(suppliers)) {
-      return ["", ...Array.from(new Set(suppliers.map((s) => s.productType)))];
-    }
-    return [];
-  }, [suppliers]);
 
   return (
     <PageContainer title="Suppliers" description="this is Suppliers page">

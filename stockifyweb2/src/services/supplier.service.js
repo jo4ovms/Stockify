@@ -8,6 +8,15 @@ class SupplierService {
     return axiosInstance.get(API_URL, { params });
   }
 
+  filterSuppliers(name, productType, page = 0, size = 10) {
+    const params = { name, productType, page, size };
+    return axiosInstance.get(`${API_URL}/filter`, { params });
+  }
+
+  getAllProductTypes() {
+    return axiosInstance.get(`${API_URL}/product-types`);
+  }
+
   searchByName(name, page = 0, size = 10) {
     const params = { name, page, size };
     return axiosInstance.get(`${API_URL}/search`, { params });
