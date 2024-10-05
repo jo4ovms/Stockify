@@ -13,6 +13,8 @@ import {
   IconButton,
   MenuItem,
 } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import InputAdornment from "@mui/material/InputAdornment";
 import {
   Delete as DeleteIcon,
   Edit as EditIcon,
@@ -59,6 +61,8 @@ const SupplierPage = () => {
     totalPages,
     setVisibleProducts,
     allProductTypes,
+    searchProductTermBySupplier,
+    handleSearchProductChange,
   } = useSupplier();
 
   return (
@@ -171,6 +175,32 @@ const SupplierPage = () => {
 
                 {visibleProducts[supplier.id] && (
                   <Box mt={2} pl={2} pr={2} pb={2}>
+                    <TextField
+                      label={`Buscar produtos de ${supplier.name}`}
+                      variant="outlined"
+                      value={searchProductTermBySupplier[supplier.id] || ""}
+                      onChange={(e) =>
+                        handleSearchProductChange(supplier.id, e.target.value)
+                      }
+                      sx={{
+                        minWidth: 400,
+                        marginBottom: 3,
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: "8px",
+                          padding: "0 8px",
+                          boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
+                        },
+                      }}
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <SearchIcon sx={{ color: "#888" }} />
+                            </InputAdornment>
+                          ),
+                        },
+                      }}
+                    />
                     {productsBySupplier[supplier.id]?.length > 0 ? (
                       productsBySupplier[supplier.id].map((product) => (
                         <Box

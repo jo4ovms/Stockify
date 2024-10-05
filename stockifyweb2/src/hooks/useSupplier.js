@@ -8,6 +8,8 @@ const useSupplier = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [suppliers, setSuppliers] = useState([]);
   const [productsBySupplier, setProductsBySupplier] = useState({});
+  const [searchProductTermBySupplier, setSearchProductTermBySupplier] =
+    useState({});
   const [productsPage, setProductsPage] = useState({});
   const [productsTotalPages, setProductsTotalPages] = useState({});
   const productListRef = useRef({});
@@ -43,7 +45,7 @@ const useSupplier = () => {
       if (productListRef.current[supplierId]) {
         const offsetTop = productListRef.current[supplierId].offsetTop;
         window.scrollTo({
-          top: offsetTop - 50,
+          top: offsetTop - 60,
           behavior: "smooth",
         });
         clearInterval(interval);
@@ -81,7 +83,6 @@ const useSupplier = () => {
   };
 
   const retrieveProducts = (supplier, page = 0, size = 10) => {
-    const currentPage = productsPage[supplier.id] || 0;
     productService
       .getProductsBySupplier(supplier.id, page, size)
       .then(({ products, totalPages }) => {
@@ -106,6 +107,31 @@ const useSupplier = () => {
       .catch((error) => {
         console.error("Erro ao buscar produtos:", error);
       });
+  };
+
+  const searchProductsForSupplier = (
+    supplierId,
+    searchTerm,
+    page = 0,
+    size = 10
+  ) => {
+    productService
+      .searchProductsBySupplier(supplierId, searchTerm, page, size)
+      .then(({ products, totalPages }) => {
+        setProductsBySupplier((prev) => ({
+          ...prev,
+          [supplierId]: products,
+        }));
+        setProductsPage((prev) => ({
+          ...prev,
+          [supplierId]: page,
+        }));
+        setProductsTotalPages((prev) => ({
+          ...prev,
+          [supplierId]: totalPages,
+        }));
+      })
+      .catch(console.log);
   };
 
   const handleClickOpen = () => {
@@ -144,7 +170,12 @@ const useSupplier = () => {
     if (visibleProducts[supplier.id]) {
       setVisibleProducts((prev) => ({ ...prev, [supplier.id]: false }));
     } else {
-      retrieveProducts(supplier);
+      const searchTerm = searchProductTermBySupplier[supplier.id] || "";
+      if (searchTerm) {
+        searchProductsForSupplier(supplier.id, searchTerm);
+      } else {
+        retrieveProducts(supplier);
+      }
       setCurrentSupplier(supplier);
     }
   };
@@ -214,6 +245,14 @@ const useSupplier = () => {
     setPage(0);
   };
 
+  const handleSearchProductChange = (supplierId, searchTerm) => {
+    setSearchProductTermBySupplier((prev) => ({
+      ...prev,
+      [supplierId]: searchTerm,
+    }));
+
+    searchProductsForSupplier(supplierId, searchTerm);
+  };
   const handleFilterProductTypeChange = (e) => {
     setFilterProductType(e.target.value);
     setPage(0);
@@ -255,6 +294,9 @@ const useSupplier = () => {
     totalPages,
     retrieveProducts,
     productListRef,
+    handleClickShowProducts,
+    handleSearchProductChange,
+    searchProductTermBySupplier,
   };
 };
 

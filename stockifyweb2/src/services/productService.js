@@ -71,6 +71,39 @@ const searchProducts = async (searchTerm, page = 0, size = 100) => {
   return response.data._embedded?.productDTOList || [];
 };
 
+const searchProductsBySupplier = async (
+  supplierId,
+  searchTerm,
+  page = 0,
+  size = 10
+) => {
+  const response = await axiosInstance.get(
+    `${API_URL}/supplier/${supplierId}/search`,
+    {
+      params: {
+        searchTerm,
+        page,
+        size,
+      },
+    }
+  );
+
+  if (response.data && response.data.page) {
+    const { totalPages, totalElements } = response.data.page;
+    console.log(
+      `Total de páginas: ${totalPages}, Total de produtos encontrados: ${totalElements}`
+    );
+
+    return {
+      products: response.data._embedded?.productDTOList || [],
+      totalPages,
+      totalElements,
+    };
+  }
+
+  return { products: [], totalPages: 1, totalElements: 0 };
+};
+
 export default {
   getAllProducts,
   createProduct,
@@ -79,4 +112,5 @@ export default {
   searchProducts,
   getProductsBySupplier,
   getProductById,
+  searchProductsBySupplier,
 };
