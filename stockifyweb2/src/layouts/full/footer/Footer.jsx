@@ -8,7 +8,7 @@ const Footer = () => {
         width: "100%",
         backgroundColor: "primary.main",
         color: "white",
-        padding: "10px 0",
+        padding: "15px 0",
         textAlign: "center",
         position: "relative",
         bottom: -60,
@@ -16,7 +16,7 @@ const Footer = () => {
     >
       <Typography variant="body1">
         © 2024 Stockify. Todos os direitos reservados.
-        <IconButton
+        {/* <IconButton
           sx={{
             color: "white",
             "&:hover": { color: "secondary.main", cursor: "pointer" },
@@ -34,7 +34,7 @@ const Footer = () => {
           }}
         >
           <IconBrandWhatsapp />
-        </IconButton>
+        </IconButton> */}
       </Typography>
     </Box>
   );
