@@ -13,7 +13,6 @@ import {
   IconButton,
   MenuItem,
 } from "@mui/material";
-import { useMemo } from "react";
 import {
   Delete as DeleteIcon,
   Edit as EditIcon,
@@ -29,9 +28,9 @@ const SupplierPage = () => {
   const {
     suppliers,
     currentSupplier,
+    productListRef,
     retrieveProducts,
     currentProduct,
-    products,
     productsBySupplier,
     productsPage,
     productsTotalPages,
@@ -58,6 +57,7 @@ const SupplierPage = () => {
     page,
     setPage,
     totalPages,
+    setVisibleProducts,
     allProductTypes,
   } = useSupplier();
 
@@ -115,6 +115,7 @@ const SupplierPage = () => {
                 flexDirection="column"
                 borderBottom="1px solid #ccc"
                 mb={2}
+                ref={(el) => (productListRef.current[supplier.id] = el)}
               >
                 <Box
                   display="flex"
@@ -214,12 +215,12 @@ const SupplierPage = () => {
                       <Button
                         variant="contained"
                         color="primary"
-                        onClick={() =>
+                        onClick={() => {
                           retrieveProducts(
                             supplier,
                             Math.max(productsPage[supplier.id] - 1, 0)
-                          )
-                        }
+                          );
+                        }}
                         disabled={productsPage[supplier.id] === 0}
                       >
                         Página Anterior
@@ -233,15 +234,15 @@ const SupplierPage = () => {
                       <Button
                         variant="contained"
                         color="primary"
-                        onClick={() =>
+                        onClick={() => {
                           retrieveProducts(
                             supplier,
                             Math.min(
                               productsPage[supplier.id] + 1,
                               productsTotalPages[supplier.id] - 1
                             )
-                          )
-                        }
+                          );
+                        }}
                         disabled={
                           productsPage[supplier.id] >=
                           productsTotalPages[supplier.id] - 1
@@ -270,7 +271,12 @@ const SupplierPage = () => {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+            onClick={() => {
+              setPage((prev) => Math.max(prev - 1, 0));
+              setVisibleProducts({});
+
+              window.scrollTo(0, 0);
+            }}
             disabled={page === 0}
           >
             Página Anterior
@@ -283,9 +289,11 @@ const SupplierPage = () => {
           <Button
             variant="contained"
             color="primary"
-            onClick={() =>
-              setPage((prev) => Math.min(prev + 1, totalPages - 1))
-            }
+            onClick={() => {
+              setPage((prev) => Math.min(prev + 1, totalPages - 1));
+              setVisibleProducts({});
+              window.scrollTo(0, 0);
+            }}
             disabled={page >= totalPages - 1}
           >
             Próxima Página

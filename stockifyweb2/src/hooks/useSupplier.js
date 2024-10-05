@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import supplierService from "../services/supplier.service";
 import productService from "../services/productService";
 
@@ -10,6 +10,7 @@ const useSupplier = () => {
   const [productsBySupplier, setProductsBySupplier] = useState({});
   const [productsPage, setProductsPage] = useState({});
   const [productsTotalPages, setProductsTotalPages] = useState({});
+  const productListRef = useRef({});
 
   const [currentSupplier, setCurrentSupplier] = useState({
     id: null,
@@ -36,6 +37,19 @@ const useSupplier = () => {
   const [filterProductType, setFilterProductType] = useState("");
 
   const [allProductTypes, setAllProductTypes] = useState([]);
+
+  const scrollToProductListTop = (supplierId) => {
+    const interval = setInterval(() => {
+      if (productListRef.current[supplierId]) {
+        const offsetTop = productListRef.current[supplierId].offsetTop;
+        window.scrollTo({
+          top: offsetTop - 50,
+          behavior: "smooth",
+        });
+        clearInterval(interval);
+      }
+    }, 100);
+  };
 
   useEffect(() => {
     getAllProductTypes();
@@ -67,6 +81,7 @@ const useSupplier = () => {
   };
 
   const retrieveProducts = (supplier, page = 0, size = 10) => {
+    const currentPage = productsPage[supplier.id] || 0;
     productService
       .getProductsBySupplier(supplier.id, page, size)
       .then(({ products, totalPages }) => {
@@ -86,6 +101,7 @@ const useSupplier = () => {
         }));
 
         setVisibleProducts((prev) => ({ ...prev, [supplier.id]: true }));
+        scrollToProductListTop(supplier.id);
       })
       .catch((error) => {
         console.error("Erro ao buscar produtos:", error);
@@ -206,6 +222,7 @@ const useSupplier = () => {
   return {
     suppliers,
     allProductTypes,
+    setVisibleProducts,
     retrieveProducts,
     currentSupplier,
     currentProduct,
@@ -236,6 +253,8 @@ const useSupplier = () => {
     page,
     setPage,
     totalPages,
+    retrieveProducts,
+    productListRef,
   };
 };
 
