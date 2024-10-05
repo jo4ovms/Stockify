@@ -7,7 +7,6 @@ const useSupplier = () => {
   const [size, setSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [suppliers, setSuppliers] = useState([]);
-  const [allSuppliers, setAllSuppliers] = useState([]);
   const [productsBySupplier, setProductsBySupplier] = useState({});
   const [productsPage, setProductsPage] = useState({});
   const [productsTotalPages, setProductsTotalPages] = useState({});
@@ -36,34 +35,35 @@ const useSupplier = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterProductType, setFilterProductType] = useState("");
 
+  const [allProductTypes, setAllProductTypes] = useState([]);
+
+  useEffect(() => {
+    getAllProductTypes();
+  }, []);
+  const getAllProductTypes = () => {
+    supplierService
+      .getAllProductTypes()
+      .then((response) => {
+        setAllProductTypes(["", ...response.data]);
+      })
+      .catch(console.log);
+  };
+
   useEffect(() => {
     retrieveSuppliers();
-  }, [page, size, searchTerm]);
+  }, [page, size, searchTerm, filterProductType]);
 
   const retrieveSuppliers = () => {
-    if (searchTerm) {
-      supplierService
-        .searchByName(searchTerm, page, size)
-        .then((response) => {
-          const suppliersData = response.data._embedded?.supplierDTOList || [];
-          const pageData = response.data.page || { totalPages: 1 };
+    supplierService
+      .filterSuppliers(searchTerm, filterProductType, page, size)
+      .then((response) => {
+        const suppliersData = response.data._embedded?.supplierDTOList || [];
+        const pageData = response.data.page || { totalPages: 1 };
 
-          setSuppliers(suppliersData);
-          setTotalPages(pageData.totalPages);
-        })
-        .catch(console.log);
-    } else {
-      supplierService
-        .getAll(page, size)
-        .then((response) => {
-          const suppliersData = response.data._embedded?.supplierDTOList || [];
-          const pageData = response.data.page || { totalPages: 1 };
-
-          setSuppliers(suppliersData);
-          setTotalPages(pageData.totalPages);
-        })
-        .catch(console.log);
-    }
+        setSuppliers(suppliersData);
+        setTotalPages(pageData.totalPages);
+      })
+      .catch(console.log);
   };
 
   const retrieveProducts = (supplier, page = 0, size = 10) => {
@@ -186,7 +186,10 @@ const useSupplier = () => {
   const deleteProduct = (id) => {
     productService
       .delete(id)
-      .then(() => retrieveProducts(currentSupplier))
+      .then(() => {
+        retrieveProducts(currentSupplier);
+        getAllProductTypes();
+      })
       .catch(console.log);
   };
 
@@ -195,22 +198,15 @@ const useSupplier = () => {
     setPage(0);
   };
 
-  const handleFilterProductTypeChange = (e) =>
+  const handleFilterProductTypeChange = (e) => {
     setFilterProductType(e.target.value);
-
-  useEffect(() => {
-    const filteredSuppliers = allSuppliers.filter(
-      (supplier) =>
-        supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        (filterProductType === "" || supplier.productType === filterProductType)
-    );
-    setSuppliers(filteredSuppliers);
-  }, [searchTerm, filterProductType, allSuppliers]);
+    setPage(0);
+  };
 
   return {
     suppliers,
+    allProductTypes,
     retrieveProducts,
-    allSuppliers,
     currentSupplier,
     currentProduct,
     products,
