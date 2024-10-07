@@ -44,10 +44,10 @@ const StockForm = ({
         productId: stock.productId,
         productName: stock.productName,
       });
-      console.log("Selected Product after load:", {
+      /*  console.log("Selected Product after load:", {
         productId: stock.productId,
         productName: stock.productName,
-      });
+      }); */
     } catch (error) {
       console.error("Erro ao carregar o estoque:", error);
     }
@@ -65,8 +65,8 @@ const StockForm = ({
   useEffect(() => {
     if (open) {
       resetForm();
-      console.log("Edit mode:", editMode);
-      console.log("Current stock:", currentStock);
+      //console.log("Edit mode:", editMode);
+      //console.log("Current stock:", currentStock);
       if (editMode && currentStock?.id) {
         loadStockById(currentStock.id);
       }
@@ -126,7 +126,7 @@ const StockForm = ({
             fullWidth
             disabled
           />
-          {console.log("Selected Product:", selectedProduct)}
+          {/* {console.log("Selected Product:", selectedProduct)} */}
 
           <TextField
             margin="normal"
