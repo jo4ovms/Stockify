@@ -38,6 +38,7 @@ const StockPage = () => {
   }, [selectedSupplier, minQuantity, maxQuantity, minValue, maxValue]);
 
   useEffect(() => {
+    setPage(0);
     retrieveStocks(selectedSupplier);
   }, [page]);
 
@@ -230,14 +231,21 @@ const StockPage = () => {
       <Box display="flex" justifyContent="space-between" mt={2}>
         <Button
           variant="contained"
-          onClick={handlePreviousPage}
+          onClick={() => {
+            handlePreviousPage();
+
+            window.scrollTo(0, 0);
+          }}
           disabled={page === 0}
         >
           Página Anterior
         </Button>
         <Button
           variant="contained"
-          onClick={handleNextPage}
+          onClick={() => {
+            handleNextPage();
+            window.scrollTo(0, 0);
+          }}
           disabled={stocks.length < PAGE_SIZE}
         >
           Próxima Página
