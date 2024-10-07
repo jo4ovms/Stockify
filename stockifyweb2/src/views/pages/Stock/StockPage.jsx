@@ -8,7 +8,9 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  TextField,
 } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import stockService from "../../../services/stockService";
 import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import DashboardCard from "../../../components/shared/DashboardCard";
@@ -25,17 +27,52 @@ const StockPage = () => {
   const [currentStock, setCurrentStock] = useState(null);
   const [page, setPage] = useState(0);
 
+  const [minQuantity, setMinQuantity] = useState(null);
+  const [maxQuantity, setMaxQuantity] = useState(null);
+  const [minValue, setMinValue] = useState(null);
+  const [maxValue, setMaxValue] = useState(null);
+
   useEffect(() => {
     retrieveStocks(selectedSupplier);
     retrieveSuppliers();
-  }, [page, selectedSupplier]);
+  }, [selectedSupplier, minQuantity, maxQuantity, minValue, maxValue]);
+
+  useEffect(() => {
+    retrieveStocks(selectedSupplier);
+  }, [page]);
 
   const retrieveStocks = (supplierId = "") => {
     const fetchStocks = supplierId
       ? stockService.getStocksBySupplier(page, PAGE_SIZE, supplierId)
       : stockService.getAllStock(page, PAGE_SIZE);
 
-    fetchStocks.then(setStocks);
+    fetchStocks.then((data) => {
+      let filteredStocks = data;
+
+      if (minQuantity !== null && minQuantity !== "") {
+        filteredStocks = filteredStocks.filter(
+          (stock) => stock.quantity >= minQuantity
+        );
+      }
+      if (maxQuantity !== null && maxQuantity !== "") {
+        filteredStocks = filteredStocks.filter(
+          (stock) => stock.quantity <= maxQuantity
+        );
+      }
+
+      if (minValue !== null && minValue !== "") {
+        filteredStocks = filteredStocks.filter(
+          (stock) => stock.value >= minValue
+        );
+      }
+      if (maxValue !== null && maxValue !== "") {
+        filteredStocks = filteredStocks.filter(
+          (stock) => stock.value <= maxValue
+        );
+      }
+
+      setStocks(filteredStocks);
+    });
   };
 
   const retrieveSuppliers = () => {
@@ -63,40 +100,89 @@ const StockPage = () => {
     stockService.deleteStock(id).then(() => retrieveStocks(selectedSupplier));
   };
 
+  const handleFilterChange = (setter) => (event) => setter(event.target.value);
+
   const handleNextPage = () => setPage((prev) => prev + 1);
   const handlePreviousPage = () => setPage((prev) => (prev > 0 ? prev - 1 : 0));
 
   return (
     <DashboardCard title="Gestão de Estoque">
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={2}
-      >
-        <Button variant="contained" color="primary" onClick={handleClickOpen}>
-          Adicionar ao Estoque
-        </Button>
+      <Box component="form" noValidate autoComplete="off">
+        <Grid container spacing={2} alignItems="center">
+          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleClickOpen}
+              fullWidth
+            >
+              Adicionar ao Estoque
+            </Button>
+          </Grid>
 
-        <FormControl sx={{ mb: 2, minWidth: 200 }}>
-          <InputLabel id="filter-supplier-label">Fornecedor</InputLabel>
-          <Select
-            labelId="filter-supplier-label"
-            id="filter-supplier"
-            value={selectedSupplier}
-            label="Fornecedor"
-            onChange={(e) => setSelectedSupplier(e.target.value)}
-          >
-            <MenuItem value="">
-              <em>Todos</em>
-            </MenuItem>
-            {suppliers.map((supplier) => (
-              <MenuItem key={supplier.id} value={supplier.id}>
-                {supplier.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+            <FormControl fullWidth>
+              <InputLabel id="filter-supplier-label">Fornecedor</InputLabel>
+              <Select
+                labelId="filter-supplier-label"
+                id="filter-supplier"
+                value={selectedSupplier}
+                label="Fornecedor"
+                onChange={(e) => setSelectedSupplier(e.target.value)}
+              >
+                <MenuItem value="">
+                  <em>Todos</em>
+                </MenuItem>
+                {suppliers.map((supplier) => (
+                  <MenuItem key={supplier.id} value={supplier.id}>
+                    {supplier.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+            <TextField
+              label="Quantidade Mínima"
+              variant="outlined"
+              fullWidth
+              type="number"
+              value={minQuantity}
+              onChange={handleFilterChange(setMinQuantity)}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+            <TextField
+              label="Quantidade Máxima"
+              variant="outlined"
+              fullWidth
+              type="number"
+              value={maxQuantity}
+              onChange={handleFilterChange(setMaxQuantity)}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+            <TextField
+              label="Valor Mínimo"
+              variant="outlined"
+              fullWidth
+              type="number"
+              value={minValue}
+              onChange={handleFilterChange(setMinValue)}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+            <TextField
+              label="Valor Máximo"
+              variant="outlined"
+              fullWidth
+              type="number"
+              value={maxValue}
+              onChange={handleFilterChange(setMaxValue)}
+            />
+          </Grid>
+        </Grid>
       </Box>
 
       <Box mt={2}>
