@@ -33,19 +33,22 @@ const StockPage = () => {
   const [maxValue, setMaxValue] = useState(null);
 
   useEffect(() => {
-    retrieveStocks(selectedSupplier);
     retrieveSuppliers();
-  }, [selectedSupplier, minQuantity, maxQuantity, minValue, maxValue]);
+  }, []);
 
   useEffect(() => {
     setPage(0);
-    retrieveStocks(selectedSupplier);
+    retrieveStocks(selectedSupplier, 0);
+  }, [selectedSupplier, minQuantity, maxQuantity, minValue, maxValue]);
+
+  useEffect(() => {
+    retrieveStocks(selectedSupplier, page);
   }, [page]);
 
-  const retrieveStocks = (supplierId = "") => {
+  const retrieveStocks = (supplierId = "", pageNumber = 0) => {
     const fetchStocks = supplierId
-      ? stockService.getStocksBySupplier(page, PAGE_SIZE, supplierId)
-      : stockService.getAllStock(page, PAGE_SIZE);
+      ? stockService.getStocksBySupplier(pageNumber, PAGE_SIZE, supplierId)
+      : stockService.getAllStock(pageNumber, PAGE_SIZE);
 
     fetchStocks.then((data) => {
       let filteredStocks = data;
