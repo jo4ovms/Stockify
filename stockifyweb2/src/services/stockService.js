@@ -46,6 +46,12 @@ const deleteStock = async (id) => {
   await axios.delete(`${API_URL}/${id}`);
 };
 
+const searchStocks = async (query, page = 0, size = 10) => {
+  const params = { page, size, query };
+  const response = await axios.get(`${API_URL}/search`, { params });
+  return response.data._embedded?.stockDTOList || [];
+};
+
 export default {
   getAllStock,
   createStock,
@@ -54,4 +60,5 @@ export default {
   getStockById,
   getAllWithoutPagination,
   getStocksBySupplier,
+  searchStocks,
 };

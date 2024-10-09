@@ -9,6 +9,7 @@ import {
   Select,
   MenuItem,
   TextField,
+  Slider,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import stockService from "../../../services/stockService";
@@ -20,6 +21,7 @@ const PAGE_SIZE = 10;
 
 const StockPage = () => {
   const [stocks, setStocks] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [suppliers, setSuppliers] = useState([]);
   const [selectedSupplier, setSelectedSupplier] = useState("");
   const [open, setOpen] = useState(false);
@@ -27,10 +29,8 @@ const StockPage = () => {
   const [currentStock, setCurrentStock] = useState(null);
   const [page, setPage] = useState(0);
 
-  const [minQuantity, setMinQuantity] = useState(null);
-  const [maxQuantity, setMaxQuantity] = useState(null);
-  const [minValue, setMinValue] = useState(null);
-  const [maxValue, setMaxValue] = useState(null);
+  const [quantityRange, setQuantityRange] = useState([0, 100]);
+  const [valueRange, setValueRange] = useState([0, 10000]);
 
   useEffect(() => {
     retrieveSuppliers();
@@ -39,41 +39,43 @@ const StockPage = () => {
   useEffect(() => {
     setPage(0);
     retrieveStocks(selectedSupplier, 0);
-  }, [selectedSupplier, minQuantity, maxQuantity, minValue, maxValue]);
+  }, [searchQuery, selectedSupplier, quantityRange, valueRange]);
 
   useEffect(() => {
     retrieveStocks(selectedSupplier, page);
   }, [page]);
 
   const retrieveStocks = (supplierId = "", pageNumber = 0) => {
-    const fetchStocks = supplierId
-      ? stockService.getStocksBySupplier(pageNumber, PAGE_SIZE, supplierId)
-      : stockService.getAllStock(pageNumber, PAGE_SIZE);
+    let fetchStocks;
+
+    if (searchQuery) {
+      fetchStocks = stockService.searchStocks(
+        searchQuery,
+        pageNumber,
+        PAGE_SIZE
+      );
+    } else if (supplierId) {
+      fetchStocks = stockService.getStocksBySupplier(
+        pageNumber,
+        PAGE_SIZE,
+        supplierId
+      );
+    } else {
+      fetchStocks = stockService.getAllStock(pageNumber, PAGE_SIZE);
+    }
 
     fetchStocks.then((data) => {
       let filteredStocks = data;
 
-      if (minQuantity !== null && minQuantity !== "") {
-        filteredStocks = filteredStocks.filter(
-          (stock) => stock.quantity >= minQuantity
-        );
-      }
-      if (maxQuantity !== null && maxQuantity !== "") {
-        filteredStocks = filteredStocks.filter(
-          (stock) => stock.quantity <= maxQuantity
-        );
-      }
+      filteredStocks = filteredStocks.filter(
+        (stock) =>
+          stock.quantity >= quantityRange[0] &&
+          stock.quantity <= quantityRange[1]
+      );
 
-      if (minValue !== null && minValue !== "") {
-        filteredStocks = filteredStocks.filter(
-          (stock) => stock.value >= minValue
-        );
-      }
-      if (maxValue !== null && maxValue !== "") {
-        filteredStocks = filteredStocks.filter(
-          (stock) => stock.value <= maxValue
-        );
-      }
+      filteredStocks = filteredStocks.filter(
+        (stock) => stock.value >= valueRange[0] && stock.value <= valueRange[1]
+      );
 
       setStocks(filteredStocks);
     });
@@ -104,15 +106,29 @@ const StockPage = () => {
     stockService.deleteStock(id).then(() => retrieveStocks(selectedSupplier));
   };
 
-  const handleFilterChange = (setter) => (event) => setter(event.target.value);
+  const handleSliderChange = (setter) => (event, newValue) => setter(newValue);
 
   const handleNextPage = () => setPage((prev) => prev + 1);
   const handlePreviousPage = () => setPage((prev) => (prev > 0 ? prev - 1 : 0));
 
   return (
     <DashboardCard title="Gestão de Estoque">
-      <Box component="form" noValidate autoComplete="off">
+      <Box component="form" noValidate autoComplete="off" mb={2}>
         <Grid container spacing={2} alignItems="center">
+          <Grid size={{ xs: 12, sm: 6, md: 12, width: "100%" }}>
+            <TextField
+              label="Buscar por produto"
+              variant="outlined"
+              fullWidth
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </Grid>
+        </Grid>
+      </Box>
+
+      <Box component="form" noValidate autoComplete="off">
+        <Grid container spacing={4} alignItems="center">
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>
             <Button
               variant="contained"
@@ -124,7 +140,7 @@ const StockPage = () => {
             </Button>
           </Grid>
 
-          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <FormControl fullWidth>
               <InputLabel id="filter-supplier-label">Fornecedor</InputLabel>
               <Select
@@ -147,44 +163,35 @@ const StockPage = () => {
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-            <TextField
-              label="Quantidade Mínima"
-              variant="outlined"
-              fullWidth
-              type="number"
-              value={minQuantity}
-              onChange={handleFilterChange(setMinQuantity)}
-            />
+            <FormControl fullWidth>
+              <Typography gutterBottom>Quantidade</Typography>
+              <Slider
+                value={quantityRange}
+                onChange={handleSliderChange(setQuantityRange)}
+                valueLabelDisplay="auto"
+                min={0}
+                max={100}
+              />
+              <Typography variant="body2">
+                {`${quantityRange[0]} - ${quantityRange[1]}`}
+              </Typography>
+            </FormControl>
           </Grid>
+
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-            <TextField
-              label="Quantidade Máxima"
-              variant="outlined"
-              fullWidth
-              type="number"
-              value={maxQuantity}
-              onChange={handleFilterChange(setMaxQuantity)}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-            <TextField
-              label="Valor Mínimo"
-              variant="outlined"
-              fullWidth
-              type="number"
-              value={minValue}
-              onChange={handleFilterChange(setMinValue)}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-            <TextField
-              label="Valor Máximo"
-              variant="outlined"
-              fullWidth
-              type="number"
-              value={maxValue}
-              onChange={handleFilterChange(setMaxValue)}
-            />
+            <FormControl fullWidth>
+              <Typography gutterBottom>Valor</Typography>
+              <Slider
+                value={valueRange}
+                onChange={handleSliderChange(setValueRange)}
+                valueLabelDisplay="auto"
+                min={0}
+                max={10000}
+              />
+              <Typography variant="body2">
+                {`R$${valueRange[0]} - R$${valueRange[1]}`}
+              </Typography>
+            </FormControl>
           </Grid>
         </Grid>
       </Box>
@@ -201,14 +208,14 @@ const StockPage = () => {
               borderBottom="1px solid #ccc"
             >
               <Box>
-                <Typography variant="h6">{stock.productName}</Typography>{" "}
+                <Typography variant="h6">{stock.productName}</Typography>
                 <Typography variant="body2">Valor: {stock.value}</Typography>
                 <Typography variant="body2">
                   Quantidade: {stock.quantity}
                 </Typography>
                 <Typography variant="body2">
                   Fornecedor: {stock.supplierName}
-                </Typography>{" "}
+                </Typography>
               </Box>
               <Box>
                 <IconButton
@@ -236,7 +243,6 @@ const StockPage = () => {
           variant="contained"
           onClick={() => {
             handlePreviousPage();
-
             window.scrollTo(0, 0);
           }}
           disabled={page === 0}
