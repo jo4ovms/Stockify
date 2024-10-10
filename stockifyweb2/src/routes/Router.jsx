@@ -1,5 +1,8 @@
 import React, { lazy } from "react";
 import { Navigate } from "react-router-dom";
+import StockUnderSafetyPage from "../views/pages/StockOverview/StockUnderSafetyPage";
+import StockSafetyPage from "../views/pages/StockOverview/StockSafetyPage";
+import OutOfStockPage from "../views/pages/StockOverview/OutOfStockPage";
 
 const FullLayout = lazy(() => import("../layouts/full/FullLayout"));
 const BlankLayout = lazy(() => import("../layouts/Blank/BlankLayout"));
@@ -33,6 +36,22 @@ const Router = [
       {
         path: "/about-us",
         element: <AboutUs />,
+      },
+      {
+        path: "/stock/under-safety",
+        element: <StockUnderSafetyPage />,
+      },
+      {
+        path: "/stock/safety",
+        element: <StockSafetyPage />,
+      },
+      {
+        path: "/stock/out-of-stock",
+        element: <OutOfStockPage />,
+      },
+      {
+        path: "/stock/:id/edit",
+        element: <StockPage />,
       },
     ],
   },

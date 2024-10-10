@@ -4,17 +4,40 @@ import { useTheme } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { IconAlertTriangle, IconCheck, IconBox } from "@tabler/icons-react";
 import DashboardCard from "../../../components/shared/DashboardCard";
+import StockOverviewService from "../../../services/stockOverviewService";
 
 const StockOverview = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [lowStockItems, setLowStockItems] = useState(0);
-  const [outOfStockitems, setOutOfStockitems] = useState(0);
+  const [outOfStockItems, setOutOfStockItems] = useState(0);
+  const [adequateStockItems, setAdequateStockItems] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
-    setTotalItems(10);
-    setLowStockItems(5);
-    setOutOfStockitems(3);
+    const handleStockMessage = (stockData) => {
+      setTotalItems((prevTotal) => prevTotal + 1);
+
+      if (stockData.quantity === 0) {
+        setOutOfStockItems((prevOutOfStock) => prevOutOfStock + 1);
+      } else if (stockData.quantity < 5) {
+        setLowStockItems((prevLowStock) => prevLowStock + 1);
+      } else {
+        setAdequateStockItems((prevAdequateStock) => prevAdequateStock + 1);
+      }
+    };
+
+    const handleError = (error) => {
+      console.error("Erro no streaming de dados: ", error);
+    };
+
+    const eventSource = StockOverviewService.streamStocks(
+      handleStockMessage,
+      handleError
+    );
+
+    return () => {
+      eventSource.close();
+    };
   }, []);
 
   const handleNavigate = (path) => {
@@ -34,7 +57,7 @@ const StockOverview = () => {
           color="secondary"
           size="medium"
           sx={{ color: "#ffffff" }}
-          onClick={() => handleNavigate("/products")}
+          onClick={() => handleNavigate("/stock")}
         >
           <IconBox width={24} />
         </Fab>
@@ -59,7 +82,7 @@ const StockOverview = () => {
           <Box
             display="flex"
             alignItems="center"
-            onClick={() => handleNavigate("/products/under-safety")}
+            onClick={() => handleNavigate("/stock/under-safety")}
             style={{ cursor: "pointer" }}
           >
             <Avatar
@@ -80,14 +103,14 @@ const StockOverview = () => {
           <Box
             display="flex"
             alignItems="center"
-            onClick={() => handleNavigate("/products/out-of-stock")}
+            onClick={() => handleNavigate("/stock/out-of-stock")}
             style={{ cursor: "pointer" }}
           >
             <Avatar sx={{ bgcolor: errorlight, width: 40, height: 40, mr: 2 }}>
               <IconAlertTriangle width={24} color={theme.palette.error.main} />
             </Avatar>
             <Box>
-              <Typography variant="h5">{outOfStockitems}</Typography>
+              <Typography variant="h5">{outOfStockItems}</Typography>
               <Typography variant="subtitle2" color="textSecondary">
                 Fora de Estoque
               </Typography>
@@ -96,7 +119,7 @@ const StockOverview = () => {
           <Box
             display="flex"
             alignItems="center"
-            onClick={() => handleNavigate("/products/over-safety")}
+            onClick={() => handleNavigate("/stock/safety")}
             style={{ cursor: "pointer" }}
           >
             <Avatar
@@ -105,9 +128,7 @@ const StockOverview = () => {
               <IconCheck width={24} color={theme.palette.success.main} />
             </Avatar>
             <Box>
-              <Typography variant="h5">
-                {totalItems - lowStockItems + outOfStockitems}
-              </Typography>
+              <Typography variant="h5">{adequateStockItems}</Typography>
               <Typography variant="subtitle2" color="textSecondary">
                 Estoque adequado
               </Typography>
