@@ -17,8 +17,6 @@ import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import DashboardCard from "../../../components/shared/DashboardCard";
 import StockForm from "./StockForm";
 
-const PAGE_SIZE = 10;
-
 const StockPage = () => {
   const [stocks, setStocks] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,6 +26,7 @@ const StockPage = () => {
   const [editMode, setEditMode] = useState(false);
   const [currentStock, setCurrentStock] = useState(null);
   const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   const [quantityRange, setQuantityRange] = useState([0, 100]);
   const [valueRange, setValueRange] = useState([0, 10000]);
@@ -37,50 +36,53 @@ const StockPage = () => {
   }, []);
 
   useEffect(() => {
-    setPage(0);
-    retrieveStocks(selectedSupplier, 0);
-  }, [searchQuery, selectedSupplier, quantityRange, valueRange]);
-
-  useEffect(() => {
     retrieveStocks(selectedSupplier, page);
-  }, [page]);
+  }, [page, searchQuery, selectedSupplier, quantityRange, valueRange]);
 
-  const retrieveStocks = (supplierId = "", pageNumber = 0) => {
+  const retrieveStocks = (supplierId = "", pageNumber = 0, size = 10) => {
     let fetchStocks;
 
-    if (searchQuery) {
+    if (searchQuery.trim()) {
       fetchStocks = stockService.searchStocks(
         searchQuery,
         pageNumber,
-        PAGE_SIZE
+        size,
+        supplierId
       );
     } else if (supplierId) {
       fetchStocks = stockService.getStocksBySupplier(
         pageNumber,
-        PAGE_SIZE,
+        size,
         supplierId
       );
     } else {
-      fetchStocks = stockService.getAllStock(pageNumber, PAGE_SIZE);
+      fetchStocks = stockService.getAllStock(pageNumber, size);
     }
 
-    fetchStocks.then((data) => {
-      let filteredStocks = data;
+    fetchStocks
+      .then((response) => {
+        const stocksData = response._embedded?.stockDTOList || [];
 
-      filteredStocks = filteredStocks.filter(
-        (stock) =>
-          stock.quantity >= quantityRange[0] &&
-          stock.quantity <= quantityRange[1]
-      );
+        let filteredStocks = stocksData.filter(
+          (stock) =>
+            stock.quantity >= quantityRange[0] &&
+            stock.quantity <= quantityRange[1]
+        );
 
-      filteredStocks = filteredStocks.filter(
-        (stock) => stock.value >= valueRange[0] && stock.value <= valueRange[1]
-      );
+        filteredStocks = filteredStocks.filter(
+          (stock) =>
+            stock.value >= valueRange[0] && stock.value <= valueRange[1]
+        );
 
-      setStocks(filteredStocks);
-    });
+        setStocks(filteredStocks);
+
+        const totalPagesFromResponse = response.page?.totalPages || 1;
+        setTotalPages(totalPagesFromResponse);
+      })
+      .catch((error) => {
+        console.error("Erro ao buscar os estoques:", error);
+      });
   };
-
   const retrieveSuppliers = () => {
     stockService
       .getAllWithoutPagination()
@@ -107,9 +109,6 @@ const StockPage = () => {
   };
 
   const handleSliderChange = (setter) => (event, newValue) => setter(newValue);
-
-  const handleNextPage = () => setPage((prev) => prev + 1);
-  const handlePreviousPage = () => setPage((prev) => (prev > 0 ? prev - 1 : 0));
 
   return (
     <DashboardCard title="Gestão de Estoque">
@@ -242,20 +241,25 @@ const StockPage = () => {
         <Button
           variant="contained"
           onClick={() => {
-            handlePreviousPage();
-            window.scrollTo(0, 0);
+            setPage((prev) => Math.max(prev - 1, 0));
+            retrieveStocks(selectedSupplier, page - 1);
           }}
           disabled={page === 0}
         >
           Página Anterior
         </Button>
+
+        <Typography>
+          Página {page + 1} de {totalPages}
+        </Typography>
+
         <Button
           variant="contained"
           onClick={() => {
-            handleNextPage();
-            window.scrollTo(0, 0);
+            setPage((prev) => Math.min(prev + 1, totalPages - 1));
+            retrieveStocks(selectedSupplier, page + 1);
           }}
-          disabled={stocks.length < PAGE_SIZE}
+          disabled={page >= totalPages - 1}
         >
           Próxima Página
         </Button>

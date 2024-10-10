@@ -8,18 +8,15 @@ const getAllStock = async (page = 0, size = 10, supplierId = "") => {
     params.supplierId = supplierId;
   }
 
-  //console.log("Params for API call:", params);
-
   const response = await axios.get(API_URL, { params });
-  // console.log("API Response Stock:", response.data);
 
-  return response.data._embedded?.stockDTOList || [];
+  return response.data || [];
 };
 
 const getStocksBySupplier = async (page = 0, size = 10, supplierId) => {
   const params = { page, size, supplierId };
   const response = await axios.get(API_URL + "/by-supplier", { params });
-  return response.data._embedded?.stockDTOList || [];
+  return response.data || [];
 };
 
 const getAllWithoutPagination = async () => {
@@ -49,7 +46,7 @@ const deleteStock = async (id) => {
 const searchStocks = async (query, page = 0, size = 10) => {
   const params = { page, size, query };
   const response = await axios.get(`${API_URL}/search`, { params });
-  return response.data._embedded?.stockDTOList || [];
+  return response.data || [];
 };
 
 export default {
