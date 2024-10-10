@@ -28,6 +28,8 @@ const StockPage = () => {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
+  const [minMaxQuantity, setMinMaxQuantity] = useState([0, 100]);
+  const [minMaxValue, setMinMaxValue] = useState([0, 10000]);
   const [quantityRange, setQuantityRange] = useState([0, 100]);
   const [valueRange, setValueRange] = useState([0, 10000]);
 
@@ -39,42 +41,46 @@ const StockPage = () => {
     retrieveStocks(selectedSupplier, page);
   }, [page, searchQuery, selectedSupplier, quantityRange, valueRange]);
 
+  useEffect(() => {
+    stockService
+      .getStockLimits()
+      .then((limits) => {
+        setMinMaxQuantity([0, limits.maxQuantity]);
+        setMinMaxValue([0, limits.maxValue]);
+        setQuantityRange([0, limits.maxQuantity]);
+        setValueRange([0, limits.maxValue]);
+      })
+      .catch((error) => {
+        console.error("Erro ao obter os limites de estoque:", error);
+      });
+  }, []);
+
   const retrieveStocks = (supplierId = "", pageNumber = 0, size = 10) => {
     let fetchStocks;
 
+    const params = {
+      page: pageNumber,
+      size,
+      minQuantity: quantityRange[0],
+      maxQuantity: quantityRange[1],
+      minValue: valueRange[0],
+      maxValue: valueRange[1],
+    };
+
     if (searchQuery.trim()) {
-      fetchStocks = stockService.searchStocks(
-        searchQuery,
-        pageNumber,
-        size,
-        supplierId
-      );
+      params.query = searchQuery;
+      fetchStocks = stockService.searchStocks(params);
     } else if (supplierId) {
-      fetchStocks = stockService.getStocksBySupplier(
-        pageNumber,
-        size,
-        supplierId
-      );
+      params.supplierId = supplierId;
+      fetchStocks = stockService.getStocksBySupplier(params);
     } else {
-      fetchStocks = stockService.getAllStock(pageNumber, size);
+      fetchStocks = stockService.getAllStock(params);
     }
 
     fetchStocks
       .then((response) => {
         const stocksData = response._embedded?.stockDTOList || [];
-
-        let filteredStocks = stocksData.filter(
-          (stock) =>
-            stock.quantity >= quantityRange[0] &&
-            stock.quantity <= quantityRange[1]
-        );
-
-        filteredStocks = filteredStocks.filter(
-          (stock) =>
-            stock.value >= valueRange[0] && stock.value <= valueRange[1]
-        );
-
-        setStocks(filteredStocks);
+        setStocks(stocksData);
 
         const totalPagesFromResponse = response.page?.totalPages || 1;
         setTotalPages(totalPagesFromResponse);
@@ -168,8 +174,8 @@ const StockPage = () => {
                 value={quantityRange}
                 onChange={handleSliderChange(setQuantityRange)}
                 valueLabelDisplay="auto"
-                min={0}
-                max={100}
+                min={minMaxQuantity[0]}
+                max={minMaxQuantity[1]}
               />
               <Typography variant="body2">
                 {`${quantityRange[0]} - ${quantityRange[1]}`}
@@ -184,8 +190,8 @@ const StockPage = () => {
                 value={valueRange}
                 onChange={handleSliderChange(setValueRange)}
                 valueLabelDisplay="auto"
-                min={0}
-                max={10000}
+                min={minMaxValue[0]}
+                max={minMaxValue[1]}
               />
               <Typography variant="body2">
                 {`R$${valueRange[0]} - R$${valueRange[1]}`}

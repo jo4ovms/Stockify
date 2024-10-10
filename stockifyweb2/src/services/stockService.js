@@ -2,19 +2,12 @@ import axios from "axios";
 
 const API_URL = "http://localhost:8081/api/stock";
 
-const getAllStock = async (page = 0, size = 10, supplierId = "") => {
-  const params = { page, size };
-  if (supplierId) {
-    params.supplierId = supplierId;
-  }
-
+const getAllStock = async (params = {}) => {
   const response = await axios.get(API_URL, { params });
-
   return response.data || [];
 };
 
-const getStocksBySupplier = async (page = 0, size = 10, supplierId) => {
-  const params = { page, size, supplierId };
+const getStocksBySupplier = async (params = {}) => {
   const response = await axios.get(API_URL + "/by-supplier", { params });
   return response.data || [];
 };
@@ -43,14 +36,19 @@ const deleteStock = async (id) => {
   await axios.delete(`${API_URL}/${id}`);
 };
 
-const searchStocks = async (query, page = 0, size = 10) => {
-  const params = { page, size, query };
+const searchStocks = async (params = {}) => {
   const response = await axios.get(`${API_URL}/search`, { params });
   return response.data || [];
 };
 
+const getStockLimits = async () => {
+  const response = await axios.get(`${API_URL}/limits`);
+  return response.data;
+};
+
 export default {
   getAllStock,
+  getStockLimits,
   createStock,
   updateStock,
   deleteStock,
