@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 import StockUnderSafetyPage from "../views/pages/StockOverview/StockUnderSafetyPage";
 import StockSafetyPage from "../views/pages/StockOverview/StockSafetyPage";
 import OutOfStockPage from "../views/pages/StockOverview/OutOfStockPage";
+import CriticalStockPage from "../views/pages/StockOverview/CriticalStockPage";
 
 const FullLayout = lazy(() => import("../layouts/full/FullLayout"));
 const BlankLayout = lazy(() => import("../layouts/Blank/BlankLayout"));
@@ -52,6 +53,10 @@ const Router = [
       {
         path: "/stock/:id/edit",
         element: <StockPage />,
+      },
+      {
+        path: "/stock/critical-stock",
+        element: <CriticalStockPage />,
       },
     ],
   },

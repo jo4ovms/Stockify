@@ -7,17 +7,18 @@ import PageContainer from "../../../components/container/PageContainer";
 import DashboardCard from "../../../components/shared/DashboardCard";
 import stockOverviewService from "../../../services/stockOverviewService";
 
-const OutOfStockPage = () => {
+const CriticalStockPage = () => {
   const [products, setProducts] = useState([]);
   const navigate = useNavigate();
+  const threshold = 5;
 
   useEffect(() => {
-    retrieveOutOfStockProducts();
+    retrieveLowStockProducts();
   }, []);
 
-  const retrieveOutOfStockProducts = () => {
+  const retrieveLowStockProducts = () => {
     stockOverviewService
-      .getOutOfStockReport()
+      .getLowStockReport(threshold)
       .then((response) => {
         const productData = response.data.products || [];
         setProducts(productData);
@@ -31,14 +32,14 @@ const OutOfStockPage = () => {
 
   return (
     <PageContainer
-      title="Produtos Esgotados"
-      description="Página de produtos fora de estoque"
+      title="Produtos Com Estoque Crítico"
+      description="Página de produtos abaixo da quantidade segura"
     >
-      <DashboardCard title="Produtos Esgotados!">
+      <DashboardCard title="Produtos Críticos!">
         <Grid container spacing={-5}>
           {products.length === 0 ? (
             <Typography variant="body2" color="textSecondary">
-              Nenhum produto fora de estoque.
+              Nenhum produto abaixo da quantidade segura.
             </Typography>
           ) : (
             products.map((product) => (
@@ -67,7 +68,7 @@ const OutOfStockPage = () => {
                         mr: 2,
                       }}
                     >
-                      <IconAlertTriangle width={20} color="#d32f2f" />
+                      <IconAlertTriangle width={20} color="#FFAE1F" />
                     </Avatar>
                     <Typography variant="subtitle2">
                       {product.productName}
@@ -99,4 +100,4 @@ const OutOfStockPage = () => {
   );
 };
 
-export default OutOfStockPage;
+export default CriticalStockPage;

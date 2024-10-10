@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Typography, Box, Avatar, IconButton } from "@mui/material";
 import Grid from "@mui/material/Grid2";
-import { IconAlertTriangle, IconEye } from "@tabler/icons-react"; // Import eye icon
+import { IconAlertTriangle, IconEye } from "@tabler/icons-react";
 import PageContainer from "../../../components/container/PageContainer";
 import DashboardCard from "../../../components/shared/DashboardCard";
 import stockOverviewService from "../../../services/stockOverviewService";
