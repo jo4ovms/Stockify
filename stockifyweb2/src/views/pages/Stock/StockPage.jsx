@@ -38,6 +38,12 @@ const StockPage = () => {
   }, []);
 
   useEffect(() => {
+    if (searchQuery.trim()) {
+      setPage(0);
+    }
+  }, [searchQuery]);
+
+  useEffect(() => {
     retrieveStocks(selectedSupplier, page);
   }, [page, searchQuery, selectedSupplier, quantityRange, valueRange]);
 
@@ -76,6 +82,7 @@ const StockPage = () => {
     } else {
       fetchStocks = stockService.getAllStock(params);
     }
+    console.log("Params:", params);
 
     fetchStocks
       .then((response) => {
@@ -247,8 +254,9 @@ const StockPage = () => {
         <Button
           variant="contained"
           onClick={() => {
-            setPage((prev) => Math.max(prev - 1, 0));
-            retrieveStocks(selectedSupplier, page - 1);
+            const newPage = Math.max(page - 1, 0);
+            setPage(newPage);
+            retrieveStocks(selectedSupplier, newPage);
             window.scrollTo(0, 0);
           }}
           disabled={page === 0}
@@ -263,8 +271,9 @@ const StockPage = () => {
         <Button
           variant="contained"
           onClick={() => {
-            setPage((prev) => Math.min(prev + 1, totalPages - 1));
-            retrieveStocks(selectedSupplier, page + 1);
+            const newPage = Math.min(page + 1, totalPages - 1);
+            setPage(newPage);
+            retrieveStocks(selectedSupplier, newPage);
             window.scrollTo(0, 0);
           }}
           disabled={page >= totalPages - 1}
