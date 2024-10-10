@@ -44,6 +44,12 @@ const StockPage = () => {
   }, [searchQuery]);
 
   useEffect(() => {
+    if (selectedSupplier) {
+      setPage(0);
+    }
+  }, [selectedSupplier]);
+
+  useEffect(() => {
     retrieveStocks(selectedSupplier, page);
   }, [page, searchQuery, selectedSupplier, quantityRange, valueRange]);
 
