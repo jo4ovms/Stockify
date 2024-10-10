@@ -50,7 +50,7 @@ const StockPage = () => {
   }, [selectedSupplier]);
 
   useEffect(() => {
-    retrieveStocks(selectedSupplier, page);
+    retrieveStocks(page, 10);
   }, [page, searchQuery, selectedSupplier, quantityRange, valueRange]);
 
   useEffect(() => {
@@ -67,30 +67,22 @@ const StockPage = () => {
       });
   }, []);
 
-  const retrieveStocks = (supplierId = "", pageNumber = 0, size = 10) => {
-    let fetchStocks;
-
+  const retrieveStocks = (pageNumber = 0, size = 10) => {
     const params = {
       page: pageNumber,
-      size,
+      size: size > 0 ? size : 10,
       minQuantity: quantityRange[0],
       maxQuantity: quantityRange[1],
       minValue: valueRange[0],
       maxValue: valueRange[1],
+      query: searchQuery.trim() || undefined,
+      supplierId: selectedSupplier || undefined,
     };
 
-    if (searchQuery.trim()) {
-      params.query = searchQuery;
-      fetchStocks = stockService.searchStocks(params);
-    } else if (supplierId) {
-      params.supplierId = supplierId;
-      fetchStocks = stockService.getStocksBySupplier(params);
-    } else {
-      fetchStocks = stockService.getAllStock(params);
-    }
-    console.log("Params:", params);
+    console.log("Parâmetros enviados para a API:", params);
 
-    fetchStocks
+    stockService
+      .getAllStock(params)
       .then((response) => {
         const stocksData = response._embedded?.stockDTOList || [];
         setStocks(stocksData);
@@ -102,6 +94,7 @@ const StockPage = () => {
         console.error("Erro ao buscar os estoques:", error);
       });
   };
+
   const retrieveSuppliers = () => {
     stockService
       .getAllWithoutPagination()
@@ -124,7 +117,7 @@ const StockPage = () => {
   };
 
   const handleDelete = (id) => {
-    stockService.deleteStock(id).then(() => retrieveStocks(selectedSupplier));
+    stockService.deleteStock(id).then(() => retrieveStocks(page, 10));
   };
 
   const handleSliderChange = (setter) => (event, newValue) => setter(newValue);
@@ -262,7 +255,7 @@ const StockPage = () => {
           onClick={() => {
             const newPage = Math.max(page - 1, 0);
             setPage(newPage);
-            retrieveStocks(selectedSupplier, newPage);
+            retrieveStocks(newPage, 10);
             window.scrollTo(0, 0);
           }}
           disabled={page === 0}
@@ -279,7 +272,7 @@ const StockPage = () => {
           onClick={() => {
             const newPage = Math.min(page + 1, totalPages - 1);
             setPage(newPage);
-            retrieveStocks(selectedSupplier, newPage);
+            retrieveStocks(newPage, 10);
             window.scrollTo(0, 0);
           }}
           disabled={page >= totalPages - 1}
@@ -293,7 +286,7 @@ const StockPage = () => {
         handleClose={() => setOpen(false)}
         editMode={editMode}
         currentStock={currentStock}
-        retrieveStocks={() => retrieveStocks(selectedSupplier)}
+        retrieveStocks={() => retrieveStocks(page, 10)}
       />
     </DashboardCard>
   );
