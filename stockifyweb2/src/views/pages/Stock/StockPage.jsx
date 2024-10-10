@@ -43,9 +43,9 @@ const StockPage = () => {
         .getStockById(id)
         .then((response) => {
           setStock(response);
-          setEditMode(true); // Ativa o modo de edição
-          setCurrentStock(response); // Define o estoque atual
-          setOpen(true); // Abre o modal automaticamente
+          setEditMode(true);
+          setCurrentStock(response);
+          setOpen(true);
         })
         .catch(console.log);
     }

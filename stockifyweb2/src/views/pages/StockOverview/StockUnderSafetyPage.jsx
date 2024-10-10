@@ -44,30 +44,37 @@ const StockUnderSafetyPage = () => {
               Nenhum produto abaixo da quantidade segura.
             </Typography>
           ) : (
-            products.map((product) => (
-              <Grid size={{ xs: 12 }} key={product.id}>
-                <Box
-                  display="flex"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  onClick={() => handleProductClick(product.id)}
-                >
-                  <Box display="flex" alignItems="center">
-                    <Avatar
-                      sx={{ bgcolor: "#fdede8", width: 27, height: 27, mr: 2 }}
-                    >
-                      <IconAlertTriangle width={20} color="#d32f2f" />
-                    </Avatar>
-                    <Typography variant="subtitle2">
-                      {product.productName}
-                    </Typography>{" "}
+            products
+              .filter((product) => product.quantity > 0)
+              .map((product) => (
+                <Grid size={{ xs: 12 }} key={product.id}>
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    onClick={() => handleProductClick(product.id)}
+                  >
+                    <Box display="flex" alignItems="center">
+                      <Avatar
+                        sx={{
+                          bgcolor: "#fdede8",
+                          width: 27,
+                          height: 27,
+                          mr: 2,
+                        }}
+                      >
+                        <IconAlertTriangle width={20} color="#d32f2f" />
+                      </Avatar>
+                      <Typography variant="subtitle2">
+                        {product.productName}
+                      </Typography>{" "}
+                    </Box>
+                    <Typography variant="subtitle2" color="error">
+                      Quantity: {product.quantity}
+                    </Typography>
                   </Box>
-                  <Typography variant="subtitle2" color="error">
-                    Quantity: {product.quantity}
-                  </Typography>
-                </Box>
-              </Grid>
-            ))
+                </Grid>
+              ))
           )}
         </Grid>
       </DashboardCard>
