@@ -11,6 +11,7 @@ import {
   TextField,
   Slider,
 } from "@mui/material";
+import { useParams } from "react-router-dom";
 import Grid from "@mui/material/Grid2";
 import stockService from "../../../services/stockService";
 import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
@@ -18,6 +19,9 @@ import DashboardCard from "../../../components/shared/DashboardCard";
 import StockForm from "./StockForm";
 
 const StockPage = () => {
+  const { id } = useParams();
+  const [stock, setStock] = useState(null);
+
   const [stocks, setStocks] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [suppliers, setSuppliers] = useState([]);
@@ -32,6 +36,20 @@ const StockPage = () => {
   const [minMaxValue, setMinMaxValue] = useState([0, 10000]);
   const [quantityRange, setQuantityRange] = useState([0, 100]);
   const [valueRange, setValueRange] = useState([0, 10000]);
+
+  useEffect(() => {
+    if (id) {
+      stockService
+        .getStockById(id)
+        .then((response) => {
+          setStock(response);
+          setEditMode(true); // Ativa o modo de edição
+          setCurrentStock(response); // Define o estoque atual
+          setOpen(true); // Abre o modal automaticamente
+        })
+        .catch(console.log);
+    }
+  }, [id]);
 
   useEffect(() => {
     retrieveSuppliers();
