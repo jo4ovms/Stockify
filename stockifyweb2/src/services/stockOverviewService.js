@@ -30,6 +30,10 @@ const stockOverviewService = {
 
     return eventSource;
   },
+
+  getOutOfStockReport: () => {
+    return axios.get(`${API_BASE_URL}/reports/out-of-stock`);
+  },
 };
 
 export default stockOverviewService;
