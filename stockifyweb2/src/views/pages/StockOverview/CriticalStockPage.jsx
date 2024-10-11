@@ -21,7 +21,7 @@ const CriticalStockPage = () => {
 
   const retrieveLowStockProducts = (currentPage) => {
     stockOverviewService
-      .getLowStockReport(threshold, currentPage, size)
+      .getCriticalStockReport(threshold, currentPage, size)
       .then((response) => {
         const productData = response.data._embedded?.stockDTOList || [];
         setProducts(productData);

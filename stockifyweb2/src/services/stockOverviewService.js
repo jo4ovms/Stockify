@@ -31,6 +31,12 @@ const stockOverviewService = {
     return eventSource;
   },
 
+  getCriticalStockReport: (threshold, page = 0, size = 10) => {
+    return axios.get(`${API_BASE_URL}/reports/critical-stock`, {
+      params: { threshold, page, size },
+    });
+  },
+
   getOutOfStockReport: (page = 0, size = 10) => {
     return axios.get(`${API_BASE_URL}/reports/out-of-stock`, {
       params: { page, size },
