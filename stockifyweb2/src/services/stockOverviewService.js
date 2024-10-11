@@ -31,8 +31,10 @@ const stockOverviewService = {
     return eventSource;
   },
 
-  getOutOfStockReport: () => {
-    return axios.get(`${API_BASE_URL}/reports/out-of-stock`);
+  getOutOfStockReport: (page = 0, size = 10) => {
+    return axios.get(`${API_BASE_URL}/reports/out-of-stock`, {
+      params: { page, size },
+    });
   },
 };
 
