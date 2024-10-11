@@ -2,15 +2,15 @@ import axios from "axios";
 const API_BASE_URL = "http://localhost:8081/api/stock";
 
 const stockOverviewService = {
-  getLowStockReport: (threshold) => {
+  getLowStockReport: (threshold, page = 0, size = 10) => {
     return axios.get(`${API_BASE_URL}/reports/low-stock`, {
-      params: { threshold },
+      params: { threshold, page, size },
     });
   },
 
-  getHighStockReport: (threshold) => {
+  getHighStockReport: (threshold, page = 0, size = 10) => {
     return axios.get(`${API_BASE_URL}/reports/high-stock`, {
-      params: { threshold },
+      params: { threshold, page, size },
     });
   },
 

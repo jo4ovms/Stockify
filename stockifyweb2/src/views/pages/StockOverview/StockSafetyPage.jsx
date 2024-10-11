@@ -8,6 +8,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Button,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { IconShieldCheck, IconEye, IconChevronDown } from "@tabler/icons-react";
@@ -16,21 +17,37 @@ import DashboardCard from "../../../components/shared/DashboardCard";
 import stockOverviewService from "../../../services/stockOverviewService";
 
 const StockSafetyPage = () => {
+  const [page, setPage] = useState(0);
+  const [size] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+
   const [products, setProducts] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    retrieveSafetyStockProducts();
-  }, []);
+    retrieveSafetyStockProducts(page);
+  }, [page]);
 
-  const retrieveSafetyStockProducts = () => {
+  const retrieveSafetyStockProducts = (currentPage) => {
     stockOverviewService
-      .getHighStockReport(5)
+      .getHighStockReport(5, currentPage, size)
       .then((response) => {
-        const productData = response.data.products || [];
+        const productData = response.data._embedded?.stockDTOList || [];
         setProducts(productData);
+        setTotalPages(response.data.page.totalPages);
       })
       .catch(console.log);
+  };
+  const handleNextPage = () => {
+    if (page < totalPages - 1) {
+      setPage(page + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (page > 0) {
+      setPage(page - 1);
+    }
   };
 
   const handleProductClick = (productId) => {
@@ -120,6 +137,22 @@ const StockSafetyPage = () => {
             ))
           )}
         </Grid>
+        <Box display="flex" justifyContent="space-between" mt={2}>
+          <Button
+            variant="contained"
+            onClick={handlePreviousPage}
+            disabled={page === 0}
+          >
+            Página Anterior
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleNextPage}
+            disabled={page >= totalPages - 1}
+          >
+            Próxima Página
+          </Button>
+        </Box>
       </DashboardCard>
     </PageContainer>
   );
