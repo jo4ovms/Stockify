@@ -28,7 +28,8 @@ const StockUnderSafety = () => {
   const fetchCriticalStock = async () => {
     try {
       const response = await stockOverviewService.getLowStockReport(5);
-      setProducts(response.data.products);
+      const productData = response.data._embedded?.stockDTOList || [];
+      setProducts(productData);
     } catch (error) {
       console.error("Failed to fetch critical stock", error);
       setProducts([]);
