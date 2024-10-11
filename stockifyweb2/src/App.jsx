@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { QueryClient, QueryClientProvider } from "react-query";
 import {
   CssBaseline,
   ThemeProvider,
@@ -10,15 +11,19 @@ import Router from "./routes/Router";
 import { useRoutes } from "react-router-dom";
 import { baselightTheme } from "./theme/DefaultColors";
 
+const queryClient = new QueryClient();
+
 function App() {
   const routing = useRoutes(Router);
   const theme = baselightTheme;
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      {routing}
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        {routing}
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 

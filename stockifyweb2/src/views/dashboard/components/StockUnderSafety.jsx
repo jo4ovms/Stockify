@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useTheme } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import {
@@ -13,30 +12,36 @@ import Grid from "@mui/material/Grid2";
 import { IconAlertTriangle } from "@tabler/icons-react";
 import DashboardCard from "../../../components/shared/DashboardCard";
 import stockOverviewService from "../../../services/stockOverviewService";
+import { useQuery } from "react-query";
+
+const fetchCriticalStock = async () => {
+  const response = await stockOverviewService.getLowStockReport(5, 0, 10);
+  return {
+    products: response.data._embedded?.stockDTOList || [],
+    totalCriticalProducts: response.data.page.totalElements,
+  };
+};
 
 const StockUnderSafety = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const theme = useTheme();
   const errorlight = "#fdede8";
 
-  useEffect(() => {
-    fetchCriticalStock();
-  }, []);
+  const { data, isLoading, isError } = useQuery(
+    "criticalStock",
+    fetchCriticalStock
+  );
 
-  const fetchCriticalStock = async () => {
-    try {
-      const response = await stockOverviewService.getLowStockReport(5);
-      const productData = response.data._embedded?.stockDTOList || [];
-      setProducts(productData);
-    } catch (error) {
-      console.error("Failed to fetch critical stock", error);
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (isLoading) {
+    return <CircularProgress />;
+  }
+
+  if (isError) {
+    return <Typography>Erro Carregando os Produtos Críticos</Typography>;
+  }
+
+  const products = data?.products || [];
+  const totalCriticalProducts = data?.totalCriticalProducts || 0;
 
   const handleProductClick = (productId) => {
     navigate(`/stock/${productId}/edit`);
@@ -68,79 +73,73 @@ const StockUnderSafety = () => {
         justifyContent="center"
         height="100%"
       >
-        {loading ? (
-          <CircularProgress />
-        ) : (
-          <>
-            <Typography variant="h5" fontWeight="600" mb={0} mt={-2}>
-              {products.length} produtos críticos
-            </Typography>
-            <Grid container spacing={2} sx={{ width: "100%" }}>
-              {products.length === 0 ? (
-                <Box
-                  display="flex"
-                  justifyContent="center"
-                  alignItems="center"
-                  height="100%"
-                  width="85%"
+        <Typography variant="h5" fontWeight="600" mb={0} mt={-2}>
+          {totalCriticalProducts} produtos críticos
+        </Typography>
+        <Grid container spacing={2} sx={{ width: "100%" }}>
+          {products.length === 0 ? (
+            <Box
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              height="100%"
+              width="85%"
+            >
+              <Typography
+                variant="h7"
+                color="textSecondary"
+                sx={{ ml: 10, mt: 3, textAlign: "center" }}
+              >
+                Nenhum produto abaixo da quantidade crítica.
+              </Typography>
+            </Box>
+          ) : (
+            products.slice(0, 2).map((product) => (
+              <Grid
+                size={{ xs: 12 }}
+                key={product.id}
+                onClick={() => handleProductClick(product.id)}
+                sx={{
+                  cursor: "pointer",
+                  padding: 1,
+                  borderRadius: "8px",
+                  "&:hover": { backgroundColor: "#f0f0f0" },
+                }}
+              >
+                <Paper
+                  elevation={2}
+                  sx={{
+                    padding: 1,
+                    borderRadius: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    backgroundColor: "#fff",
+                  }}
                 >
-                  <Typography
-                    variant="h7"
-                    color="textSecondary"
-                    sx={{ ml: 10, mt: 3, textAlign: "center" }}
-                  >
-                    Nenhum produto abaixo da quantidade crítica.
-                  </Typography>
-                </Box>
-              ) : (
-                products.slice(0, 2).map((product) => (
-                  <Grid
-                    size={{ xs: 12 }}
-                    key={product.id}
-                    onClick={() => handleProductClick(product.id)}
-                    sx={{
-                      cursor: "pointer",
-                      padding: 1,
-                      borderRadius: "8px",
-                      "&:hover": { backgroundColor: "#f0f0f0" },
-                    }}
-                  >
-                    <Paper
-                      elevation={2}
+                  <Box display="flex" alignItems="center">
+                    <Avatar
                       sx={{
-                        padding: 1,
-                        borderRadius: "8px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        backgroundColor: "#fff",
+                        bgcolor: errorlight,
+                        width: 25,
+                        height: 25,
+                        mr: 1,
                       }}
                     >
-                      <Box display="flex" alignItems="center">
-                        <Avatar
-                          sx={{
-                            bgcolor: errorlight,
-                            width: 25,
-                            height: 25,
-                            mr: 1,
-                          }}
-                        >
-                          <IconAlertTriangle width={18} color="#d32f2f" />
-                        </Avatar>
-                        <Typography variant="subtitle2" fontWeight="500">
-                          {product.productName}
-                        </Typography>
-                      </Box>
-                      <Typography variant="subtitle2" color="error">
-                        Quantidade: {product.quantity}
-                      </Typography>
-                    </Paper>
-                  </Grid>
-                ))
-              )}
-            </Grid>
-          </>
-        )}
+                      <IconAlertTriangle width={18} color="#d32f2f" />
+                    </Avatar>
+                    <Typography variant="subtitle2" fontWeight="500">
+                      {product.productName}
+                    </Typography>
+                  </Box>
+                  <Typography variant="subtitle2" color="error">
+                    Quantidade: {product.quantity}
+                  </Typography>
+                </Paper>
+              </Grid>
+            ))
+          )}
+        </Grid>
       </Box>
     </DashboardCard>
   );
