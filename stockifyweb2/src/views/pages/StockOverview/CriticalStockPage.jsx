@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Typography, Box, Avatar, IconButton } from "@mui/material";
+import { Typography, Box, Avatar, IconButton, Button } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { IconAlertTriangle, IconEye } from "@tabler/icons-react";
 import PageContainer from "../../../components/container/PageContainer";
@@ -8,22 +8,38 @@ import DashboardCard from "../../../components/shared/DashboardCard";
 import stockOverviewService from "../../../services/stockOverviewService";
 
 const CriticalStockPage = () => {
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [size] = useState(10);
   const [products, setProducts] = useState([]);
   const navigate = useNavigate();
   const threshold = 5;
 
   useEffect(() => {
-    retrieveLowStockProducts();
-  }, []);
+    retrieveLowStockProducts(page);
+  }, [page]);
 
-  const retrieveLowStockProducts = () => {
+  const retrieveLowStockProducts = (currentPage) => {
     stockOverviewService
-      .getLowStockReport(threshold)
+      .getLowStockReport(threshold, currentPage, size)
       .then((response) => {
-        const productData = response.data.products || [];
+        const productData = response.data._embedded?.stockDTOList || [];
         setProducts(productData);
+        setTotalPages(response.data.page.totalPages);
       })
       .catch(console.log);
+  };
+
+  const handleNextPage = () => {
+    if (page < totalPages - 1) {
+      setPage(page + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (page > 0) {
+      setPage(page - 1);
+    }
   };
 
   const handleProductClick = (productId) => {
@@ -95,6 +111,22 @@ const CriticalStockPage = () => {
             ))
           )}
         </Grid>
+        <Box display="flex" justifyContent="space-between" mt={2}>
+          <Button
+            variant="contained"
+            onClick={handlePreviousPage}
+            disabled={page === 0}
+          >
+            Página Anterior
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleNextPage}
+            disabled={page >= totalPages - 1}
+          >
+            Próxima Página
+          </Button>
+        </Box>
       </DashboardCard>
     </PageContainer>
   );
