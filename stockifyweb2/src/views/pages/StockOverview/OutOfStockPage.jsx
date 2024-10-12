@@ -1,39 +1,94 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Box,
+  Button,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  TextField,
+  Avatar,
+  IconButton,
+  Skeleton,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { Typography, Box, Avatar, IconButton, Button } from "@mui/material";
 import Grid from "@mui/material/Grid2";
-import { IconAlertTriangle, IconEye } from "@tabler/icons-react";
+import {
+  IconAlertTriangle,
+  IconEye,
+  IconExclamationCircle,
+} from "@tabler/icons-react";
 import PageContainer from "../../../components/container/PageContainer";
 import DashboardCard from "../../../components/shared/DashboardCard";
 import stockOverviewService from "../../../services/stockOverviewService";
+import stockService from "../../../services/stockService";
+
+let debounceTimeout = null;
 
 const OutOfStockPage = () => {
-  const [products, setProducts] = useState([]);
   const [page, setPage] = useState(0);
+  const [suppliers, setSuppliers] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [size] = useState(10);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+  const [supplierId, setSupplierId] = useState(null);
+
+  const getSupplierName = () => {
+    const supplier = suppliers.find((sup) => sup.id === supplierId);
+    return supplier ? supplier.name : "";
+  };
+
+  const retrieveSuppliers = useCallback(() => {
+    stockService
+      .getAllWithoutPagination()
+      .then((response) => {
+        setSuppliers(Array.isArray(response.data) ? response.data : []);
+      })
+      .catch(() => setSuppliers([]));
+  }, []);
+
+  const retrieveOutOfStockProducts = useCallback(
+    (currentPage) => {
+      if (debounceTimeout) clearTimeout(debounceTimeout);
+
+      setLoading(true);
+
+      debounceTimeout = setTimeout(() => {
+        stockOverviewService
+          .getOutOfStockReport(currentPage, size, query, supplierId)
+          .then((response) => {
+            const productData = response.data._embedded?.stockDTOList || [];
+            setProducts(productData);
+            setTotalPages(response.data.page.totalPages);
+            setLoading(false);
+          })
+          .catch((error) => {
+            setLoading(false);
+            if (error.response && error.response.status === 404) {
+              setProducts([]);
+              setTotalPages(1);
+            } else {
+              console.error("Erro ao buscar produtos:", error);
+            }
+          });
+      }, 300);
+    },
+    [query, supplierId, size]
+  );
 
   useEffect(() => {
-    retrieveOutOfStockProducts();
-  }, [page]);
+    if (page >= 0 && page < totalPages) {
+      retrieveOutOfStockProducts(page);
+    }
+  }, [page, query, supplierId, retrieveOutOfStockProducts]);
 
-  const retrieveOutOfStockProducts = () => {
-    setLoading(true);
-    stockOverviewService
-      .getOutOfStockReport(page, 10)
-      .then((response) => {
-        const productData = response.data._embedded?.stockDTOList || [];
-        setProducts(productData);
-        setTotalPages(response.data.page.totalPages);
-      })
-      .catch(console.log)
-      .finally(() => setLoading(false));
-  };
-
-  const handleProductClick = (productId) => {
-    navigate(`/stock/${productId}/edit`);
-  };
+  useEffect(() => {
+    retrieveSuppliers();
+  }, [retrieveSuppliers]);
 
   const handleNextPage = () => {
     if (page < totalPages - 1) {
@@ -47,20 +102,80 @@ const OutOfStockPage = () => {
     }
   };
 
+  const handleProductClick = (productId) => {
+    navigate(`/stock/${productId}/edit`);
+  };
+
   return (
     <PageContainer
-      title="Produtos Esgotados"
-      description="Página de produtos fora de estoque"
+      title="Produtos Fora de Estoque"
+      description="Página de produtos esgotados"
     >
-      <DashboardCard title="Produtos Esgotados!">
+      <DashboardCard title="Produtos Esgotados">
+        <Grid container spacing={2} mb={2}>
+          <Grid size={{ xs: 12, sm: 4 }}>
+            <TextField
+              label="Buscar por produto"
+              variant="outlined"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              fullWidth
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 4 }}>
+            <FormControl fullWidth>
+              <InputLabel>Fornecedor</InputLabel>
+              <Select
+                value={supplierId || ""}
+                onChange={(e) => setSupplierId(e.target.value || null)}
+              >
+                <MenuItem value="">
+                  <em>Todos os Fornecedores</em>
+                </MenuItem>
+                {suppliers.map((supplier) => (
+                  <MenuItem key={supplier.id} value={supplier.id}>
+                    {supplier.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
+
         {loading ? (
-          <Typography>Carregando...</Typography>
+          <Grid container spacing={-5}>
+            {[...Array(size)].map((_, index) => (
+              <Grid size={{ xs: 12 }} key={index}>
+                <Skeleton variant="text" width={150} />
+              </Grid>
+            ))}
+          </Grid>
         ) : (
           <Grid container spacing={-5}>
             {products.length === 0 ? (
-              <Typography variant="body2" color="textSecondary">
-                Nenhum produto fora de estoque.
-              </Typography>
+              <Box
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                flexDirection="column"
+                sx={{
+                  height: "50vh",
+                  textAlign: "center",
+                  margin: "0 auto",
+                  maxWidth: "400px",
+                }}
+              >
+                <IconExclamationCircle size={60} color="#FFAE1F" />
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  sx={{ mt: 2 }}
+                >
+                  {query
+                    ? `Nenhum produto correspondente à pesquisa "${query}" foi encontrado para o fornecedor "${getSupplierName()}".`
+                    : `Nenhum produto do fornecedor "${getSupplierName()}" está fora de estoque.`}
+                </Typography>
+              </Box>
             ) : (
               products.map((product) => (
                 <Grid size={{ xs: 12 }} key={product.id}>
@@ -102,10 +217,8 @@ const OutOfStockPage = () => {
                       >
                         Quantidade: {product.quantity}
                       </Typography>
-
                       <IconButton
                         onClick={() => handleProductClick(product.id)}
-                        aria-label="Edit product"
                       >
                         <IconEye width={20} />
                       </IconButton>
@@ -116,7 +229,6 @@ const OutOfStockPage = () => {
             )}
           </Grid>
         )}
-
         <Box display="flex" justifyContent="space-between" mt={2}>
           <Button
             variant="contained"
