@@ -92,6 +92,10 @@ const CriticalStockPage = () => {
   );
 
   useEffect(() => {
+    setPage(0);
+  }, [query, supplierId, sortBy, sortDirection]);
+
+  useEffect(() => {
     if (
       (page >= 0 && page < totalPages) ||
       query !== "" ||

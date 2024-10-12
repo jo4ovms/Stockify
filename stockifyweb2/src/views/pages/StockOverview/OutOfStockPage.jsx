@@ -81,6 +81,10 @@ const OutOfStockPage = () => {
   );
 
   useEffect(() => {
+    setPage(0);
+  }, [query, supplierId]);
+
+  useEffect(() => {
     if (page >= 0 && page < totalPages) {
       retrieveOutOfStockProducts(page);
     }
