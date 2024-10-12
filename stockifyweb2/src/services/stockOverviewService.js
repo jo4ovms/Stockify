@@ -31,9 +31,25 @@ const stockOverviewService = {
     return eventSource;
   },
 
-  getCriticalStockReport: (threshold, page = 0, size = 10) => {
+  getCriticalStockReport: (
+    threshold,
+    page = 0,
+    size = 10,
+    query = "",
+    supplierId = null,
+    sortBy = "quantity",
+    sortDirection = "asc"
+  ) => {
     return axios.get(`${API_BASE_URL}/reports/critical-stock`, {
-      params: { threshold, page, size },
+      params: {
+        threshold,
+        page,
+        size,
+        query,
+        supplierId,
+        sortBy,
+        sortDirection,
+      },
     });
   },
 
