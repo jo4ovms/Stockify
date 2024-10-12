@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Button,
@@ -14,7 +14,11 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Grid from "@mui/material/Grid2";
-import { IconAlertTriangle, IconEye } from "@tabler/icons-react";
+import {
+  IconAlertTriangle,
+  IconEye,
+  IconExclamationCircle,
+} from "@tabler/icons-react";
 import PageContainer from "../../../components/container/PageContainer";
 import DashboardCard from "../../../components/shared/DashboardCard";
 import stockOverviewService from "../../../services/stockOverviewService";
@@ -36,56 +40,71 @@ const CriticalStockPage = () => {
   const [sortBy, setSortBy] = useState("quantity");
   const [sortDirection, setSortDirection] = useState("desc");
 
-  useEffect(() => {
-    retrieveLowStockProducts(page);
-  }, [page, query, supplierId, sortBy, sortDirection]);
+  const getSupplierName = () => {
+    const supplier = suppliers.find((sup) => sup.id === supplierId);
+    return supplier ? supplier.name : "";
+  };
 
-  useEffect(() => {
-    retrieveSuppliers();
-  }, []);
-
-  const retrieveSuppliers = () => {
+  const retrieveSuppliers = useCallback(() => {
     stockService
       .getAllWithoutPagination()
       .then((response) => {
         setSuppliers(Array.isArray(response.data) ? response.data : []);
       })
       .catch(() => setSuppliers([]));
-  };
+  }, []);
 
-  const retrieveLowStockProducts = (currentPage) => {
-    if (debounceTimeout) clearTimeout(debounceTimeout);
+  const retrieveLowStockProducts = useCallback(
+    (currentPage) => {
+      if (debounceTimeout) clearTimeout(debounceTimeout);
 
-    setLoading(true);
+      setLoading(true);
 
-    debounceTimeout = setTimeout(() => {
-      stockOverviewService
-        .getCriticalStockReport(
-          threshold,
-          currentPage,
-          size,
-          query,
-          supplierId,
-          sortBy,
-          sortDirection
-        )
-        .then((response) => {
-          const productData = response.data._embedded?.stockDTOList || [];
-          setProducts(productData);
-          setTotalPages(response.data.page.totalPages);
-          setLoading(false);
-        })
-        .catch((error) => {
-          setLoading(false);
-          if (error.response && error.response.status === 404) {
-            setProducts([]);
-            setTotalPages(1);
-          } else {
-            console.error("Erro ao buscar produtos:", error);
-          }
-        });
-    }, 300);
-  };
+      debounceTimeout = setTimeout(() => {
+        stockOverviewService
+          .getCriticalStockReport(
+            threshold,
+            currentPage,
+            size,
+            query,
+            supplierId,
+            sortBy,
+            sortDirection
+          )
+          .then((response) => {
+            const productData = response.data._embedded?.stockDTOList || [];
+            setProducts(productData);
+            setTotalPages(response.data.page.totalPages);
+            setLoading(false);
+          })
+          .catch((error) => {
+            setLoading(false);
+            if (error.response && error.response.status === 404) {
+              setProducts([]);
+              setTotalPages(1);
+            } else {
+              console.error("Erro ao buscar produtos:", error);
+            }
+          });
+      }, 300);
+    },
+    [query, supplierId, sortBy, sortDirection, size]
+  );
+
+  useEffect(() => {
+    retrieveLowStockProducts(page);
+  }, [
+    page,
+    query,
+    supplierId,
+    sortBy,
+    sortDirection,
+    retrieveLowStockProducts,
+  ]);
+
+  useEffect(() => {
+    retrieveSuppliers();
+  }, [retrieveSuppliers]);
 
   const handleNextPage = () => {
     if (page < totalPages - 1) {
@@ -152,7 +171,6 @@ const CriticalStockPage = () => {
           </Grid>
         </Grid>
 
-        {/* Exibindo o CircularProgress durante o carregamento */}
         {loading ? (
           <Box display="flex" justifyContent="center" alignItems="center">
             <CircularProgress />
@@ -160,16 +178,29 @@ const CriticalStockPage = () => {
         ) : (
           <Grid container spacing={-5}>
             {products.length === 0 ? (
-              supplierId ? (
-                <Typography variant="body2" color="textSecondary">
-                  Nenhum produto do fornecedor "{getSupplierName()}" está em
-                  baixo estoque.
+              <Box
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                flexDirection="column"
+                sx={{
+                  height: "50vh",
+                  textAlign: "center",
+                  margin: "0 auto",
+                  maxWidth: "400px",
+                }}
+              >
+                <IconExclamationCircle size={60} color="#FFAE1F" />
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  sx={{ mt: 2 }}
+                >
+                  {query
+                    ? `Nenhum produto correspondente à pesquisa "${query}" foi encontrado para o fornecedor "${getSupplierName()}".`
+                    : `Nenhum produto do fornecedor "${getSupplierName()}" está em baixo estoque.`}
                 </Typography>
-              ) : (
-                <Typography variant="body2" color="textSecondary">
-                  Nenhum produto abaixo da quantidade segura.
-                </Typography>
-              )
+              </Box>
             ) : (
               products.map((product) => (
                 <Grid size={{ xs: 12 }} key={product.id}>
