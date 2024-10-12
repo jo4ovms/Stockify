@@ -10,7 +10,7 @@ import {
   TextField,
   Avatar,
   IconButton,
-  CircularProgress,
+  Skeleton,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Grid from "@mui/material/Grid2";
@@ -92,7 +92,15 @@ const CriticalStockPage = () => {
   );
 
   useEffect(() => {
-    retrieveLowStockProducts(page);
+    if (
+      (page >= 0 && page < totalPages) ||
+      query !== "" ||
+      supplierId !== null ||
+      sortBy !== "quantity" ||
+      sortDirection !== "desc"
+    ) {
+      retrieveLowStockProducts(page);
+    }
   }, [
     page,
     query,
@@ -172,9 +180,38 @@ const CriticalStockPage = () => {
         </Grid>
 
         {loading ? (
-          <Box display="flex" justifyContent="center" alignItems="center">
-            <CircularProgress />
-          </Box>
+          <Grid container spacing={-5}>
+            {[...Array(size)].map((_, index) => (
+              <Grid size={{ xs: 12 }} key={index}>
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  sx={{
+                    padding: "10px",
+                    borderRadius: "8px",
+                    backgroundColor: "#f9f9f9",
+                    mb: 2,
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                    "&:hover": {
+                      backgroundColor: "#f0f0f0",
+                    },
+                  }}
+                >
+                  <Box display="flex" alignItems="center">
+                    <Skeleton variant="circular" width={27} height={27} />
+                    <Skeleton
+                      variant="text"
+                      width={150}
+                      sx={{ marginLeft: 2 }}
+                      animation="wave"
+                    />
+                  </Box>
+                  <Skeleton variant="rectangular" width={80} height={27} />
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
         ) : (
           <Grid container spacing={-5}>
             {products.length === 0 ? (
@@ -202,8 +239,8 @@ const CriticalStockPage = () => {
                 </Typography>
               </Box>
             ) : (
-              products.map((product) => (
-                <Grid size={{ xs: 12 }} key={product.id}>
+              products.map((product, index) => (
+                <Grid size={{ xs: 12 }} key={product.id || index}>
                   <Box
                     display="flex"
                     justifyContent="space-between"
