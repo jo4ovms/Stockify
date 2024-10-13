@@ -218,7 +218,7 @@ const useSupplier = () => {
 
   const saveProduct = () => {
     productService
-      .create(currentProduct)
+      .createProduct(currentProduct)
       .then(() => {
         retrieveProducts(currentSupplier);
         handleCloseProductDialog();
