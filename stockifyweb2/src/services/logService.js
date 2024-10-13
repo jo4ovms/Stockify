@@ -2,20 +2,17 @@ import axios from "axios";
 
 const API_URL = "http://localhost:8081/api/logs";
 
-const getAllLogs = () => {
-  return axios.get(`${API_URL}/recent`);
-};
-
-const getLogsByDateRange = (startDate, endDate) => {
-  return axios.get(`${API_URL}/by-date`, {
+const getLogs = (entity, operationType, page, size) => {
+  return axios.get(API_URL, {
     params: {
-      start: startDate,
-      end: endDate,
+      entity: entity || "",
+      operationType: operationType.toUpperCase() || "",
+      page: page || 0,
+      size: size || 10,
     },
   });
 };
 
 export default {
-  getAllLogs,
-  getLogsByDateRange,
+  getLogs,
 };

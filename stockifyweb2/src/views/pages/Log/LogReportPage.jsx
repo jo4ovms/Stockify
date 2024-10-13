@@ -2,11 +2,11 @@ import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
-  Snackbar,
-  SnackbarContent,
   Typography,
   Collapse,
   Divider,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import PageContainer from "../../../components/container/PageContainer";
@@ -57,19 +57,29 @@ const LogReportPage = () => {
   const [expandedLogId, setExpandedLogId] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [entityFilter, setEntityFilter] = useState("");
+  const [operationTypeFilter, setOperationTypeFilter] = useState("");
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [size] = useState(10);
 
   useEffect(() => {
     retrieveLogs();
-  }, []);
+  }, [entityFilter, operationTypeFilter, page]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [entityFilter, operationTypeFilter]);
 
   const retrieveLogs = () => {
     logService
-      .getAllLogs()
+      .getLogs(entityFilter, operationTypeFilter, page, size)
       .then((response) => {
         const logs = response.data._embedded?.logDTOList || [];
         setLogs(
           logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
         );
+        setTotalPages(response.data.page.totalPages);
       })
       .catch(() => setErrorMessage("Erro ao buscar logs."));
   };
@@ -90,11 +100,6 @@ const LogReportPage = () => {
     return entityTranslationMap[entity] || entity;
   };
 
-  const closeSnackbar = () => {
-    setErrorMessage("");
-    setSuccessMessage("");
-  };
-
   const getOperationIcon = (operationType) => {
     switch (operationType) {
       case "CREATE":
@@ -107,6 +112,17 @@ const LogReportPage = () => {
         return <DeleteIcon style={{ color: "red", marginRight: "5px" }} />;
       default:
         return null;
+    }
+  };
+  const handleNextPage = () => {
+    if (page < totalPages - 1) {
+      setPage(page + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (page > 0) {
+      setPage(page - 1);
     }
   };
 
@@ -157,6 +173,32 @@ const LogReportPage = () => {
       description="Visualize logs detalhados de atividades"
     >
       <DashboardCard title="Relatórios de Atividades">
+        <Box mt={2} mb={3} display="flex" gap={2}>
+          <Select
+            value={entityFilter}
+            onChange={(e) => setEntityFilter(e.target.value)}
+            displayEmpty
+            variant="outlined"
+          >
+            <MenuItem value="">Todos os Entidades</MenuItem>
+            <MenuItem value="Product">Produto</MenuItem>
+            <MenuItem value="Supplier">Fornecedor</MenuItem>
+            <MenuItem value="Stock">Estoque</MenuItem>
+          </Select>
+
+          <Select
+            value={operationTypeFilter}
+            onChange={(e) => setOperationTypeFilter(e.target.value)}
+            displayEmpty
+            variant="outlined"
+          >
+            <MenuItem value="">Todos os Tipos de Operação</MenuItem>
+            <MenuItem value="CREATE">Criação</MenuItem>
+            <MenuItem value="UPDATE">Atualização</MenuItem>
+            <MenuItem value="DELETE">Exclusão</MenuItem>
+          </Select>
+        </Box>
+
         <Box mt={2}>
           {logs.length > 0 ? (
             logs.map((log) => (
@@ -261,27 +303,22 @@ const LogReportPage = () => {
           )}
         </Box>
 
-        <Snackbar
-          open={Boolean(errorMessage)}
-          autoHideDuration={6000}
-          onClose={closeSnackbar}
-        >
-          <SnackbarContent
-            message={errorMessage}
-            style={{ backgroundColor: "red" }}
-          />
-        </Snackbar>
-
-        <Snackbar
-          open={Boolean(successMessage)}
-          autoHideDuration={6000}
-          onClose={closeSnackbar}
-        >
-          <SnackbarContent
-            message={successMessage}
-            style={{ backgroundColor: "green" }}
-          />
-        </Snackbar>
+        <Box display="flex" justifyContent="space-between" mt={2}>
+          <Button
+            variant="contained"
+            onClick={handlePreviousPage}
+            disabled={page === 0}
+          >
+            Página Anterior
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleNextPage}
+            disabled={page >= totalPages - 1}
+          >
+            Próxima Página
+          </Button>
+        </Box>
       </DashboardCard>
     </PageContainer>
   );
