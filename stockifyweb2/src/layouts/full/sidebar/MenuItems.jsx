@@ -40,7 +40,7 @@ const Menuitems = [
     id: uniqueId(),
     title: "Relatórios",
     icon: IconAperture,
-    href: "/logs",
+    href: "/report-logs",
   },
   {
     id: uniqueId(),
