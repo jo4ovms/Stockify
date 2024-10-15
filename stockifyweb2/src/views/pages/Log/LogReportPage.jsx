@@ -15,6 +15,7 @@ import logService from "../../../services/logService";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { useParams } from "react-router-dom";
 
 const tryParseJSON = (str) => {
   try {
@@ -52,16 +53,174 @@ const entityTranslationMap = {
   Stock: "Estoque",
 };
 
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(value);
+};
+
+const renderSummary = (log) => {
+  const newValue = tryParseJSON(log.newValue);
+  const oldValue = tryParseJSON(log.oldValue);
+
+  if (log.entity === "Stock") {
+    if (log.operationType === "CREATE") {
+      return (
+        <Typography variant="body2">
+          {`Produto: ${
+            newValue?.productName || "Produto não especificado"
+          }, Quantidade: ${newValue?.quantity || "N/A"}, Valor: R$${
+            newValue?.value ? formatCurrency(newValue.value) : "N/A"
+          }`}
+        </Typography>
+      );
+    }
+
+    if (log.operationType === "UPDATE") {
+      const quantityChanged = oldValue?.quantity !== newValue?.quantity;
+      const valueChanged = oldValue?.value !== newValue?.value;
+      const productChanged = oldValue?.productName !== newValue?.productName;
+
+      return (
+        <Typography variant="body2">
+          {productChanged && (
+            <>
+              {`Produto: ${
+                oldValue?.productName || "Produto não especificado"
+              } (Antes)`}
+              <br />
+              {`Novo Produto: ${
+                newValue?.productName || "Produto não especificado"
+              } (Agora)`}
+              <br />
+            </>
+          )}
+          {quantityChanged && (
+            <>
+              {`Quantidade (Antes: ${oldValue?.quantity || "N/A"}, Agora: ${
+                newValue?.quantity || "N/A"
+              })`}
+              <br />
+            </>
+          )}
+          {valueChanged && (
+            <>
+              {`Valor (Antes: R$${
+                oldValue?.value ? formatCurrency(oldValue.value) : "N/A"
+              }, Agora: R$${
+                newValue?.value ? formatCurrency(newValue.value) : "N/A"
+              })`}
+            </>
+          )}
+        </Typography>
+      );
+    }
+  }
+
+  if (log.entity === "Product") {
+    if (log.operationType === "CREATE") {
+      return (
+        <Typography variant="body2">
+          {`Produto: ${
+            newValue?.name || "Produto não especificado"
+          }, Quantidade: ${newValue?.quantity || "N/A"}, Valor: R$${
+            newValue?.value ? formatCurrency(newValue.value) : "N/A"
+          }`}
+        </Typography>
+      );
+    }
+
+    if (log.operationType === "UPDATE") {
+      const quantityChanged = oldValue?.quantity !== newValue?.quantity;
+      const valueChanged = oldValue?.value !== newValue?.value;
+      const productChanged = oldValue?.name !== newValue?.name;
+
+      return (
+        <Typography variant="body2">
+          {productChanged && (
+            <>
+              {`Produto: ${
+                oldValue?.name || "Produto não especificado"
+              } (Antes)`}
+              <br />
+              {`Novo Produto: ${
+                newValue?.name || "Produto não especificado"
+              } (Agora)`}
+              <br />
+            </>
+          )}
+          {quantityChanged && (
+            <>
+              {`Quantidade (Antes: ${oldValue?.quantity || "N/A"}, Agora: ${
+                newValue?.quantity || "N/A"
+              })`}
+              <br />
+            </>
+          )}
+          {valueChanged && (
+            <>
+              {`Valor (Antes: R$${
+                oldValue?.value ? formatCurrency(oldValue.value) : "N/A"
+              }, Agora: R$${
+                newValue?.value ? formatCurrency(newValue.value) : "N/A"
+              })`}
+            </>
+          )}
+        </Typography>
+      );
+    }
+  }
+
+  if (log.entity === "Supplier") {
+    if (log.operationType === "CREATE") {
+      return (
+        <Typography variant="body2">
+          {`Fornecedor: ${
+            newValue?.name || "Fornecedor não especificado"
+          }, CNPJ: ${newValue?.cnpj || "N/A"}`}
+        </Typography>
+      );
+    }
+
+    if (log.operationType === "UPDATE") {
+      const nameChanged = oldValue?.name !== newValue?.name;
+      const cnpjChanged = oldValue?.cnpj !== newValue?.cnpj;
+
+      return (
+        <Typography variant="body2">
+          {nameChanged && (
+            <>
+              {`Nome (Antes: ${oldValue?.name || "N/A"}, Agora: ${
+                newValue?.name || "N/A"
+              })`}
+              <br />
+            </>
+          )}
+          {cnpjChanged && (
+            <>
+              {`CNPJ (Antes: ${oldValue?.cnpj || "N/A"}, Agora: ${
+                newValue?.cnpj || "N/A"
+              })`}
+            </>
+          )}
+        </Typography>
+      );
+    }
+  }
+
+  return null;
+};
+
 const LogReportPage = () => {
   const [logs, setLogs] = useState([]);
   const [expandedLogId, setExpandedLogId] = useState(null);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   const [entityFilter, setEntityFilter] = useState("");
   const [operationTypeFilter, setOperationTypeFilter] = useState("");
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [size] = useState(10);
+  const { logId } = useParams();
 
   useEffect(() => {
     retrieveLogs();
@@ -70,6 +229,21 @@ const LogReportPage = () => {
   useEffect(() => {
     setPage(0);
   }, [entityFilter, operationTypeFilter]);
+
+  useEffect(() => {
+    if (logId && logs.length > 0) {
+      setExpandedLogId(logId);
+
+      const logExists = logs.some((log) => log.id === parseInt(logId));
+
+      if (logExists) {
+        const element = document.getElementById(`log-${logId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
+    }
+  }, [logId, logs]);
 
   const retrieveLogs = () => {
     logService
@@ -80,8 +254,12 @@ const LogReportPage = () => {
           logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
         );
         setTotalPages(response.data.page.totalPages);
+
+        if (logId) {
+          setExpandedLogId(logId);
+        }
       })
-      .catch(() => setErrorMessage("Erro ao buscar logs."));
+      .catch(() => console.error("Erro ao buscar logs."));
   };
 
   const toggleLogDetails = (logId) => {
@@ -114,6 +292,7 @@ const LogReportPage = () => {
         return null;
     }
   };
+
   const handleNextPage = () => {
     if (page < totalPages - 1) {
       setPage(page + 1);
@@ -204,6 +383,7 @@ const LogReportPage = () => {
             logs.map((log) => (
               <Box
                 key={log.id}
+                id={`log-${log.id}`}
                 display="flex"
                 flexDirection="column"
                 p={2}
@@ -251,7 +431,8 @@ const LogReportPage = () => {
                     Ver Detalhes
                   </Button>
                 </Box>
-                <Collapse in={expandedLogId === log.id}>
+                <Box mt={1}>{renderSummary(log)}</Box>
+                <Collapse in={parseInt(expandedLogId) === log.id}>
                   <Box mt={2}>
                     {shouldShowNewValue(log.operationType) && (
                       <>

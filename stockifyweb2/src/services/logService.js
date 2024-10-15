@@ -13,6 +13,16 @@ const getLogs = (entity, operationType, page, size) => {
   });
 };
 
+const getRecentLogs = (page, size) => {
+  return axios.get(`${API_URL}/recent`, {
+    params: {
+      page: page || 0,
+      size: size || 10,
+    },
+  });
+};
+
 export default {
   getLogs,
+  getRecentLogs,
 };
