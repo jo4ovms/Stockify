@@ -56,6 +56,10 @@ const Router = [
         element: <StockPage />,
       },
       {
+        path: "report-logs/:logId",
+        element: <LogReportPage />,
+      },
+      {
         path: "/stock/critical-stock",
         element: <CriticalStockPage />,
       },

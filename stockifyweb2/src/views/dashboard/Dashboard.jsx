@@ -5,6 +5,7 @@ import PageContainer from "../../components/container/PageContainer";
 import StockOverview from "./components/StockOverview";
 import StockUnderSafety from "./components/StockUnderSafety";
 import SalesOverview from "./components/SalesOverview";
+import RecentTransactions from "./components/RecentTransactions";
 
 const Dashboard = () => {
   const theme = useTheme();
@@ -35,6 +36,9 @@ const Dashboard = () => {
                 <StockUnderSafety />
               </Grid>
             </Grid>
+          </Grid>
+          <Grid sx={{ xs: 12, sm: 10, lg: 4 }}>
+            <RecentTransactions />
           </Grid>
         </Grid>
       </Box>
