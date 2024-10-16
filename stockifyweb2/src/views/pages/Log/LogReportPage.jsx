@@ -45,12 +45,14 @@ const keyTranslationMap = {
   available: "Disponível",
   productName: "Nome do Produto",
   productId: "ID do Produto",
+  stockId: "ID do Estoque",
 };
 
 const entityTranslationMap = {
   Supplier: "Fornecedor",
   Product: "Produto",
   Stock: "Estoque",
+  Sale: "Venda",
 };
 
 const formatCurrency = (value) => {
@@ -363,6 +365,7 @@ const LogReportPage = () => {
             <MenuItem value="Product">Produto</MenuItem>
             <MenuItem value="Supplier">Fornecedor</MenuItem>
             <MenuItem value="Stock">Estoque</MenuItem>
+            <MenuItem value="Sale">Venda</MenuItem>
           </Select>
 
           <Select
