@@ -12,8 +12,12 @@ import {
   TimelineConnector,
   TimelineContent,
 } from "@mui/lab";
-import { Typography, Fab, Box, IconButton } from "@mui/material";
+import { Typography, Fab, Box, IconButton, Tooltip } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import InventoryIcon from "@mui/icons-material/Inventory";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
+import StoreIcon from "@mui/icons-material/Store";
 
 const tryParseJSON = (str) => {
   try {
@@ -29,22 +33,6 @@ const operationTranslationMap = {
   DELETE: "Exclusão",
 };
 
-const keyTranslationMap = {
-  name: "Nome",
-  value: "Valor",
-  supplierId: "ID do Fornecedor",
-  supplierName: "Fornecedor",
-  quantity: "Quantidade",
-  id: "ID",
-  phone: "Telefone",
-  email: "Email",
-  productType: "Tipo de Produto",
-  cnpj: "CNPJ",
-  available: "Disponível",
-  productName: "Nome do Produto",
-  productId: "ID do Produto",
-};
-
 const entityTranslationMap = {
   Supplier: "Fornecedor",
   Product: "Produto",
@@ -52,20 +40,33 @@ const entityTranslationMap = {
   Sale: "Venda",
 };
 
+const getEntityIcon = (entity) => {
+  switch (entity) {
+    case "Product":
+      return <InventoryIcon sx={{ fontSize: 20 }} color="primary" />;
+    case "Stock":
+      return <LocalShippingIcon sx={{ fontSize: 22 }} color="warning" />;
+    case "Sale":
+      return <ShoppingCartIcon sx={{ fontSize: 22 }} color="success" />;
+    case "Supplier":
+      return <StoreIcon sx={{ fontSize: 22 }} color="info" />;
+    default:
+      return <VisibilityIcon sx={{ fontSize: 22 }} color="grey" />;
+  }
+};
+
 const RecentTransactions = () => {
-  const [page, setPage] = useState(0);
   const [logs, setLogs] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     retrieveLogs();
-  }, [page]);
+  }, []);
 
-  const translateKey = (key) => {
-    return keyTranslationMap[key] || key;
-  };
-
-  const translateOperation = (operationType) => {
+  const translateOperation = (operationType, entity) => {
+    if (entity === "Sale") {
+      return "";
+    }
     return operationTranslationMap[operationType] || operationType;
   };
 
@@ -73,16 +74,16 @@ const RecentTransactions = () => {
     return entityTranslationMap[entity] || entity;
   };
 
-  const getDotColor = (action) => {
-    switch (action) {
-      case "CREATE":
+  const getDotColor = (entity) => {
+    switch (entity) {
+      case "Product":
         return "primary";
-      case "UPDATE":
+      case "Stock":
         return "warning";
-      case "DELETE":
-        return "error";
-      case "VENDIDO":
+      case "Sale":
         return "success";
+      case "Supplier":
+        return "info";
       default:
         return "grey";
     }
@@ -159,7 +160,7 @@ const RecentTransactions = () => {
         </Fab>
       }
       sx={{
-        height: "700px",
+        height: "600px",
         width: "100%",
         maxWidth: "100%",
         overflow: "hidden",
@@ -182,33 +183,90 @@ const RecentTransactions = () => {
             }}
           >
             {logs.slice(0, 5).map((log, index) => (
-              <TimelineItem key={index} sx={{ mb: 2 }}>
-                <TimelineOppositeContent sx={{ paddingRight: "12px" }}>
-                  <Typography color="textSecondary" variant="body2">
+              <TimelineItem
+                key={index}
+                sx={{
+                  mb: 2,
+                  backgroundColor: index === 0 ? "#f9f9f9" : "transparent",
+                  borderRadius: "8px",
+                  padding: "10px",
+                  boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.1)",
+                  minHeight: "80px",
+                }}
+              >
+                <TimelineOppositeContent
+                  sx={{
+                    paddingRight: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    ml: "0px",
+                  }}
+                >
+                  <Typography
+                    color="textSecondary"
+                    variant="body2"
+                    sx={{ fontSize: "12px" }}
+                  >
                     {formatTimestamp(log.timestamp)}
                   </Typography>
                 </TimelineOppositeContent>
                 <TimelineSeparator>
                   <TimelineDot
-                    color={getDotColor(log.operationType)}
+                    color={getDotColor(log.entity)}
                     variant="outlined"
                   />
                   {index < logs.length - 1 && <TimelineConnector />}
                 </TimelineSeparator>
                 <TimelineContent
-                  sx={{ paddingLeft: "12px", paddingRight: "12px" }}
+                  sx={{
+                    paddingLeft: "25px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    maxWidth: "50%",
+                  }}
                 >
-                  <Typography variant="subtitle2" fontWeight="600">
-                    {translateEntity(log.entity)} (
-                    {translateOperation(log.operationType)})
-                  </Typography>
-                  <Typography variant="body2">{getLogDetails(log)}</Typography>
+                  <Box
+                    sx={{
+                      maxWidth: "80%",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    <Typography
+                      variant="subtitle2"
+                      fontWeight="600"
+                      sx={{
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {translateEntity(log.entity)}
+                      {log.entity !== "Sale" ? " - " : " Concluída"}
+                      {translateOperation(log.operationType, log.entity)}
+                    </Typography>
+                    <Tooltip title={getLogDetails(log)}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {getLogDetails(log)}
+                      </Typography>
+                    </Tooltip>
+                  </Box>
                   <IconButton
                     color="primary"
                     aria-label="Ver detalhes"
                     onClick={() => handleViewReportClick(log.id)}
+                    sx={{ marginLeft: "auto" }}
                   >
-                    <VisibilityIcon />
+                    {getEntityIcon(log.entity)}
                   </IconButton>
                 </TimelineContent>
               </TimelineItem>
