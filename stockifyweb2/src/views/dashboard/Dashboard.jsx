@@ -6,6 +6,7 @@ import StockOverview from "./components/StockOverview";
 import StockUnderSafety from "./components/StockUnderSafety";
 import SalesOverview from "./components/SalesOverview";
 import RecentTransactions from "./components/RecentTransactions";
+import BestSellingItems from "./components/BestSellingItems";
 
 const Dashboard = () => {
   const theme = useTheme();
@@ -37,8 +38,14 @@ const Dashboard = () => {
               </Grid>
             </Grid>
           </Grid>
-          <Grid sx={{ xs: 12, sm: 10, lg: 4 }}>
-            <RecentTransactions />
+
+          <Grid container spacing={1}>
+            <Grid size={{ xs: 12, sm: 15, lg: 7 }}>
+              <RecentTransactions />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 15, lg: 5 }}>
+              <BestSellingItems />
+            </Grid>
           </Grid>
         </Grid>
       </Box>

@@ -12,4 +12,14 @@ const registerSale = async (saleData) => {
   }
 };
 
-export default { registerSale };
+const getBestSellingItems = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/best-sellers`);
+    return response.data;
+  } catch (error) {
+    console.error("Error Fetching Best Selling Items", error);
+    throw error;
+  }
+};
+
+export default { registerSale, getBestSellingItems };
