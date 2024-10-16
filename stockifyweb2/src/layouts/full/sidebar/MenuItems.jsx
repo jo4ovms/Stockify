@@ -46,7 +46,7 @@ const Menuitems = [
     id: uniqueId(),
     title: "Registrar Venda",
     icon: IconAperture,
-    href: "/sales",
+    href: "/register-sale",
   },
   {
     navlabel: true,
