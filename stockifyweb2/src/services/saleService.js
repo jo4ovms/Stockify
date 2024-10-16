@@ -21,5 +21,21 @@ const getBestSellingItems = async () => {
     throw error;
   }
 };
+const getAllSoldItems = async (page = 0, size = 10, searchTerm = "") => {
+  try {
+    const response = await axios.get(`${API_URL}`, {
+      params: {
+        page,
+        size,
+        searchTerm,
+      },
+    });
+    console.log("API Response: ", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error Fetching Sold Items", error);
+    throw error;
+  }
+};
 
-export default { registerSale, getBestSellingItems };
+export default { registerSale, getBestSellingItems, getAllSoldItems };

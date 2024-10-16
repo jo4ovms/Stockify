@@ -38,7 +38,7 @@ const BestSellingItems = ({ sx }) => {
   }, [fetchBestSellingItems]);
 
   const handleViewAllClick = useCallback(() => {
-    navigate("/stock/best-sellers");
+    navigate("/sold-items");
   }, [navigate]);
 
   return (

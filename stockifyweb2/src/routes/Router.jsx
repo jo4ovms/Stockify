@@ -6,6 +6,7 @@ import OutOfStockPage from "../views/pages/StockOverview/OutOfStockPage";
 import CriticalStockPage from "../views/pages/StockOverview/CriticalStockPage";
 import LogReportPage from "../views/pages/Log/LogReportPage";
 import SalePage from "../views/pages/Sale/SalePage";
+import SoldItemsPage from "../views/pages/Sale/SoldItemsPage";
 
 const FullLayout = lazy(() => import("../layouts/full/FullLayout"));
 const BlankLayout = lazy(() => import("../layouts/Blank/BlankLayout"));
@@ -71,6 +72,10 @@ const Router = [
       {
         path: "/register-sale",
         element: <SalePage />,
+      },
+      {
+        path: "/sold-items",
+        element: <SoldItemsPage />,
       },
     ],
   },
