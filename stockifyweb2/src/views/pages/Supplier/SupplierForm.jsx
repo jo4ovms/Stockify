@@ -51,6 +51,7 @@ const SupplierForm = ({
           fullWidth
           value={supplier.cnpj}
           onChange={handleChange}
+          disabled={editMode}
         />
 
         <TextField
