@@ -15,7 +15,15 @@ import stockOverviewService from "../../../services/stockOverviewService";
 import { useQuery } from "react-query";
 
 const fetchCriticalStock = async () => {
-  const response = await stockOverviewService.getLowStockReport(5, 0, 10);
+  const response = await stockOverviewService.getCriticalStockReport(
+    4,
+    0,
+    10,
+    "",
+    null,
+    "quantity",
+    "asc"
+  );
   return {
     products: response.data._embedded?.stockDTOList || [],
     totalCriticalProducts: response.data.page.totalElements,
