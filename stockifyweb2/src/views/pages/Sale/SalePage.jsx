@@ -116,7 +116,7 @@ const SalePage = () => {
     }
   };
   return (
-    <PageContainer
+    (<PageContainer
       title="Registrar Venda"
       description="Página para registrar uma nova venda de produto."
     >
@@ -154,14 +154,16 @@ const SalePage = () => {
               label="Produto"
               variant="outlined"
               fullWidth
-              InputProps={{
-                ...params.InputProps,
-                endAdornment: (
-                  <>
-                    {searchLoading ? <CircularProgress size={20} /> : null}{" "}
-                    {params.InputProps.endAdornment}
-                  </>
-                ),
+              slotProps={{
+                input: {
+                  ...params.InputProps,
+                  endAdornment: (
+                    <>
+                      {searchLoading ? <CircularProgress size={20} /> : null}{" "}
+                      {params.InputProps.endAdornment}
+                    </>
+                  ),
+                }
               }}
             />
           )}
@@ -212,7 +214,7 @@ const SalePage = () => {
           )}
         </Box>
       </DashboardCard>
-    </PageContainer>
+    </PageContainer>)
   );
 };
 
