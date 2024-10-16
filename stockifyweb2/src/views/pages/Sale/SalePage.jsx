@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Button,
   TextField,
@@ -23,21 +23,37 @@ const SalePage = () => {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStock, setSelectedStock] = useState(null);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
 
-  const fetchStocks = async (search = "") => {
+  const fetchStocks = async (search = "", newPage = 0) => {
     setSearchLoading(true);
     try {
       const params = {
-        page: 0,
-        size: 10,
+        page: newPage,
+        size: 15,
         query: search,
       };
       const response = await stockService.getAllStock(params);
-      console.log("Dados recebidos:", response);
       if (response && response._embedded && response._embedded.stockDTOList) {
-        setStocks(response._embedded.stockDTOList);
+        const newStocks = response._embedded.stockDTOList;
+        if (newPage === 0) {
+          setStocks(newStocks);
+        } else {
+          setStocks((prevStocks) => {
+            const mergedStocks = [...prevStocks];
+            newStocks.forEach((stock) => {
+              if (!prevStocks.some((s) => s.id === stock.id)) {
+                mergedStocks.push(stock);
+              }
+            });
+            return mergedStocks;
+          });
+        }
+        setHasMore(response.page.number + 1 < response.page.totalPages);
       } else {
         setStocks([]);
+        setHasMore(false);
       }
     } catch (error) {
       console.error("Error fetching stocks:", error);
@@ -75,6 +91,7 @@ const SalePage = () => {
 
       setStockId(null);
       setQuantity("");
+      setSelectedStock(null);
 
       setTimeout(() => setSuccessMessage(""), 5000);
     } catch (error) {
@@ -89,6 +106,15 @@ const SalePage = () => {
     }
   };
 
+  const handleScroll = (event) => {
+    const bottomReached =
+      event.target.scrollHeight - event.target.scrollTop ===
+      event.target.clientHeight;
+    if (bottomReached && hasMore && !searchLoading) {
+      setPage((prevPage) => prevPage + 1);
+      fetchStocks(searchTerm, page + 1);
+    }
+  };
   return (
     <PageContainer
       title="Registrar Venda"
@@ -109,8 +135,12 @@ const SalePage = () => {
           isOptionEqualToValue={(option, value) => option.id === value?.id}
           onInputChange={(e, newInputValue) => {
             setSearchTerm(newInputValue);
-            if (newInputValue.length >= 3) {
-              fetchStocks(newInputValue);
+            setPage(0);
+            fetchStocks(newInputValue, 0);
+          }}
+          onFocus={() => {
+            if (stocks.length === 0) {
+              fetchStocks();
             }
           }}
           onChange={(e, value) => {
@@ -135,6 +165,9 @@ const SalePage = () => {
               }}
             />
           )}
+          ListboxProps={{
+            onScroll: handleScroll,
+          }}
           value={selectedStock || null}
         />
 
