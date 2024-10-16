@@ -49,6 +49,7 @@ const entityTranslationMap = {
   Supplier: "Fornecedor",
   Product: "Produto",
   Stock: "Estoque",
+  Sale: "Venda",
 };
 
 const RecentTransactions = () => {
@@ -135,6 +136,10 @@ const RecentTransactions = () => {
       );
     } else if (log.entity === "Supplier") {
       return newValue?.name || oldValue?.name || "Fornecedor desconhecido";
+    } else if (log.entity === "Sale") {
+      return (
+        newValue?.productName || oldValue?.productName || "Produto vendido"
+      );
     } else {
       return "Entidade desconhecida";
     }
