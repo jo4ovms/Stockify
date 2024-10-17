@@ -9,15 +9,18 @@ import {
   MenuItem,
   TextField,
   Skeleton,
+  Snackbar,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
+import { IconSortAscending, IconSortDescending } from "@tabler/icons-react";
 import PageContainer from "../../../components/container/PageContainer";
 import DashboardCard from "../../../components/shared/DashboardCard";
 import saleService from "../../../services/saleService";
 import stockService from "../../../services/stockService";
+import { debounce } from "lodash";
+import { Refresh } from "@mui/icons-material";
 
 let debounceTimeout = null;
-
 const SoldItemsPage = () => {
   const [page, setPage] = useState(0);
   const [size] = useState(10);
@@ -30,22 +33,15 @@ const SoldItemsPage = () => {
   const [sortDirection, setSortDirection] = useState("desc");
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const retrieveSuppliers = useCallback(() => {
-    stockService
-      .getAllWithoutPagination()
-      .then((response) => {
-        setSuppliers(response.data);
-      })
-      .catch(() => setSuppliers([]));
-  }, []);
-
+  const debouncedSetQuery = debounce((value) => {
+    setQuery(value);
+  }, 500);
   const fetchSoldItems = useCallback(
     (currentPage) => {
       if (debounceTimeout) clearTimeout(debounceTimeout);
-
       setLoading(true);
-
       debounceTimeout = setTimeout(() => {
         saleService
           .getAllSoldItems(
@@ -58,27 +54,45 @@ const SoldItemsPage = () => {
             endDate
           )
           .then((response) => {
-            const content = response.content || [];
-            setSoldItems(content);
+            setSoldItems(response.content || []);
             setTotalPages(response.totalPages || 1);
             setLoading(false);
           })
           .catch((error) => {
             setLoading(false);
-            console.error("Error fetching sold items:", error);
+            setErrorMessage(
+              "Erro ao carregar produtos vendidos. Tente novamente."
+            );
           });
       }, 300);
     },
     [query, size, sortDirection, supplierId, startDate, endDate]
   );
 
-  useEffect(() => {
-    fetchSoldItems(page);
-  }, [page, query, sortDirection, supplierId, fetchSoldItems]);
+  const retrieveSuppliers = useCallback(() => {
+    stockService
+      .getAllWithoutPagination()
+      .then((response) => {
+        setSuppliers(response.data);
+      })
+      .catch(() => setSuppliers([]));
+  }, []);
 
   useEffect(() => {
     retrieveSuppliers();
-  }, [retrieveSuppliers]);
+    fetchSoldItems(page);
+  }, [page, query, sortDirection, supplierId, startDate, endDate]);
+
+  const handleInputChange = (setter) => (event) => {
+    const value = event.target.value;
+
+    if (setter === setQuery) {
+      debouncedSetQuery(value);
+    } else {
+      setter(value);
+    }
+    setPage(0);
+  };
 
   const handleNextPage = () => {
     if (page < totalPages - 1) setPage(page + 1);
@@ -94,6 +108,14 @@ const SoldItemsPage = () => {
     );
   };
 
+  const handleResetFilters = () => {
+    setQuery("");
+    setSupplierId(null);
+    setStartDate(null);
+    setEndDate(null);
+    setPage(0);
+  };
+
   return (
     <PageContainer
       title="Sold Items"
@@ -106,8 +128,9 @@ const SoldItemsPage = () => {
               label="Pesquise por Produtos..."
               variant="outlined"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={handleInputChange(setQuery)}
               fullWidth
+              disabled={loading}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
@@ -116,15 +139,20 @@ const SoldItemsPage = () => {
               <Select
                 value={supplierId || ""}
                 onChange={(e) => setSupplierId(e.target.value || null)}
+                disabled={loading}
               >
                 <MenuItem value="">
                   <em>Todos Fornecedores</em>
                 </MenuItem>
-                {suppliers.map((supplier) => (
-                  <MenuItem key={supplier.id} value={supplier.id}>
-                    {supplier.name}
-                  </MenuItem>
-                ))}
+                {suppliers.length === 0 ? (
+                  <MenuItem disabled>Nenhum fornecedor disponível </MenuItem>
+                ) : (
+                  suppliers.map((supplier) => (
+                    <MenuItem key={supplier.id} value={supplier.id}>
+                      {supplier.name}
+                    </MenuItem>
+                  ))
+                )}
               </Select>
             </FormControl>
           </Grid>
@@ -133,8 +161,9 @@ const SoldItemsPage = () => {
               label="Data Início"
               type="date"
               value={startDate || ""}
-              onChange={(e) => setStartDate(e.target.value)}
+              onChange={handleInputChange(setStartDate)}
               fullWidth
+              disabled={loading}
               slotProps={{
                 inputLabel: { shrink: true },
               }}
@@ -145,27 +174,50 @@ const SoldItemsPage = () => {
               label="Data Fim"
               type="date"
               value={endDate || ""}
-              onChange={(e) => setEndDate(e.target.value)}
+              onChange={handleInputChange(setEndDate)}
               fullWidth
+              disabled={loading}
               slotProps={{
                 inputLabel: { shrink: true },
               }}
             />
           </Grid>
+
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={toggleSortDirection}
+              startIcon={
+                sortDirection === "asc" ? (
+                  <IconSortAscending />
+                ) : (
+                  <IconSortDescending />
+                )
+              }
+              sx={{ mt: 2, paddingY: 1 }}
+            >
+              Classificar por Quantidade
+            </Button>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <Button
+              variant="outlined"
+              fullWidth
+              onClick={handleResetFilters}
+              startIcon={<Refresh />}
+              sx={{ mt: 2, paddingY: 1 }}
+              disabled={
+                loading || (!query && !supplierId && !startDate && !endDate)
+              }
+            >
+              Limpar Filtros
+            </Button>
+          </Grid>
         </Grid>
 
-        <Button
-          sx={{ mb: 2 }}
-          variant="contained"
-          fullWidth
-          onClick={toggleSortDirection}
-        >
-          Classificar por quantidade ({sortDirection === "asc" ? "asc" : "desc"}
-          )
-        </Button>
-
         {loading ? (
-          <Grid container spacing={-5}>
+          <Grid container spacing={2}>
             {[...Array(size)].map((_, index) => (
               <Grid size={{ xs: 12 }} key={index}>
                 <Box
@@ -223,23 +275,37 @@ const SoldItemsPage = () => {
           </Grid>
         )}
 
-        <Box display="flex" justifyContent="space-between" mt={2}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          mt={2}
+          alignItems="center"
+        >
           <Button
             variant="contained"
             onClick={handlePreviousPage}
-            disabled={page === 0}
+            disabled={page === 0 || loading}
           >
             Página Anterior
           </Button>
+          <Typography>
+            Página {page + 1} de {totalPages}
+          </Typography>
           <Button
             variant="contained"
             onClick={handleNextPage}
-            disabled={page >= totalPages - 1}
+            disabled={page >= totalPages - 1 || loading}
           >
             Próxima Página
           </Button>
         </Box>
       </DashboardCard>
+      <Snackbar
+        open={!!errorMessage}
+        autoHideDuration={6000}
+        onClose={() => setErrorMessage("")}
+        message={errorMessage}
+      />
     </PageContainer>
   );
 };
