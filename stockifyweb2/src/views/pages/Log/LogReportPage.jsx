@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Box,
   Button,
@@ -7,8 +7,12 @@ import {
   Divider,
   Select,
   MenuItem,
+  Snackbar,
+  Skeleton,
+  CircularProgress,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
+import { ExpandMore, ExpandLess } from "@mui/icons-material";
 import PageContainer from "../../../components/container/PageContainer";
 import DashboardCard from "../../../components/shared/DashboardCard";
 import logService from "../../../services/logService";
@@ -72,7 +76,7 @@ const renderSummary = (log) => {
         <Typography variant="body2">
           {`Produto: ${
             newValue?.productName || "Produto não especificado"
-          }, Quantidade: ${newValue?.quantity || "N/A"}, Valor: R$${
+          }, Quantidade: ${newValue?.quantity || "N/A"}, Valor: ${
             newValue?.value ? formatCurrency(newValue.value) : "N/A"
           }`}
         </Typography>
@@ -108,9 +112,9 @@ const renderSummary = (log) => {
           )}
           {valueChanged && (
             <>
-              {`Valor (Antes: R$${
+              {`Valor (Antes: ${
                 oldValue?.value ? formatCurrency(oldValue.value) : "N/A"
-              }, Agora: R$${
+              }, Agora: ${
                 newValue?.value ? formatCurrency(newValue.value) : "N/A"
               })`}
             </>
@@ -126,7 +130,7 @@ const renderSummary = (log) => {
         <Typography variant="body2">
           {`Produto: ${
             newValue?.name || "Produto não especificado"
-          }, Quantidade: ${newValue?.quantity || "N/A"}, Valor: R$${
+          }, Quantidade: ${newValue?.quantity || "N/A"}, Valor: ${
             newValue?.value ? formatCurrency(newValue.value) : "N/A"
           }`}
         </Typography>
@@ -162,9 +166,9 @@ const renderSummary = (log) => {
           )}
           {valueChanged && (
             <>
-              {`Valor (Antes: R$${
+              {`Valor (Antes: ${
                 oldValue?.value ? formatCurrency(oldValue.value) : "N/A"
-              }, Agora: R$${
+              }, Agora: ${
                 newValue?.value ? formatCurrency(newValue.value) : "N/A"
               })`}
             </>
@@ -222,10 +226,13 @@ const LogReportPage = () => {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [size] = useState(10);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const { logId } = useParams();
+  let debounceTimeout = useRef(null);
 
   useEffect(() => {
-    retrieveLogs();
+    retrieveLogs(page);
   }, [entityFilter, operationTypeFilter, page]);
 
   useEffect(() => {
@@ -247,22 +254,35 @@ const LogReportPage = () => {
     }
   }, [logId, logs]);
 
-  const retrieveLogs = () => {
-    logService
-      .getLogs(entityFilter, operationTypeFilter, page, size)
-      .then((response) => {
-        const logs = response.data._embedded?.logDTOList || [];
-        setLogs(
-          logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-        );
-        setTotalPages(response.data.page.totalPages);
+  const retrieveLogs = useCallback(
+    (currentPage) => {
+      if (debounceTimeout) clearTimeout(debounceTimeout);
+      setLoading(true);
 
-        if (logId) {
-          setExpandedLogId(logId);
-        }
-      })
-      .catch(() => console.error("Erro ao buscar logs."));
-  };
+      debounceTimeout = setTimeout(() => {
+        logService
+          .getLogs(entityFilter, operationTypeFilter, currentPage, size)
+          .then((response) => {
+            const logs = response.data._embedded?.logDTOList || [];
+            setLogs(
+              logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+            );
+            setTotalPages(response.data.page.totalPages);
+
+            if (logId) {
+              setExpandedLogId(logId);
+            }
+
+            setLoading(false);
+          })
+          .catch(() => {
+            setErrorMessage("Erro ao buscar logs.");
+            setLoading(false);
+          });
+      }, 300);
+    },
+    [entityFilter, operationTypeFilter, size, logId]
+  );
 
   const toggleLogDetails = (logId) => {
     setExpandedLogId(expandedLogId === logId ? null : logId);
@@ -307,33 +327,17 @@ const LogReportPage = () => {
     }
   };
 
-  const formatKeyValue = (key, value) => {
-    let displayValue = value;
-
-    if (key === "available") {
-      displayValue = value ? "Sim" : "Não";
-    }
-
-    if (key === "quantity" && value === 0) {
-      displayValue = "0";
-    }
-
-    return (
-      <Box display="flex" mb={1}>
-        <Typography variant="body2" fontWeight="bold" mr={1}>
-          {translateKey(key)}:
-        </Typography>
-        <Typography variant="body2">{displayValue || "N/A"}</Typography>
-      </Box>
-    );
-  };
-
   const renderKeyValuePairs = (data) => {
     return (
       <Grid container spacing={2}>
         {Object.entries(data).map(([key, value]) => (
           <Grid size={{ xs: 6 }} key={key}>
-            {formatKeyValue(key, value)}
+            <Box display="flex" mb={1}>
+              <Typography variant="body2" fontWeight="bold" mr={1}>
+                {translateKey(key)}:
+              </Typography>
+              <Typography variant="body2">{value || "N/A"}</Typography>
+            </Box>
           </Grid>
         ))}
       </Grid>
@@ -354,6 +358,12 @@ const LogReportPage = () => {
       description="Visualize logs detalhados de atividades"
     >
       <DashboardCard title="Relatórios de Atividades">
+        <Snackbar
+          open={!!errorMessage}
+          autoHideDuration={6000}
+          onClose={() => setErrorMessage("")}
+          message={errorMessage}
+        />
         <Box mt={2} mb={3} display="flex" gap={2}>
           <Select
             value={entityFilter}
@@ -381,111 +391,143 @@ const LogReportPage = () => {
           </Select>
         </Box>
 
-        <Box mt={2}>
-          {logs.length > 0 ? (
-            logs.map((log) => (
-              <Box
-                key={log.id}
-                id={`log-${log.id}`}
-                display="flex"
-                flexDirection="column"
-                p={2}
-                borderBottom="1px solid #ccc"
-                mb={2}
-              >
+        {loading ? (
+          <Grid container spacing={2}>
+            {[...Array(5)].map((_, index) => (
+              <Grid size={{ xs: 12 }} key={index}>
                 <Box
                   display="flex"
                   justifyContent="space-between"
                   alignItems="center"
-                  sx={{ width: "100%" }}
+                  p={2}
                 >
-                  <Box display="flex" alignItems="center" sx={{ flex: 0 }}>
-                    {getOperationIcon(log.operationType)}
-                    <Typography variant="h6" mr={2} sx={{ minWidth: "100px" }}>
-                      {translateEntity(log.entity)}
-                    </Typography>
-                    <Typography variant="body2" sx={{ minWidth: "100px" }}>
-                      {translateOperation(log.operationType)}
-                    </Typography>
+                  <Box display="flex" alignItems="center">
+                    <Skeleton variant="circular" width={40} height={40} />
+                    <Skeleton
+                      variant="text"
+                      width={120}
+                      height={20}
+                      sx={{ ml: 2 }}
+                    />
                   </Box>
-                  <Box sx={{ flex: "0.6 1 200px", textAlign: "right" }}>
-                    <Typography variant="body2" sx={{ textAlign: "right" }}>
-                      {new Date(
-                        log.timestamp[0],
-                        log.timestamp[1] - 1,
-                        log.timestamp[2],
-                        log.timestamp[3],
-                        log.timestamp[4],
-                        log.timestamp[5]
-                      ).toLocaleString("pt-BR", {
-                        day: "2-digit",
-                        month: "long",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </Typography>
-                  </Box>
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    onClick={() => toggleLogDetails(log.id)}
-                  >
-                    Ver Detalhes
-                  </Button>
+                  <Skeleton variant="text" width={200} height={20} />
+                  <Skeleton variant="rectangular" width={100} height={40} />
                 </Box>
-                <Box mt={1}>{renderSummary(log)}</Box>
-                <Collapse in={parseInt(expandedLogId) === log.id}>
-                  <Box mt={2}>
-                    {shouldShowNewValue(log.operationType) && (
-                      <>
-                        <Typography variant="body2" fontWeight="bold" mb={1}>
-                          Valor Atual:
-                        </Typography>
-                        {log.newValue ? (
-                          tryParseJSON(log.newValue) ? (
-                            renderKeyValuePairs(tryParseJSON(log.newValue))
-                          ) : (
-                            <Typography variant="body2">
-                              {log.newValue}
-                            </Typography>
-                          )
-                        ) : (
-                          <Typography variant="body2">N/A</Typography>
-                        )}
-                        <Divider sx={{ my: 2 }} />
-                      </>
-                    )}
-                    {shouldShowOldValue(log.operationType) && (
-                      <>
-                        <Typography variant="body2" fontWeight="bold" mb={1}>
-                          Valor Antigo:
-                        </Typography>
-                        {log.oldValue ? (
-                          tryParseJSON(log.oldValue) ? (
-                            renderKeyValuePairs(tryParseJSON(log.oldValue))
-                          ) : (
-                            <Typography variant="body2">
-                              {log.oldValue}
-                            </Typography>
-                          )
-                        ) : (
-                          <Typography variant="body2">N/A</Typography>
-                        )}
-                        <Divider sx={{ my: 2 }} />
-                      </>
-                    )}
-                    <Typography variant="body2">
-                      <strong>Detalhes:</strong> {log.details || "N/A"}
-                    </Typography>
+              </Grid>
+            ))}
+          </Grid>
+        ) : (
+          <Box mt={2}>
+            {logs.length > 0 ? (
+              logs.map((log) => (
+                <Box
+                  key={log.id}
+                  id={`log-${log.id}`}
+                  display="flex"
+                  flexDirection="column"
+                  p={2}
+                  borderBottom="1px solid #ccc"
+                  mb={2}
+                >
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    sx={{ width: "100%" }}
+                  >
+                    <Box display="flex" alignItems="center">
+                      {getOperationIcon(log.operationType)}
+                      <Typography variant="h6" mr={2}>
+                        {translateEntity(log.entity)}
+                      </Typography>
+                      <Typography variant="body2" sx={{ minWidth: "100px" }}>
+                        {translateOperation(log.operationType)}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ flex: "0.6 1 200px", textAlign: "right" }}>
+                      <Typography variant="body2" sx={{ textAlign: "right" }}>
+                        {new Date(
+                          log.timestamp[0],
+                          log.timestamp[1] - 1,
+                          log.timestamp[2],
+                          log.timestamp[3],
+                          log.timestamp[4],
+                          log.timestamp[5]
+                        ).toLocaleString("pt-BR", {
+                          day: "2-digit",
+                          month: "long",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </Typography>
+                    </Box>
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      onClick={() => toggleLogDetails(log.id)}
+                    >
+                      {expandedLogId === log.id ? (
+                        <ExpandLess />
+                      ) : (
+                        <ExpandMore />
+                      )}
+                      Ver Detalhes
+                    </Button>
                   </Box>
-                </Collapse>
-              </Box>
-            ))
-          ) : (
-            <Typography variant="h7">Nenhum log encontrado.</Typography>
-          )}
-        </Box>
+                  <Box mt={1}>{renderSummary(log)}</Box>
+                  <Collapse in={parseInt(expandedLogId) === log.id}>
+                    <Box mt={2}>
+                      {shouldShowNewValue(log.operationType) && (
+                        <>
+                          <Typography variant="body2" fontWeight="bold" mb={1}>
+                            Valor Atual:
+                          </Typography>
+                          {log.newValue ? (
+                            tryParseJSON(log.newValue) ? (
+                              renderKeyValuePairs(tryParseJSON(log.newValue))
+                            ) : (
+                              <Typography variant="body2">
+                                {log.newValue}
+                              </Typography>
+                            )
+                          ) : (
+                            <Typography variant="body2">N/A</Typography>
+                          )}
+                          <Divider sx={{ my: 2 }} />
+                        </>
+                      )}
+                      {shouldShowOldValue(log.operationType) && (
+                        <>
+                          <Typography variant="body2" fontWeight="bold" mb={1}>
+                            Valor Antigo:
+                          </Typography>
+                          {log.oldValue ? (
+                            tryParseJSON(log.oldValue) ? (
+                              renderKeyValuePairs(tryParseJSON(log.oldValue))
+                            ) : (
+                              <Typography variant="body2">
+                                {log.oldValue}
+                              </Typography>
+                            )
+                          ) : (
+                            <Typography variant="body2">N/A</Typography>
+                          )}
+                          <Divider sx={{ my: 2 }} />
+                        </>
+                      )}
+                      <Typography variant="body2">
+                        <strong>Detalhes:</strong> {log.details || "N/A"}
+                      </Typography>
+                    </Box>
+                  </Collapse>
+                </Box>
+              ))
+            ) : (
+              <Typography variant="h7">Nenhum log encontrado.</Typography>
+            )}
+          </Box>
+        )}
 
         <Box display="flex" justifyContent="space-between" mt={2}>
           <Button

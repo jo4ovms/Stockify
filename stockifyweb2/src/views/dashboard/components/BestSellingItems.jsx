@@ -54,7 +54,7 @@ const BestSellingItems = ({ sx }) => {
           <IconArrowRight width={24} />
         </Fab>
       }
-      sx={{ height: "600px", width: "128.5%", maxWidth: "900px", ...sx }}
+      sx={{ height: "600px", width: "125%", maxWidth: "900px", ...sx }}
     >
       <Box sx={{ overflow: "auto", width: { xs: "280px", sm: "auto" } }}>
         {isLoading ? (
