@@ -25,6 +25,7 @@ import PageContainer from "../../../components/container/PageContainer";
 import SupplierForm from "./SupplierForm";
 import DashboardCard from "../../../components/shared/DashboardCard";
 import useSupplier from "../../../hooks/useSupplier";
+import ProductForm from "./ProductForm";
 
 const SupplierPage = () => {
   const {
@@ -56,6 +57,7 @@ const SupplierPage = () => {
     saveProduct,
     deleteSupplier,
     deleteProduct,
+    editProduct,
     page,
     setPage,
     totalPages,
@@ -222,6 +224,12 @@ const SupplierPage = () => {
                           </Box>
                           <Box>
                             <IconButton
+                              color="primary"
+                              onClick={() => editProduct(product)}
+                            >
+                              <EditIcon />
+                            </IconButton>
+                            <IconButton
                               color="secondary"
                               onClick={() => deleteProduct(product.id)}
                             >
@@ -340,47 +348,15 @@ const SupplierPage = () => {
         handleChange={handleChange}
       />
 
-      <Dialog open={openProductDialog} onClose={handleCloseProductDialog}>
-        <DialogTitle>Criar Produto para {currentSupplier.name}</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            name="name"
-            label="Nome"
-            type="text"
-            fullWidth
-            value={currentProduct.name}
-            onChange={handleChangeProduct}
-          />
-          <TextField
-            margin="dense"
-            name="value"
-            label="Valor"
-            type="number"
-            fullWidth
-            value={currentProduct.value}
-            onChange={handleChangeProduct}
-          />
-          <TextField
-            margin="dense"
-            name="quantity"
-            label="Quantidade"
-            type="number"
-            fullWidth
-            value={currentProduct.quantity}
-            onChange={handleChangeProduct}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseProductDialog} color="primary">
-            Cancelar
-          </Button>
-          <Button onClick={saveProduct} color="primary">
-            Criar
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ProductForm
+        open={openProductDialog}
+        handleClose={handleCloseProductDialog}
+        handleSave={saveProduct}
+        currentProduct={currentProduct}
+        editMode={editMode}
+        handleChange={handleChangeProduct}
+        currentSupplier={currentSupplier}
+      />
     </PageContainer>
   );
 };

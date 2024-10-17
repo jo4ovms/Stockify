@@ -155,6 +155,8 @@ const useSupplier = () => {
   };
 
   const handleClickCreateProduct = (supplier) => {
+    setEditMode(false);
+    setCurrentSupplier(supplier);
     setCurrentProduct({
       id: null,
       name: "",
@@ -200,6 +202,19 @@ const useSupplier = () => {
     }));
   };
 
+  const editProduct = (product) => {
+    setEditMode(true);
+    setCurrentProduct({
+      id: product.id,
+      name: product.name,
+      value: product.value,
+      quantity: product.quantity,
+      supplierId: product.supplierId,
+      supplierName: currentSupplier.name,
+    });
+    setOpenProductDialog(true);
+  };
+
   const saveSupplier = () => {
     if (editMode) {
       supplierService
@@ -217,13 +232,23 @@ const useSupplier = () => {
   };
 
   const saveProduct = () => {
-    productService
-      .createProduct(currentProduct)
-      .then(() => {
-        retrieveProducts(currentSupplier);
-        handleCloseProductDialog();
-      })
-      .catch(console.log);
+    if (editMode) {
+      productService
+        .updateProduct(currentProduct.id, currentProduct)
+        .then(() => {
+          retrieveProducts(currentSupplier);
+          handleCloseProductDialog();
+        })
+        .catch(console.log);
+    } else {
+      productService
+        .createProduct(currentProduct)
+        .then(() => {
+          retrieveProducts(currentSupplier);
+          handleCloseProductDialog();
+        })
+        .catch(console.log);
+    }
   };
 
   const deleteSupplier = (id) => {
@@ -289,6 +314,7 @@ const useSupplier = () => {
     saveProduct,
     deleteSupplier,
     deleteProduct,
+    editProduct,
     page,
     setPage,
     totalPages,
