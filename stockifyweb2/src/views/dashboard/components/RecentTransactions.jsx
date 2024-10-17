@@ -128,7 +128,7 @@ const RecentTransactions = () => {
     const oldValue = tryParseJSON(log.oldValue);
 
     if (log.entity === "Product") {
-      return newValue?.name || oldValue?.productName || "Produto desconhecido";
+      return newValue?.name || oldValue?.name || "Produto desconhecido";
     } else if (log.entity === "Stock") {
       return (
         newValue?.productName ||
