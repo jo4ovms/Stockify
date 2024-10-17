@@ -232,7 +232,7 @@ const useSupplier = () => {
 
   const deleteProduct = (id) => {
     productService
-      .delete(id)
+      .deleteProduct(id)
       .then(() => {
         retrieveProducts(currentSupplier);
         getAllProductTypes();
