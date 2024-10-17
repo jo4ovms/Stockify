@@ -25,7 +25,8 @@ const getAllSoldItems = async (
   page = 0,
   size = 10,
   searchTerm = "",
-  sortDirection = "desc"
+  sortDirection = "desc",
+  supplierId = null
 ) => {
   try {
     const response = await axios.get(`${API_URL}`, {
@@ -34,6 +35,7 @@ const getAllSoldItems = async (
         size,
         searchTerm,
         sortDirection,
+        supplierId,
       },
     });
     console.log("API Response: ", response.data);

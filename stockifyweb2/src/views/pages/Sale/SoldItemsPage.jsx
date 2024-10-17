@@ -9,7 +9,6 @@ import {
   MenuItem,
   TextField,
   Skeleton,
-  Avatar,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import PageContainer from "../../../components/container/PageContainer";
@@ -27,6 +26,7 @@ const SoldItemsPage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [query, setQuery] = useState("");
   const [suppliers, setSuppliers] = useState([]);
+  const [supplierId, setSupplierId] = useState(null);
   const [sortDirection, setSortDirection] = useState("desc");
 
   const retrieveSuppliers = useCallback(() => {
@@ -46,7 +46,7 @@ const SoldItemsPage = () => {
 
       debounceTimeout = setTimeout(() => {
         saleService
-          .getAllSoldItems(currentPage, size, query, sortDirection)
+          .getAllSoldItems(currentPage, size, query, sortDirection, supplierId)
           .then((response) => {
             const content = response.content || [];
             setSoldItems(content);
@@ -59,12 +59,12 @@ const SoldItemsPage = () => {
           });
       }, 300);
     },
-    [query, size, sortDirection]
+    [query, size, sortDirection, supplierId]
   );
 
   useEffect(() => {
     fetchSoldItems(page);
-  }, [page, query, sortDirection, fetchSoldItems]);
+  }, [page, query, sortDirection, supplierId, fetchSoldItems]);
 
   useEffect(() => {
     retrieveSuppliers();
@@ -79,15 +79,15 @@ const SoldItemsPage = () => {
   };
 
   const toggleSortDirection = () => {
-    setSortDirection((prevDirection) =>
-      prevDirection === "asc" ? "desc" : "asc"
+    setSortDirection((prevSortDirection) =>
+      prevSortDirection === "asc" ? "desc" : "asc"
     );
   };
 
   return (
     <PageContainer
       title="Sold Items"
-      description="List of sold items with pagination and search filters"
+      description="List of sold items with pagination, search filters, and supplier filter"
     >
       <DashboardCard title="Produtos Vendidos">
         <Grid container spacing={2} mb={2}>
@@ -102,10 +102,13 @@ const SoldItemsPage = () => {
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <FormControl fullWidth>
-              <InputLabel>Supplier</InputLabel>
-              <Select value={""}>
+              <InputLabel>Fornecedor</InputLabel>
+              <Select
+                value={supplierId || ""}
+                onChange={(e) => setSupplierId(e.target.value || null)}
+              >
                 <MenuItem value="">
-                  <em>All Suppliers</em>
+                  <em>Todos Fornecedores</em>
                 </MenuItem>
                 {suppliers.map((supplier) => (
                   <MenuItem key={supplier.id} value={supplier.id}>
@@ -117,13 +120,9 @@ const SoldItemsPage = () => {
           </Grid>
         </Grid>
 
-        <Button
-          variant="contained"
-          fullWidth
-          onClick={toggleSortDirection}
-          sx={{ mb: 2 }}
-        >
-          Ordene pela quantidade ({sortDirection === "asc" ? "Asc" : "Desc"})
+        <Button variant="contained" fullWidth onClick={toggleSortDirection}>
+          Classificar por quantidade ({sortDirection === "asc" ? "asc" : "desc"}
+          )
         </Button>
 
         {loading ? (
