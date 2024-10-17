@@ -34,7 +34,7 @@ const CriticalStockPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const threshold = 5;
+  const threshold = 4;
   const [query, setQuery] = useState("");
   const [supplierId, setSupplierId] = useState(null);
   const [sortBy, setSortBy] = useState("quantity");

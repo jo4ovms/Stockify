@@ -3,6 +3,7 @@ import { Select, MenuItem, Box } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import DashboardCard from "../../../components/shared/DashboardCard";
 import Chart from "react-apexcharts";
+import saleService from "../../../services/saleService";
 
 const SalesOverview = () => {
   const [month, setMonth] = useState(new Date().getMonth() + 1);
@@ -10,25 +11,47 @@ const SalesOverview = () => {
   const theme = useTheme();
 
   useEffect(() => {
-    generateSalesData(month);
+    fetchSalesData(month);
   }, [month]);
 
-  const generateSalesData = (month) => {
-    const daysInMonth = new Date(new Date().getFullYear(), month, 0).getDate();
-    const salesPerDay = Array.from({ length: daysInMonth }, (_, i) => ({
-      day: i + 1,
-      sales: Math.floor(Math.random() * 100),
-    }));
-    setSalesData(salesPerDay);
+  const fetchSalesData = async (month) => {
+    try {
+      const daysInMonth = new Date(
+        new Date().getFullYear(),
+        month,
+        0
+      ).getDate();
+
+      const response = await saleService.getSalesGroupedByDay(month);
+
+      const salesPerDay = Array.from({ length: daysInMonth }, (_, index) => ({
+        day: index + 1,
+        sales: 0,
+      }));
+
+      response.forEach((item) => {
+        const dayIndex = salesPerDay.findIndex(
+          (dayData) => dayData.day === item.day
+        );
+        if (dayIndex !== -1) {
+          salesPerDay[dayIndex].sales = item.totalSales;
+        }
+      });
+
+      setSalesData(salesPerDay);
+    } catch (error) {
+      console.error("Erro ao buscar dados de vendas agrupados por dia", error);
+      setSalesData([]);
+    }
   };
 
   const handleChange = (event) => {
     setMonth(event.target.value);
   };
 
-  const optionscolumnchart = {
+  const optionsLineChart = {
     chart: {
-      type: "bar",
+      type: "line",
       fontFamily: "'Plus Jakarta Sans', sans-serif;",
       foreColor: "#adb0bb",
       toolbar: {
@@ -36,66 +59,45 @@ const SalesOverview = () => {
       },
       height: 370,
     },
-    colors: [theme.palette.primary.main, theme.palette.secondary.main],
+
     plotOptions: {
       bar: {
-        horizontal: false,
-        barHeight: "60%",
-        columnWidth: "42%",
-        borderRadius: [6],
-        borderRadiusApplication: "end",
-        borderRadiusWhenStacked: "all",
-        dataLabels: {
-          position: "top",
-        },
+        columnWidth: "50%",
+        barHeight: "70%",
       },
     },
+    colors: [theme.palette.primary.main, theme.palette.secondary.main],
     stroke: {
-      show: true,
-      width: 2,
-      colors: ["transparent"],
+      curve: "smooth",
+      width: 3,
     },
-    dataLabels: {
-      enabled: true,
-      formatter: (val) => val,
-      offsetY: -20,
-      style: {
-        fontSize: "12px",
-        colors: ["#304758"],
-      },
-    },
-    legend: {
-      show: false,
+    markers: {
+      size: 5,
     },
     grid: {
       borderColor: "rgba(0,0,0,0.1)",
       strokeDashArray: 3,
-      xaxis: {
-        lines: {
-          show: false,
+    },
+    xaxis: {
+      categories: salesData.map((data) => data.day),
+      labels: {
+        style: {
+          fontSize: "11.9px",
+          colors: theme.palette.text.secondary,
         },
+        rotate: -45,
       },
     },
     yaxis: {
-      tickAmount: 4,
+      tickAmount: 5,
+      min: 0,
+      max: Math.max(...salesData.map((data) => data.sales)) + 1,
       labels: {
         formatter: (val) => val.toFixed(0),
       },
     },
-    xaxis: {
-      categories: salesData.map((data) => data.day),
-      axisBorder: {
-        show: false,
-      },
-      labels: {
-        style: {
-          colors: theme.palette.text.secondary,
-        },
-      },
-    },
     tooltip: {
       theme: theme.palette.mode === "dark" ? "dark" : "light",
-      fillSeriesColor: false,
       x: {
         formatter: (val) => `Dia ${val}`,
       },
@@ -105,7 +107,7 @@ const SalesOverview = () => {
     },
   };
 
-  const seriescolumnchart = [
+  const seriesLineChart = [
     {
       name: "Vendas",
       data: salesData.map((data) => data.sales),
@@ -126,7 +128,7 @@ const SalesOverview = () => {
         >
           <MenuItem value={1}>Janeiro</MenuItem>
           <MenuItem value={2}>Fevereiro</MenuItem>
-          <MenuItem value={3}>Março</MenuItem>
+          <MenuItem value={3}>Março</MenuItem>
           <MenuItem value={4}>Abril</MenuItem>
           <MenuItem value={5}>Maio</MenuItem>
           <MenuItem value={6}>Junho</MenuItem>
@@ -142,9 +144,9 @@ const SalesOverview = () => {
     >
       <Box sx={{ height: 400, width: "100%" }}>
         <Chart
-          options={optionscolumnchart}
-          series={seriescolumnchart}
-          type="bar"
+          options={optionsLineChart}
+          series={seriesLineChart}
+          type="line"
           height="100%"
           width="100%"
         />

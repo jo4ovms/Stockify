@@ -38,7 +38,7 @@ const getAllSoldItems = async (
         supplierId,
       },
     });
-    console.log("API Response: ", response.data);
+
     return response.data;
   } catch (error) {
     console.error("Error Fetching Sold Items", error);
@@ -46,4 +46,21 @@ const getAllSoldItems = async (
   }
 };
 
-export default { registerSale, getBestSellingItems, getAllSoldItems };
+const getSalesGroupedByDay = async (month) => {
+  try {
+    const response = await axios.get(`${API_URL}/daily`, {
+      params: { month },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error Fetching Sales Grouped By Day", error);
+    throw error;
+  }
+};
+
+export default {
+  registerSale,
+  getBestSellingItems,
+  getAllSoldItems,
+  getSalesGroupedByDay,
+};
