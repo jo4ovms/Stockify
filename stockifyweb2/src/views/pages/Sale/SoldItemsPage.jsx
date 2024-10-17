@@ -120,7 +120,12 @@ const SoldItemsPage = () => {
           </Grid>
         </Grid>
 
-        <Button variant="contained" fullWidth onClick={toggleSortDirection}>
+        <Button
+          sx={{ mb: 2 }}
+          variant="contained"
+          fullWidth
+          onClick={toggleSortDirection}
+        >
           Classificar por quantidade ({sortDirection === "asc" ? "asc" : "desc"}
           )
         </Button>
