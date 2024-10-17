@@ -28,6 +28,8 @@ const SoldItemsPage = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [supplierId, setSupplierId] = useState(null);
   const [sortDirection, setSortDirection] = useState("desc");
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
 
   const retrieveSuppliers = useCallback(() => {
     stockService
@@ -46,7 +48,15 @@ const SoldItemsPage = () => {
 
       debounceTimeout = setTimeout(() => {
         saleService
-          .getAllSoldItems(currentPage, size, query, sortDirection, supplierId)
+          .getAllSoldItems(
+            currentPage,
+            size,
+            query,
+            sortDirection,
+            supplierId,
+            startDate,
+            endDate
+          )
           .then((response) => {
             const content = response.content || [];
             setSoldItems(content);
@@ -59,7 +69,7 @@ const SoldItemsPage = () => {
           });
       }, 300);
     },
-    [query, size, sortDirection, supplierId]
+    [query, size, sortDirection, supplierId, startDate, endDate]
   );
 
   useEffect(() => {
@@ -117,6 +127,30 @@ const SoldItemsPage = () => {
                 ))}
               </Select>
             </FormControl>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              label="Data Início"
+              type="date"
+              value={startDate || ""}
+              onChange={(e) => setStartDate(e.target.value)}
+              fullWidth
+              slotProps={{
+                inputLabel: { shrink: true },
+              }}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              label="Data Fim"
+              type="date"
+              value={endDate || ""}
+              onChange={(e) => setEndDate(e.target.value)}
+              fullWidth
+              slotProps={{
+                inputLabel: { shrink: true },
+              }}
+            />
           </Grid>
         </Grid>
 
