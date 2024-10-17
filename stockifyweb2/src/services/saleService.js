@@ -21,13 +21,19 @@ const getBestSellingItems = async () => {
     throw error;
   }
 };
-const getAllSoldItems = async (page = 0, size = 10, searchTerm = "") => {
+const getAllSoldItems = async (
+  page = 0,
+  size = 10,
+  searchTerm = "",
+  sortDirection = "desc"
+) => {
   try {
     const response = await axios.get(`${API_URL}`, {
       params: {
         page,
         size,
         searchTerm,
+        sortDirection,
       },
     });
     console.log("API Response: ", response.data);

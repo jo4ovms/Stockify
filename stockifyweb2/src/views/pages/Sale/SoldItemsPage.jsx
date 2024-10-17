@@ -16,7 +16,6 @@ import PageContainer from "../../../components/container/PageContainer";
 import DashboardCard from "../../../components/shared/DashboardCard";
 import saleService from "../../../services/saleService";
 import stockService from "../../../services/stockService";
-import { IconArrowRight } from "@tabler/icons-react";
 
 let debounceTimeout = null;
 
@@ -28,6 +27,7 @@ const SoldItemsPage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [query, setQuery] = useState("");
   const [suppliers, setSuppliers] = useState([]);
+  const [sortDirection, setSortDirection] = useState("desc");
 
   const retrieveSuppliers = useCallback(() => {
     stockService
@@ -46,7 +46,7 @@ const SoldItemsPage = () => {
 
       debounceTimeout = setTimeout(() => {
         saleService
-          .getAllSoldItems(currentPage, size, query)
+          .getAllSoldItems(currentPage, size, query, sortDirection)
           .then((response) => {
             const content = response.content || [];
             setSoldItems(content);
@@ -59,12 +59,12 @@ const SoldItemsPage = () => {
           });
       }, 300);
     },
-    [query, size]
+    [query, size, sortDirection]
   );
 
   useEffect(() => {
     fetchSoldItems(page);
-  }, [page, query, fetchSoldItems]);
+  }, [page, query, sortDirection, fetchSoldItems]);
 
   useEffect(() => {
     retrieveSuppliers();
@@ -76,6 +76,12 @@ const SoldItemsPage = () => {
 
   const handlePreviousPage = () => {
     if (page > 0) setPage(page - 1);
+  };
+
+  const toggleSortDirection = () => {
+    setSortDirection((prevDirection) =>
+      prevDirection === "asc" ? "desc" : "asc"
+    );
   };
 
   return (
@@ -110,6 +116,15 @@ const SoldItemsPage = () => {
             </FormControl>
           </Grid>
         </Grid>
+
+        <Button
+          variant="contained"
+          fullWidth
+          onClick={toggleSortDirection}
+          sx={{ mb: 2 }}
+        >
+          Ordene pela quantidade ({sortDirection === "asc" ? "Asc" : "Desc"})
+        </Button>
 
         {loading ? (
           <Grid container spacing={-5}>
