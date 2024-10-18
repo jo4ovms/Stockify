@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Box,
   Button,
@@ -24,8 +24,6 @@ import DashboardCard from "../../../components/shared/DashboardCard";
 import stockOverviewService from "../../../services/stockOverviewService";
 import stockService from "../../../services/stockService";
 
-let debounceTimeout = null;
-
 const OutOfStockPage = () => {
   const [page, setPage] = useState(0);
   const [suppliers, setSuppliers] = useState([]);
@@ -36,6 +34,7 @@ const OutOfStockPage = () => {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [supplierId, setSupplierId] = useState(null);
+  let debounceTimeout = useRef(null);
 
   const getSupplierName = () => {
     const supplier = suppliers.find((sup) => sup.id === supplierId);

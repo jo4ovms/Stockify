@@ -12,12 +12,20 @@ import {
   TimelineConnector,
   TimelineContent,
 } from "@mui/lab";
-import { Typography, Fab, Box, IconButton, Tooltip } from "@mui/material";
+import {
+  Typography,
+  Fab,
+  Box,
+  IconButton,
+  Tooltip,
+  Skeleton,
+} from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import StoreIcon from "@mui/icons-material/Store";
+import { useQuery } from "react-query";
 
 const tryParseJSON = (str) => {
   try {
@@ -55,13 +63,20 @@ const getEntityIcon = (entity) => {
   }
 };
 
+const fetchLogs = async () => {
+  const response = await logService.getRecentLogs();
+  const logs = response.data._embedded?.logDTOList || [];
+  return logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+};
+
 const RecentTransactions = () => {
-  const [logs, setLogs] = useState([]);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    retrieveLogs();
-  }, []);
+  const {
+    data: logs = [],
+    isLoading,
+    isError,
+  } = useQuery("recentLogs", fetchLogs);
 
   const translateOperation = (operationType, entity) => {
     if (entity === "Sale") {
@@ -92,18 +107,6 @@ const RecentTransactions = () => {
   const handleViewReportClick = (logId) => {
     console.log("Viewing report for logId:", logId);
     navigate(`/report-logs/${logId}`);
-  };
-
-  const retrieveLogs = () => {
-    logService
-      .getRecentLogs()
-      .then((response) => {
-        const logs = response.data._embedded?.logDTOList || [];
-        setLogs(
-          logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-        );
-      })
-      .catch(() => setErrorMessage("Erro ao buscar logs."));
   };
 
   const formatTimestamp = (timestamp) => {
@@ -164,6 +167,7 @@ const RecentTransactions = () => {
         width: "100%",
         maxWidth: "100%",
         overflow: "hidden",
+        minWidth: "100%",
       }}
     >
       <Box
@@ -175,7 +179,43 @@ const RecentTransactions = () => {
           "&:hover": { overflowY: "scroll" },
         }}
       >
-        {logs.length > 0 ? (
+        {isLoading ? (
+          <>
+            {Array.from(new Array(4)).map((_, index) => (
+              <Box
+                key={index}
+                sx={{
+                  mb: 2,
+                  padding: "10px",
+                  width: "100%",
+                  minWidth: "650px",
+                }}
+              >
+                <Skeleton variant="text" width="60%" />
+                <Skeleton variant="text" width="40%" />
+                <Skeleton variant="circular" width={40} height={40} />
+              </Box>
+            ))}
+          </>
+        ) : isError ? (
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            sx={{
+              width: "100%",
+              minWidth: "650px",
+              padding: 2,
+            }}
+          >
+            <Typography
+              variant="subtitle1"
+              sx={{ textAlign: "center", mr: 12 }}
+            >
+              Falha ao carregar atividades recentes.
+            </Typography>
+          </Box>
+        ) : logs.length > 0 ? (
           <Timeline
             className="theme-timeline"
             sx={{

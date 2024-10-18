@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Box,
   Button,
@@ -10,6 +10,7 @@ import {
   MenuItem,
   TextField,
   Slider,
+  Snackbar,
 } from "@mui/material";
 import { useParams } from "react-router-dom";
 import Grid from "@mui/material/Grid2";
@@ -31,11 +32,15 @@ const StockPage = () => {
   const [currentStock, setCurrentStock] = useState(null);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const [minMaxQuantity, setMinMaxQuantity] = useState([0, 100]);
   const [minMaxValue, setMinMaxValue] = useState([0, 10000]);
   const [quantityRange, setQuantityRange] = useState([0, 100]);
   const [valueRange, setValueRange] = useState([0, 10000]);
+
+  let debounceTimeout = useRef(null);
 
   useEffect(() => {
     if (id) {
@@ -56,16 +61,8 @@ const StockPage = () => {
   }, []);
 
   useEffect(() => {
-    if (searchQuery.trim()) {
-      setPage(0);
-    }
-  }, [searchQuery]);
-
-  useEffect(() => {
-    if (selectedSupplier) {
-      setPage(0);
-    }
-  }, [selectedSupplier]);
+    setPage(0);
+  }, [searchQuery, selectedSupplier]);
 
   useEffect(() => {
     retrieveStocks(page, 10);
@@ -85,33 +82,43 @@ const StockPage = () => {
       });
   }, []);
 
-  const retrieveStocks = (pageNumber = 0, size = 10) => {
-    const params = {
-      page: pageNumber,
-      size: size > 0 ? size : 10,
-      minQuantity: quantityRange[0],
-      maxQuantity: quantityRange[1],
-      minValue: valueRange[0],
-      maxValue: valueRange[1],
-      query: searchQuery.trim() || undefined,
-      supplierId: selectedSupplier || undefined,
-    };
+  const retrieveStocks = useCallback(
+    (pageNumber = 0, size = 10) => {
+      const params = {
+        page: pageNumber,
+        size: size > 0 ? size : 10,
+        minQuantity: quantityRange[0],
+        maxQuantity: quantityRange[1],
+        minValue: valueRange[0],
+        maxValue: valueRange[1],
+        query: searchQuery.trim() || undefined,
+        supplierId: selectedSupplier || undefined,
+      };
 
-    console.log("Parâmetros enviados para a API:", params);
+      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
 
-    stockService
-      .getAllStock(params)
-      .then((response) => {
-        const stocksData = response._embedded?.stockDTOList || [];
-        setStocks(stocksData);
+      setLoading(true);
 
-        const totalPagesFromResponse = response.page?.totalPages || 1;
-        setTotalPages(totalPagesFromResponse);
-      })
-      .catch((error) => {
-        console.error("Erro ao buscar os estoques:", error);
-      });
-  };
+      debounceTimeout.current = setTimeout(() => {
+        stockService
+          .getAllStock(params)
+          .then((response) => {
+            const stocksData = response._embedded?.stockDTOList || [];
+            setStocks(stocksData);
+
+            const totalPagesFromResponse = response.page?.totalPages || 1;
+            setTotalPages(totalPagesFromResponse);
+          })
+          .catch((error) => {
+            setErrorMessage("Erro ao carregar Estoque.");
+          })
+          .finally(() => {
+            setLoading(false);
+          });
+      }, 300);
+    },
+    [searchQuery, selectedSupplier, quantityRange, valueRange]
+  );
 
   const retrieveSuppliers = () => {
     stockService
@@ -139,6 +146,12 @@ const StockPage = () => {
   };
 
   const handleSliderChange = (setter) => (event, newValue) => setter(newValue);
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+    retrieveStocks(newPage, 10);
+    window.scrollTo(0, 0);
+  };
 
   return (
     <DashboardCard title="Gestão de Estoque">
@@ -270,12 +283,7 @@ const StockPage = () => {
       <Box display="flex" justifyContent="space-between" mt={2}>
         <Button
           variant="contained"
-          onClick={() => {
-            const newPage = Math.max(page - 1, 0);
-            setPage(newPage);
-            retrieveStocks(newPage, 10);
-            window.scrollTo(0, 0);
-          }}
+          onClick={() => handlePageChange(Math.max(page - 1, 0))}
           disabled={page === 0}
         >
           Página Anterior
@@ -287,12 +295,7 @@ const StockPage = () => {
 
         <Button
           variant="contained"
-          onClick={() => {
-            const newPage = Math.min(page + 1, totalPages - 1);
-            setPage(newPage);
-            retrieveStocks(newPage, 10);
-            window.scrollTo(0, 0);
-          }}
+          onClick={() => handlePageChange(Math.min(page + 1, totalPages - 1))}
           disabled={page >= totalPages - 1}
         >
           Próxima Página
@@ -305,6 +308,13 @@ const StockPage = () => {
         editMode={editMode}
         currentStock={currentStock}
         retrieveStocks={() => retrieveStocks(page, 10)}
+      />
+      <Snackbar
+        open={!!errorMessage}
+        autoHideDuration={6000}
+        onClose={() => setErrorMessage("")}
+        message={errorMessage}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       />
     </DashboardCard>
   );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Select, MenuItem, Box } from "@mui/material";
+import { Select, MenuItem, Box, Skeleton } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import DashboardCard from "../../../components/shared/DashboardCard";
 import Chart from "react-apexcharts";
@@ -8,6 +8,7 @@ import saleService from "../../../services/saleService";
 const SalesOverview = () => {
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [salesData, setSalesData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const theme = useTheme();
 
   useEffect(() => {
@@ -15,6 +16,7 @@ const SalesOverview = () => {
   }, [month]);
 
   const fetchSalesData = async (month) => {
+    setLoading(true);
     try {
       const daysInMonth = new Date(
         new Date().getFullYear(),
@@ -42,6 +44,8 @@ const SalesOverview = () => {
     } catch (error) {
       console.error("Erro ao buscar dados de vendas agrupados por dia", error);
       setSalesData([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -143,13 +147,17 @@ const SalesOverview = () => {
       sx={{ height: "100%", width: "100%" }}
     >
       <Box sx={{ height: 400, width: "100%" }}>
-        <Chart
-          options={optionsLineChart}
-          series={seriesLineChart}
-          type="line"
-          height="100%"
-          width="100%"
-        />
+        {loading ? (
+          <Skeleton variant="rectangular" width="100%" height="100%" />
+        ) : (
+          <Chart
+            options={optionsLineChart}
+            series={seriesLineChart}
+            type="line"
+            height="100%"
+            width="100%"
+          />
+        )}
       </Box>
     </DashboardCard>
   );

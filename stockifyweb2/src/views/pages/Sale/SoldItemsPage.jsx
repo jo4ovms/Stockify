@@ -305,6 +305,7 @@ const SoldItemsPage = () => {
         autoHideDuration={6000}
         onClose={() => setErrorMessage("")}
         message={errorMessage}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       />
     </PageContainer>
   );

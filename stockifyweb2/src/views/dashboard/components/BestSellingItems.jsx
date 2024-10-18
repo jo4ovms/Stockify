@@ -9,34 +9,26 @@ import {
   TableRow,
   TableBody,
   TableCell,
-  CircularProgress,
+  Skeleton,
 } from "@mui/material";
 import { IconArrowRight } from "@tabler/icons-react";
 import DashboardCard from "../../../components/shared/DashboardCard";
 import saleService from "../../../services/saleService";
+import { useQuery } from "react-query";
+
+const fetchBestSellingItems = async () => {
+  const response = await saleService.getBestSellingItems();
+  return response.slice(0, 8);
+};
 
 const BestSellingItems = ({ sx }) => {
-  const [bestSellingItems, setBestSellingItems] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isError, setIsError] = useState(false);
   const navigate = useNavigate();
 
-  const fetchBestSellingItems = useCallback(async () => {
-    try {
-      const response = await saleService.getBestSellingItems();
-      setBestSellingItems(response.slice(0, 8));
-    } catch (error) {
-      console.error("Failed to fetch best selling items:", error);
-      setIsError(true);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchBestSellingItems();
-  }, [fetchBestSellingItems]);
-
+  const {
+    data: bestSellingItems = [],
+    isLoading,
+    isError,
+  } = useQuery("bestSellingItems", fetchBestSellingItems);
   const handleViewAllClick = useCallback(() => {
     navigate("/sold-items");
   }, [navigate]);
@@ -58,21 +50,24 @@ const BestSellingItems = ({ sx }) => {
     >
       <Box sx={{ overflow: "auto", width: { xs: "280px", sm: "auto" } }}>
         {isLoading ? (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "100%",
-            }}
-          >
-            <CircularProgress />
-          </Box>
+          <>
+            {Array.from(new Array(6)).map((_, index) => (
+              <Box
+                key={index}
+                sx={{
+                  mb: 2,
+                  padding: "10px",
+                  width: "100%",
+                  minWidth: "300px",
+                }}
+              >
+                <Skeleton variant="text" width="60%" />
+                <Skeleton variant="text" width="40%" />
+              </Box>
+            ))}
+          </>
         ) : isError ? (
-          <Typography
-            variant="body2"
-            sx={{ mt: 2, textAlign: "center", color: "error.main" }}
-          >
+          <Typography variant="subtitle1" sx={{ mt: 2, textAlign: "center" }}>
             Falha ao carregar produtos mais vendidos.
           </Typography>
         ) : bestSellingItems.length > 0 ? (

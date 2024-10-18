@@ -1,13 +1,6 @@
 import { useTheme } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import {
-  Typography,
-  Avatar,
-  Fab,
-  Box,
-  CircularProgress,
-  Paper,
-} from "@mui/material";
+import { Typography, Avatar, Fab, Box, Paper, Skeleton } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { IconAlertTriangle } from "@tabler/icons-react";
 import DashboardCard from "../../../components/shared/DashboardCard";
@@ -33,20 +26,13 @@ const fetchCriticalStock = async () => {
 const StockUnderSafety = () => {
   const navigate = useNavigate();
   const theme = useTheme();
+
   const errorlight = "#fdede8";
 
   const { data, isLoading, isError } = useQuery(
     "criticalStock",
     fetchCriticalStock
   );
-
-  if (isLoading) {
-    return <CircularProgress />;
-  }
-
-  if (isError) {
-    return <Typography>Erro Carregando os Produtos Críticos</Typography>;
-  }
 
   const products = data?.products || [];
   const totalCriticalProducts = data?.totalCriticalProducts || 0;
@@ -80,74 +66,105 @@ const StockUnderSafety = () => {
         alignItems="center"
         justifyContent="center"
         height="100%"
+        sx={{ width: "100%" }}
       >
-        <Typography variant="h5" fontWeight="600" mb={0} mt={-2}>
-          {totalCriticalProducts} produtos críticos
-        </Typography>
-        <Grid container spacing={2} sx={{ width: "100%" }}>
-          {products.length === 0 ? (
-            <Box
-              display="flex"
-              justifyContent="center"
-              alignItems="center"
-              height="100%"
-              width="85%"
-            >
-              <Typography
-                variant="h7"
-                color="textSecondary"
-                sx={{ ml: 10, mt: 3, textAlign: "center" }}
-              >
-                Nenhum produto abaixo da quantidade crítica.
-              </Typography>
-            </Box>
-          ) : (
-            products.slice(0, 2).map((product) => (
-              <Grid
-                size={{ xs: 12 }}
-                key={product.id}
-                onClick={() => handleProductClick(product.id)}
-                sx={{
-                  cursor: "pointer",
-                  padding: 1,
-                  borderRadius: "8px",
-                  "&:hover": { backgroundColor: "#f0f0f0" },
-                }}
-              >
-                <Paper
-                  elevation={2}
-                  sx={{
-                    padding: 1,
-                    borderRadius: "8px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    backgroundColor: "#fff",
-                  }}
+        {isLoading ? (
+          <>
+            <Skeleton variant="text" width={500} height={40} />
+            <Grid container spacing={2} sx={{ width: "100%" }}>
+              {[...Array(2)].map((_, index) => (
+                <Grid size={{ xs: 12 }} key={index}>
+                  <Skeleton
+                    variant="rectangular"
+                    height={40}
+                    sx={{ borderRadius: "8px", mb: 2 }}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          </>
+        ) : isError ? (
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            sx={{ width: "100%", minWidth: "500px", padding: 2 }}
+          >
+            <Typography variant="subtitle1">
+              Falha ao carregar produtos críticos.
+            </Typography>
+          </Box>
+        ) : (
+          <>
+            <Typography variant="h5" fontWeight="600" mb={0} mt={-2}>
+              {data.totalCriticalProducts} produtos críticos
+            </Typography>
+            <Grid container spacing={2} sx={{ width: "100%" }}>
+              {data.products.length === 0 ? (
+                <Box
+                  display="flex"
+                  justifyContent="center"
+                  alignItems="center"
+                  height="100%"
+                  width="85%"
                 >
-                  <Box display="flex" alignItems="center">
-                    <Avatar
+                  <Typography
+                    variant="h7"
+                    color="textSecondary"
+                    sx={{ ml: 10, mt: 3, textAlign: "center" }}
+                  >
+                    Nenhum produto abaixo da quantidade crítica.
+                  </Typography>
+                </Box>
+              ) : (
+                data.products.slice(0, 2).map((product) => (
+                  <Grid
+                    size={{ xs: 12 }}
+                    key={product.id}
+                    onClick={() => handleProductClick(product.id)}
+                    sx={{
+                      cursor: "pointer",
+                      padding: 1,
+                      borderRadius: "8px",
+                      "&:hover": { backgroundColor: "#f0f0f0" },
+                    }}
+                  >
+                    <Paper
+                      elevation={2}
                       sx={{
-                        bgcolor: errorlight,
-                        width: 25,
-                        height: 25,
-                        mr: 1,
+                        padding: 1,
+                        borderRadius: "8px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        backgroundColor: "#fff",
                       }}
                     >
-                      <IconAlertTriangle width={18} color="#d32f2f" />
-                    </Avatar>
-                    <Typography variant="subtitle2" fontWeight="500">
-                      {product.productName}
-                    </Typography>
-                  </Box>
-                  <Typography variant="subtitle2" color="error">
-                    Quantidade: {product.quantity}
-                  </Typography>
-                </Paper>
-              </Grid>
-            ))
-          )}
-        </Grid>
+                      <Box display="flex" alignItems="center">
+                        <Avatar
+                          sx={{
+                            bgcolor: errorlight,
+                            width: 25,
+                            height: 25,
+                            mr: 1,
+                          }}
+                        >
+                          <IconAlertTriangle width={18} color="#d32f2f" />
+                        </Avatar>
+                        <Typography variant="subtitle2" fontWeight="500">
+                          {product.productName}
+                        </Typography>
+                      </Box>
+                      <Typography variant="subtitle2" color="error">
+                        Quantidade: {product.quantity}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                ))
+              )}
+            </Grid>
+          </>
+        )}
       </Box>
     </DashboardCard>
   );
