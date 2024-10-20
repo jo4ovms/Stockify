@@ -1,5 +1,5 @@
 import React from "react";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid2"; // Usando Grid2 para MUI v6
 import { Box, useMediaQuery, useTheme } from "@mui/material";
 import PageContainer from "../../components/container/PageContainer";
 import StockOverview from "./components/StockOverview";
@@ -20,30 +20,29 @@ const Dashboard = () => {
           justifyContent: "left",
           alignItems: "center",
           minHeight: "100vh",
-          padding: isSmallScreen ? theme.spacing(2) : theme.spacing(8),
+          padding: isSmallScreen ? theme.spacing(0) : theme.spacing(8),
         }}
       >
-        <Grid container spacing={1} maxWidth={isSmallScreen ? "100%" : "100%"}>
-          <Grid size={{ xs: 12, sm: 15, lg: 7 }}>
+        <Grid container spacing={1}>
+          <Grid size={{ xs: 12, sm: 6, lg: 7 }}>
             <SalesOverview />
           </Grid>
-          <Grid size={{ xs: 12, lg: 5 }}>
+          <Grid size={{ xs: 12, sm: 6, lg: 5 }}>
             <Grid container spacing={1}>
-              <Grid size={{ xs: 12, sm: 15, lg: 12 }}>
+              <Grid size={{ xs: 12, sm: 6, lg: 6 }}>
                 <StockOverview />
               </Grid>
-
-              <Grid size={{ xs: 12, sm: 15, lg: 12 }}>
+              <Grid size={{ xs: 12, sm: 6, lg: 6 }}>
                 <StockUnderSafety />
               </Grid>
             </Grid>
           </Grid>
 
           <Grid container spacing={1}>
-            <Grid size={{ xs: 12, sm: 15, lg: 7 }}>
+            <Grid size={{ xs: 12, sm: 7, lg: 7 }}>
               <RecentTransactions />
             </Grid>
-            <Grid size={{ xs: 12, sm: 15, lg: 5 }}>
+            <Grid size={{ xs: 12, sm: 5, lg: 5 }}>
               <BestSellingItems />
             </Grid>
           </Grid>

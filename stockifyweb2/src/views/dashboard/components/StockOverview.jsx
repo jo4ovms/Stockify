@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Stack, Typography, Avatar, Fab, Box, Skeleton } from "@mui/material";
 import Grid from "@mui/material/Grid2";
-import { useTheme } from "@mui/material";
+import { useTheme, useMediaQuery } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { IconAlertTriangle, IconCheck, IconBox } from "@tabler/icons-react";
 import DashboardCard from "../../../components/shared/DashboardCard";
@@ -14,6 +14,8 @@ const StockOverview = () => {
   const [adequateStockItems, setAdequateStockItems] = useState(0);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
     const handleStockMessage = (stockData) => {
@@ -49,7 +51,6 @@ const StockOverview = () => {
     navigate(path);
   };
 
-  const theme = useTheme();
   const errorlight = "#fdede8";
   const warninglight = "#fff8e1";
   const successlight = "#e8f5e9";
@@ -67,15 +68,21 @@ const StockOverview = () => {
           <IconBox width={24} />
         </Fab>
       }
-      sx={{ height: "240px", width: "125%", maxWidth: "600px" }}
+      sx={{
+        height: "240px",
+        width: isSmallScreen ? "150%" : "125%",
+        minWidth: isSmallScreen ? "100%" : "120%",
+        maxWidth: isSmallScreen ? "150%" : "250%",
+        padding: isSmallScreen ? theme.spacing(2) : theme.spacing(0),
+      }}
     >
       <Box
         sx={{
           display: "flex",
           flexDirection: "row",
-          justifyContent: "space-between",
+          justifyContent: "space-around",
           alignItems: "center",
-          minWidth: "400px",
+          width: "100%",
         }}
       >
         {loading ? (
