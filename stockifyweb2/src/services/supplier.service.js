@@ -8,8 +8,15 @@ class SupplierService {
     return axiosInstance.get(API_URL, { params });
   }
 
-  filterSuppliers(name, productType, page = 0, size = 10) {
-    const params = { name, productType, page, size };
+  filterSuppliers(
+    name,
+    productType,
+    page = 0,
+    size = 10,
+    sortBy = "name",
+    sortDirection = "asc"
+  ) {
+    const params = { name, productType, page, size, sortBy, sortDirection };
     return axiosInstance.get(`${API_URL}/filter`, { params });
   }
 
