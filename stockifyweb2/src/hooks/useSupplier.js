@@ -3,6 +3,8 @@ import supplierService from "../services/supplier.service";
 import productService from "../services/productService";
 
 const useSupplier = () => {
+  const [sortBy, setSortBy] = useState("name");
+  const [sortDirection, setSortDirection] = useState("asc");
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
@@ -65,13 +67,35 @@ const useSupplier = () => {
       .catch(console.log);
   };
 
+  const updateProductTypes = (newType) => {
+    setAllProductTypes((prevTypes) => {
+      if (newType && !prevTypes.includes(newType)) {
+        return [...prevTypes, newType];
+      }
+      return prevTypes;
+    });
+  };
+
+  const removeProductType = (typeToRemove) => {
+    setAllProductTypes((prevTypes) =>
+      prevTypes.filter((type) => type !== typeToRemove)
+    );
+  };
+
   useEffect(() => {
     retrieveSuppliers();
   }, [page, size, searchTerm, filterProductType]);
 
   const retrieveSuppliers = () => {
     supplierService
-      .filterSuppliers(searchTerm, filterProductType, page, size)
+      .filterSuppliers(
+        searchTerm,
+        filterProductType,
+        page,
+        size,
+        sortBy,
+        sortDirection
+      )
       .then((response) => {
         const suppliersData = response.data._embedded?.supplierDTOList || [];
         const pageData = response.data.page || { totalPages: 1 };
@@ -219,13 +243,19 @@ const useSupplier = () => {
     if (editMode) {
       supplierService
         .update(currentSupplier.id, currentSupplier)
-        .then(retrieveSuppliers)
+        .then(({ data: updatedSupplier }) => {
+          updateProductTypes(updatedSupplier.productType);
+          retrieveSuppliers();
+        })
         .catch(console.log)
         .finally(handleClose);
     } else {
       supplierService
         .create(currentSupplier)
-        .then(retrieveSuppliers)
+        .then(({ data: createdSupplier }) => {
+          updateProductTypes(createdSupplier.productType);
+          retrieveSuppliers();
+        })
         .catch(console.log)
         .finally(handleClose);
     }
@@ -252,7 +282,15 @@ const useSupplier = () => {
   };
 
   const deleteSupplier = (id) => {
-    supplierService.delete(id).then(retrieveSuppliers).catch(console.log);
+    const supplierToDelete = suppliers.find((s) => s.id === id);
+
+    supplierService
+      .delete(id)
+      .then(() => {
+        removeProductType(supplierToDelete.productType);
+        retrieveSuppliers();
+      })
+      .catch(console.log);
   };
 
   const deleteProduct = (id) => {
