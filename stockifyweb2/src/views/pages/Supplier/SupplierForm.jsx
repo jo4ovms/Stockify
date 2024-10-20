@@ -7,6 +7,7 @@ import {
   TextField,
   Button,
 } from "@mui/material";
+import InputMask from "react-input-mask";
 
 const SupplierForm = ({
   open,
@@ -54,15 +55,21 @@ const SupplierForm = ({
           disabled={editMode}
         />
 
-        <TextField
-          margin="dense"
-          name="phone"
-          label="Número de Telefone"
-          type="text"
-          fullWidth
+        <InputMask
+          mask="(99) 99999-9999"
           value={supplier.phone}
           onChange={handleChange}
-        />
+        >
+          {() => (
+            <TextField
+              margin="dense"
+              name="phone"
+              label="Número de Telefone"
+              type="text"
+              fullWidth
+            />
+          )}
+        </InputMask>
 
         <TextField
           margin="dense"
