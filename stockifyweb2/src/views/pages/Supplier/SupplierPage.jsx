@@ -83,7 +83,7 @@ const SupplierPage = () => {
                 label="Tipo de Produto"
                 onChange={handleFilterProductTypeChange}
               >
-                <MenuItem value="">
+                <MenuItem value="all">
                   <em>Todos</em>
                 </MenuItem>
                 {allProductTypes.map((productType, index) => (
