@@ -5,7 +5,7 @@ import { useTheme, useMediaQuery } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { IconAlertTriangle, IconCheck, IconBox } from "@tabler/icons-react";
 import DashboardCard from "../../../components/shared/DashboardCard";
-import StockOverviewService from "../../../services/stockOverviewService";
+import stockOverviewService from "../../../services/stockOverviewService";
 
 const StockOverview = () => {
   const [totalItems, setTotalItems] = useState(0);
@@ -13,42 +13,39 @@ const StockOverview = () => {
   const [outOfStockItems, setOutOfStockItems] = useState(0);
   const [adequateStockItems, setAdequateStockItems] = useState(0);
   const [loading, setLoading] = useState(true);
+
   const navigate = useNavigate();
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
-  useEffect(() => {
-    const handleStockMessage = (stockData) => {
-      console.log("Dados recebidos:", stockData);
+  const fetchStockSummary = async () => {
+    try {
+      const response = await stockOverviewService.getStockSummary();
+      const stockData = response.data;
 
-      setTotalItems((prevTotal) => prevTotal + 1);
-
-      if (stockData.quantity === 0) {
-        setOutOfStockItems((prevOutOfStock) => prevOutOfStock + 1);
-      } else if (stockData.quantity < 5) {
-        setLowStockItems((prevLowStock) => prevLowStock + 1);
-      } else {
-        setAdequateStockItems((prevAdequateStock) => prevAdequateStock + 1);
-      }
+      setTotalItems(stockData.totalProducts);
+      setLowStockItems(stockData.betweenThreshold);
+      setOutOfStockItems(stockData.zeroQuantity);
+      setAdequateStockItems(stockData.aboveThreshold);
 
       setLoading(false);
-    };
+    } catch (error) {
+      console.error("Erro ao buscar resumo do estoque:", error);
+      setLoading(false);
+    }
+  };
 
-    const eventSource = StockOverviewService.streamStocks(
-      handleStockMessage,
-      (error) => {
-        console.error("Erro no streaming de dados:", error);
-        setLoading(false);
-      }
-    );
+  useEffect(() => {
+    fetchStockSummary();
 
-    return () => {
-      eventSource.close();
-    };
+    const interval = setInterval(fetchStockSummary, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const handleNavigate = (path) => {
     navigate(path);
+    window.scrollTo(0, 0);
   };
 
   const errorlight = "#fdede8";

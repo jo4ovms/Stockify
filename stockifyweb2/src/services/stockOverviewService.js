@@ -46,23 +46,9 @@ const stockOverviewService = {
     });
   },
 
-  streamStocks: (onMessage, onError) => {
-    const eventSource = new EventSource(`${API_BASE_URL}/stream`);
-
-    eventSource.onmessage = function (event) {
-      const stockData = JSON.parse(event.data);
-      onMessage(stockData);
-    };
-
-    eventSource.onerror = function (err) {
-      console.error("EventSource failed: ", err);
-      onError(err);
-      eventSource.close();
-    };
-
-    return eventSource;
+  getStockSummary: () => {
+    return axios.get(`${API_BASE_URL}/summary`);
   },
-
   getCriticalStockReport: (
     threshold,
     page = 0,
