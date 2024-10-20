@@ -1,5 +1,5 @@
 import React from "react";
-import Grid from "@mui/material/Grid2"; // Usando Grid2 para MUI v6
+import Grid from "@mui/material/Grid2";
 import { Box, useMediaQuery, useTheme } from "@mui/material";
 import PageContainer from "../../components/container/PageContainer";
 import StockOverview from "./components/StockOverview";

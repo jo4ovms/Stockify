@@ -3,7 +3,7 @@ import axios from "axios";
 const API_URL = "http://localhost:8081/api/stock";
 
 const getAllStock = async (params = {}) => {
-  const response = await axios.get(`${API_URL}/filtered`, { params }); // Use o novo endpoint
+  const response = await axios.get(`${API_URL}/filtered`, { params });
   return response.data || [];
 };
 

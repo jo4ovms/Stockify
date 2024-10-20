@@ -5,8 +5,6 @@ const API_URL = "http://localhost:8081/api/products";
 const getAllProducts = async (page = 0, size = 100) => {
   const response = await axios.get(API_URL, { params: { page, size } });
 
-  console.log("API Response:", response.data);
-
   return response.data._embedded?.productDTOList || [];
 };
 
@@ -33,9 +31,6 @@ const getProductsBySupplier = async (supplierId, page = 0, size = 10) => {
 
   if (response.data && response.data.page) {
     const { totalPages, totalElements } = response.data.page;
-    console.log(
-      `Total de páginas: ${totalPages}, Total de produtos: ${totalElements}`
-    );
 
     return {
       products: response.data._embedded?.productDTOList || [],
@@ -66,8 +61,6 @@ const searchProducts = async (searchTerm, page = 0, size = 100) => {
     params: { searchTerm, page, size },
   });
 
-  console.log("API Response:", response.data);
-
   return response.data._embedded?.productDTOList || [];
 };
 
@@ -90,9 +83,6 @@ const searchProductsBySupplier = async (
 
   if (response.data && response.data.page) {
     const { totalPages, totalElements } = response.data.page;
-    console.log(
-      `Total de páginas: ${totalPages}, Total de produtos encontrados: ${totalElements}`
-    );
 
     return {
       products: response.data._embedded?.productDTOList || [],

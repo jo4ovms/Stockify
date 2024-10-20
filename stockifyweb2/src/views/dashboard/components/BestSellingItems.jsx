@@ -31,6 +31,7 @@ const BestSellingItems = ({ sx }) => {
   } = useQuery("bestSellingItems", fetchBestSellingItems);
   const handleViewAllClick = useCallback(() => {
     navigate("/sold-items");
+    window.scrollTo(0, 0);
   }, [navigate]);
 
   return (

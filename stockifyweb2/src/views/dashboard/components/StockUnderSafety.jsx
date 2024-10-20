@@ -43,6 +43,7 @@ const StockUnderSafety = () => {
 
   const handleViewAllClick = () => {
     navigate("/stock/critical-stock");
+    window.scrollTo(0, 0);
   };
 
   return (

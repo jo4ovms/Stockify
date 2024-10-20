@@ -105,8 +105,12 @@ const RecentTransactions = () => {
   };
 
   const handleViewReportClick = (logId) => {
-    console.log("Viewing report for logId:", logId);
     navigate(`/report-logs/${logId}`);
+  };
+
+  const handleViewLogsPageClick = () => {
+    navigate("/report-logs");
+    window.scrollTo(0, 0);
   };
 
   const formatTimestamp = (timestamp) => {
@@ -157,7 +161,7 @@ const RecentTransactions = () => {
           color="secondary"
           size="medium"
           sx={{ color: "#ffffff" }}
-          onClick={() => navigate("/report-logs")}
+          onClick={handleViewLogsPageClick}
         >
           <IconArrowRight width={24} />
         </Fab>
