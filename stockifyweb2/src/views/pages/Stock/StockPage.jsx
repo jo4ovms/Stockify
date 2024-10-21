@@ -11,6 +11,8 @@ import {
   TextField,
   Slider,
   Snackbar,
+  Skeleton,
+  Alert,
 } from "@mui/material";
 import { useParams } from "react-router-dom";
 import Grid from "@mui/material/Grid2";
@@ -22,7 +24,6 @@ import StockForm from "./StockForm";
 const StockPage = () => {
   const { id } = useParams();
   const [stock, setStock] = useState(null);
-
   const [stocks, setStocks] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [suppliers, setSuppliers] = useState([]);
@@ -32,13 +33,16 @@ const StockPage = () => {
   const [currentStock, setCurrentStock] = useState(null);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
+  const [successMessage, setSuccessMessage] = useState("");
   const [minMaxQuantity, setMinMaxQuantity] = useState([0, 100]);
   const [minMaxValue, setMinMaxValue] = useState([0, 10000]);
   const [quantityRange, setQuantityRange] = useState([0, 100]);
   const [valueRange, setValueRange] = useState([0, 10000]);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [targetPage, setTargetPage] = useState(page + 1);
 
   let debounceTimeout = useRef(null);
 
@@ -52,7 +56,7 @@ const StockPage = () => {
           setCurrentStock(response);
           setOpen(true);
         })
-        .catch(console.log);
+        .catch(() => setErrorMessage("Erro ao carregar o estoque."));
     }
   }, [id]);
 
@@ -65,8 +69,15 @@ const StockPage = () => {
   }, [searchQuery, selectedSupplier]);
 
   useEffect(() => {
-    retrieveStocks(page, 10);
-  }, [page, searchQuery, selectedSupplier, quantityRange, valueRange]);
+    retrieveStocks(page, itemsPerPage);
+  }, [
+    page,
+    searchQuery,
+    selectedSupplier,
+    quantityRange,
+    valueRange,
+    itemsPerPage,
+  ]);
 
   useEffect(() => {
     stockService
@@ -77,16 +88,14 @@ const StockPage = () => {
         setQuantityRange([0, limits.maxQuantity]);
         setValueRange([0, limits.maxValue]);
       })
-      .catch((error) => {
-        console.error("Erro ao obter os limites de estoque:", error);
-      });
+      .catch(() => setErrorMessage("Erro ao obter os limites de estoque."));
   }, []);
 
   const retrieveStocks = useCallback(
-    (pageNumber = 0, size = 10) => {
+    (pageNumber = 0, size = itemsPerPage) => {
       const params = {
         page: pageNumber,
-        size: size > 0 ? size : 10,
+        size,
         minQuantity: quantityRange[0],
         maxQuantity: quantityRange[1],
         minValue: valueRange[0],
@@ -107,17 +116,18 @@ const StockPage = () => {
             setStocks(stocksData);
 
             const totalPagesFromResponse = response.page?.totalPages || 1;
+            const totalItemsFromResponse = response.page?.totalElements || 0;
+
             setTotalPages(totalPagesFromResponse);
+            setTotalItems(totalItemsFromResponse);
           })
-          .catch((error) => {
-            setErrorMessage("Erro ao carregar Estoque.");
-          })
+          .catch(() => setErrorMessage("Erro ao carregar o estoque."))
           .finally(() => {
             setLoading(false);
           });
-      }, 300);
+      }, 500);
     },
-    [searchQuery, selectedSupplier, quantityRange, valueRange]
+    [searchQuery, selectedSupplier, quantityRange, valueRange, itemsPerPage]
   );
 
   const retrieveSuppliers = () => {
@@ -142,15 +152,41 @@ const StockPage = () => {
   };
 
   const handleDelete = (id) => {
-    stockService.deleteStock(id).then(() => retrieveStocks(page, 10));
+    stockService
+      .deleteStock(id)
+      .then(() => {
+        setSuccessMessage("Estoque deletado com sucesso.");
+        retrieveStocks(page, itemsPerPage);
+      })
+      .catch(() => setErrorMessage("Erro ao deletar o estoque."));
   };
 
   const handleSliderChange = (setter) => (event, newValue) => setter(newValue);
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
-    retrieveStocks(newPage, 10);
+    retrieveStocks(newPage, itemsPerPage);
     window.scrollTo(0, 0);
+  };
+
+  const handleItemsPerPageChange = (event) => {
+    setItemsPerPage(event.target.value);
+    setPage(0);
+    setTargetPage(1);
+    retrieveStocks(0, event.target.value);
+  };
+
+  const handleTargetPageChange = (event) => {
+    setTargetPage(event.target.value);
+  };
+
+  const goToSpecificPage = () => {
+    const newPage = Math.min(
+      Math.max(parseInt(targetPage, 10) - 1, 0),
+      totalPages - 1
+    );
+    setPage(newPage);
+    retrieveStocks(newPage, itemsPerPage);
   };
 
   return (
@@ -235,11 +271,43 @@ const StockPage = () => {
               </Typography>
             </FormControl>
           </Grid>
+
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <FormControl fullWidth>
+              <InputLabel id="items-per-page-label">
+                Itens por Página
+              </InputLabel>
+              <Select
+                labelId="items-per-page-label"
+                value={itemsPerPage}
+                label="Itens por Página"
+                onChange={handleItemsPerPageChange}
+              >
+                {[10, 20, 50, 100].map((size) => (
+                  <MenuItem key={size} value={size}>
+                    {size}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
         </Grid>
       </Box>
 
-      <Box mt={2}>
-        {stocks.length > 0 ? (
+      <Box mt={2} sx={{ minHeight: stocks.length > 0 ? "auto" : "300px" }}>
+        {loading ? (
+          <Box>
+            {[...Array(5)].map((_, index) => (
+              <Skeleton
+                key={index}
+                variant="rectangular"
+                height={60}
+                animation="wave"
+                sx={{ mb: 1 }}
+              />
+            ))}
+          </Box>
+        ) : stocks.length > 0 ? (
           stocks.map((stock) => (
             <Box
               key={stock.id}
@@ -276,11 +344,21 @@ const StockPage = () => {
             </Box>
           ))
         ) : (
-          <Typography>Nenhum item no estoque ainda.</Typography>
+          !loading && (
+            <Alert severity="info" sx={{ mt: 10, justifyContent: "center" }}>
+              Nenhum item no estoque —{" "}
+              <strong>Verifique os filtros aplicados!</strong>
+            </Alert>
+          )
         )}
       </Box>
 
-      <Box display="flex" justifyContent="space-between" mt={2}>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mt={2}
+      >
         <Button
           variant="contained"
           onClick={() => handlePageChange(Math.max(page - 1, 0))}
@@ -290,7 +368,7 @@ const StockPage = () => {
         </Button>
 
         <Typography>
-          Página {page + 1} de {totalPages}
+          Página {page + 1} de {totalPages} (Total de itens: {totalItems})
         </Typography>
 
         <Button
@@ -302,19 +380,45 @@ const StockPage = () => {
         </Button>
       </Box>
 
+      <Box display="flex" alignItems="center" mt={2}>
+        <TextField
+          type="number"
+          label="Ir para página"
+          variant="outlined"
+          value={targetPage}
+          onChange={handleTargetPageChange}
+          inputProps={{ min: 1, max: totalPages }}
+          sx={{ maxWidth: 100, mr: 1 }}
+        />
+        <Button variant="contained" onClick={goToSpecificPage}>
+          Ir
+        </Button>
+      </Box>
+
       <StockForm
         open={open}
         handleClose={() => setOpen(false)}
         editMode={editMode}
         currentStock={currentStock}
-        retrieveStocks={() => retrieveStocks(page, 10)}
+        retrieveStocks={() => retrieveStocks(page, itemsPerPage)}
       />
+
       <Snackbar
         open={!!errorMessage}
         autoHideDuration={6000}
         onClose={() => setErrorMessage("")}
         message={errorMessage}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        severity="error"
+      />
+
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={6000}
+        onClose={() => setSuccessMessage("")}
+        message={successMessage}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        severity="success"
       />
     </DashboardCard>
   );
