@@ -17,6 +17,8 @@ const StockForm = ({
   editMode,
   currentStock,
   retrieveStocks,
+  setSuccessMessage,
+  fetchLimits,
 }) => {
   const [stock, setStock] = useState({
     productId: "",
@@ -83,19 +85,25 @@ const StockForm = ({
   };
 
   const handleSubmit = () => {
-    console.log("Stock antes de submeter:", stock);
-
     if (editMode) {
       stockService.updateStock(currentStock.id, stock).then(() => {
         retrieveStocks();
+        fetchLimits();
         resetForm();
         handleClose();
+        setSuccessMessage(
+          `Estoque de ${selectedProduct.productName} atualizado com sucesso.`
+        );
       });
     } else {
       stockService.createStock(stock).then(() => {
         retrieveStocks();
+        fetchLimits();
         resetForm();
         handleClose();
+        setSuccessMessage(
+          `Estoque de ${selectedProduct.productName} criado com sucesso.`
+        );
       });
     }
   };

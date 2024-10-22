@@ -46,6 +46,27 @@ const StockPage = () => {
 
   let debounceTimeout = useRef(null);
 
+  const fetchLimits = async () => {
+    try {
+      const limits = await stockService.getStockLimits();
+
+      if (limits) {
+        setMinMaxQuantity([0, limits.maxQuantity || 100]);
+        setMinMaxValue([0, limits.maxValue || 10000]);
+        setQuantityRange([0, limits.maxQuantity || 100]);
+        setValueRange([0, limits.maxValue || 10000]);
+      } else {
+        setErrorMessage("Limites de estoque não retornados corretamente.");
+      }
+    } catch (error) {
+      setErrorMessage(`Erro ao obter os limites de estoque: ${error.message}`);
+    }
+  };
+
+  useEffect(() => {
+    fetchLimits();
+  }, []);
+
   useEffect(() => {
     if (id) {
       stockService
@@ -79,18 +100,6 @@ const StockPage = () => {
     itemsPerPage,
   ]);
 
-  useEffect(() => {
-    stockService
-      .getStockLimits()
-      .then((limits) => {
-        setMinMaxQuantity([0, limits.maxQuantity]);
-        setMinMaxValue([0, limits.maxValue]);
-        setQuantityRange([0, limits.maxQuantity]);
-        setValueRange([0, limits.maxValue]);
-      })
-      .catch(() => setErrorMessage("Erro ao obter os limites de estoque."));
-  }, []);
-
   const retrieveStocks = useCallback(
     (pageNumber = 0, size = itemsPerPage) => {
       const params = {
@@ -120,6 +129,17 @@ const StockPage = () => {
 
             setTotalPages(totalPagesFromResponse);
             setTotalItems(totalItemsFromResponse);
+
+            const maxQuantity = Math.max(
+              ...stocksData.map((stock) => stock.quantity),
+              0
+            );
+            const maxValue = Math.max(
+              ...stocksData.map((stock) => stock.value),
+              0
+            );
+            setMinMaxQuantity([0, maxQuantity]);
+            setMinMaxValue([0, maxValue]);
           })
           .catch(() => setErrorMessage("Erro ao carregar o estoque."))
           .finally(() => {
@@ -151,14 +171,15 @@ const StockPage = () => {
     setOpen(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = (id, productName) => {
     stockService
       .deleteStock(id)
       .then(() => {
-        setSuccessMessage("Estoque deletado com sucesso.");
+        setSuccessMessage(`Produto ${productName} deletado com sucesso.`);
         retrieveStocks(page, itemsPerPage);
+        fetchLimits();
       })
-      .catch(() => setErrorMessage("Erro ao deletar o estoque."));
+      .catch(() => setErrorMessage("Erro ao deletar o produto em estoque."));
   };
 
   const handleSliderChange = (setter) => (event, newValue) => setter(newValue);
@@ -185,6 +206,7 @@ const StockPage = () => {
       Math.max(parseInt(targetPage, 10) - 1, 0),
       totalPages - 1
     );
+    window.scrollTo(0, 0);
     setPage(newPage);
     retrieveStocks(newPage, itemsPerPage);
   };
@@ -204,7 +226,6 @@ const StockPage = () => {
           </Grid>
         </Grid>
       </Box>
-
       <Box component="form" noValidate autoComplete="off">
         <Grid container spacing={4} alignItems="center">
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>
@@ -293,7 +314,6 @@ const StockPage = () => {
           </Grid>
         </Grid>
       </Box>
-
       <Box mt={2} sx={{ minHeight: stocks.length > 0 ? "auto" : "300px" }}>
         {loading ? (
           <Box>
@@ -336,7 +356,7 @@ const StockPage = () => {
                 </IconButton>
                 <IconButton
                   color="secondary"
-                  onClick={() => handleDelete(stock.id)}
+                  onClick={() => handleDelete(stock.id, stock.productName)}
                 >
                   <DeleteIcon />
                 </IconButton>
@@ -352,7 +372,6 @@ const StockPage = () => {
           )
         )}
       </Box>
-
       <Box
         display="flex"
         justifyContent="space-between"
@@ -361,7 +380,10 @@ const StockPage = () => {
       >
         <Button
           variant="contained"
-          onClick={() => handlePageChange(Math.max(page - 1, 0))}
+          onClick={() => {
+            handlePageChange(Math.max(page - 1, 0));
+            window.scrollTo(0, 0);
+          }}
           disabled={page === 0}
         >
           Página Anterior
@@ -373,13 +395,15 @@ const StockPage = () => {
 
         <Button
           variant="contained"
-          onClick={() => handlePageChange(Math.min(page + 1, totalPages - 1))}
+          onClick={() => {
+            handlePageChange(Math.min(page + 1, totalPages - 1));
+            window.scrollTo(0, 0);
+          }}
           disabled={page >= totalPages - 1}
         >
           Próxima Página
         </Button>
       </Box>
-
       <Box display="flex" alignItems="center" mt={2}>
         <TextField
           type="number"
@@ -387,22 +411,24 @@ const StockPage = () => {
           variant="outlined"
           value={targetPage}
           onChange={handleTargetPageChange}
-          inputProps={{ min: 1, max: totalPages }}
           sx={{ maxWidth: 100, mr: 1 }}
+          slotProps={{
+            htmlInput: { min: 1, max: totalPages },
+          }}
         />
         <Button variant="contained" onClick={goToSpecificPage}>
           Ir
         </Button>
       </Box>
-
       <StockForm
         open={open}
         handleClose={() => setOpen(false)}
         editMode={editMode}
         currentStock={currentStock}
         retrieveStocks={() => retrieveStocks(page, itemsPerPage)}
+        setSuccessMessage={setSuccessMessage}
+        fetchLimits={fetchLimits}
       />
-
       <Snackbar
         open={!!errorMessage}
         autoHideDuration={6000}
@@ -411,7 +437,6 @@ const StockPage = () => {
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         severity="error"
       />
-
       <Snackbar
         open={!!successMessage}
         autoHideDuration={6000}

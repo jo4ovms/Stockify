@@ -42,8 +42,12 @@ const searchStocks = async (params = {}) => {
 };
 
 const getStockLimits = async () => {
-  const response = await axios.get(`${API_URL}/limits`);
-  return response.data;
+  try {
+    const response = await axios.get(`${API_URL}/limits`);
+    return response.data;
+  } catch (error) {
+    throw new Error("Falha ao obter os limites de estoque.");
+  }
 };
 
 export default {
