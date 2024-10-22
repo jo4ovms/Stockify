@@ -16,25 +16,6 @@ const Footer = () => {
     >
       <Typography variant="body1">
         © 2024 Stockify. Todos os direitos reservados.
-        {/* <IconButton
-          sx={{
-            color: "white",
-            "&:hover": { color: "secondary.main", cursor: "pointer" },
-          }}
-        >
-          <IconBrandInstagram />
-        </IconButton>
-        <IconButton
-          sx={{
-            color: "white",
-            "&:hover": {
-              color: "secondary.main",
-              cursor: "pointer",
-            },
-          }}
-        >
-          <IconBrandWhatsapp />
-        </IconButton> */}
       </Typography>
     </Box>
   );

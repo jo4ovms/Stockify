@@ -15,6 +15,7 @@ import PageContainer from "../../../components/container/PageContainer";
 
 const SalePage = () => {
   const [stockId, setStockId] = useState(null);
+  const [productId, setProductId] = useState(null);
   const [quantity, setQuantity] = useState("");
   const [stocks, setStocks] = useState([]);
   const [error, setError] = useState("");
@@ -79,14 +80,14 @@ const SalePage = () => {
     }
 
     const saleData = {
-      stockId,
+      productId: selectedStock.productId,
       quantity: parseInt(quantity, 10),
     };
 
     try {
       const result = await saleService.registerSale(saleData);
       setSuccessMessage(
-        `Venda registrada com sucesso para o estoque ID: ${result.stockId}`
+        `Venda registrada com sucesso para o produto: ${selectedStock?.productName}`
       );
 
       setStockId(null);
@@ -116,7 +117,7 @@ const SalePage = () => {
     }
   };
   return (
-    (<PageContainer
+    <PageContainer
       title="Registrar Venda"
       description="Página para registrar uma nova venda de produto."
     >
@@ -163,7 +164,7 @@ const SalePage = () => {
                       {params.InputProps.endAdornment}
                     </>
                   ),
-                }
+                },
               }}
             />
           )}
@@ -214,7 +215,7 @@ const SalePage = () => {
           )}
         </Box>
       </DashboardCard>
-    </PageContainer>)
+    </PageContainer>
   );
 };
 
