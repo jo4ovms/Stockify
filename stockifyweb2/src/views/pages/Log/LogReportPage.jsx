@@ -50,6 +50,7 @@ const keyTranslationMap = {
   productName: "Nome do Produto",
   productId: "ID do Produto",
   stockId: "ID do Estoque",
+  stockValueAtSale: "Valor Unitário",
 };
 
 const entityTranslationMap = {
