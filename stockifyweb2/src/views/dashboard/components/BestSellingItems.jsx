@@ -47,9 +47,14 @@ const BestSellingItems = ({ sx }) => {
           <IconArrowRight width={24} />
         </Fab>
       }
-      sx={{ height: "600px", width: "125%", maxWidth: "900px", ...sx }}
+      sx={{
+        height: "600px",
+        width: "527px",
+
+        ...sx,
+      }}
     >
-      <Box sx={{ overflow: "auto", width: { xs: "280px", sm: "auto" } }}>
+      <Box sx={{ overflowX: "auto" }}>
         {isLoading ? (
           <>
             {Array.from(new Array(6)).map((_, index) => (
@@ -74,7 +79,12 @@ const BestSellingItems = ({ sx }) => {
         ) : bestSellingItems.length > 0 ? (
           <Table
             aria-label="best selling items table"
-            sx={{ whiteSpace: "nowrap", mt: 0 }}
+            sx={{
+              width: "100%",
+              maxWidth: "600px",
+              whiteSpace: "nowrap",
+              mt: 0,
+            }}
           >
             <TableHead>
               <TableRow>

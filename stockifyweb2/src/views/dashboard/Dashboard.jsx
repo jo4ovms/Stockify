@@ -39,10 +39,10 @@ const Dashboard = () => {
           </Grid>
 
           <Grid container spacing={1}>
-            <Grid size={{ xs: 12, sm: 7, lg: 7 }}>
+            <Grid size={{ xs: 12, sm: 8, lg: 7 }}>
               <RecentTransactions />
             </Grid>
-            <Grid size={{ xs: 12, sm: 5, lg: 5 }}>
+            <Grid size={{ xs: 12, sm: 4, lg: 4 }}>
               <BestSellingItems />
             </Grid>
           </Grid>

@@ -168,10 +168,8 @@ const RecentTransactions = () => {
       }
       sx={{
         height: "600px",
-        width: "100%",
-        maxWidth: "100%",
+        width: "595px",
         overflow: "hidden",
-        minWidth: "100%",
       }}
     >
       <Box
@@ -192,7 +190,7 @@ const RecentTransactions = () => {
                   mb: 2,
                   padding: "10px",
                   width: "100%",
-                  minWidth: "650px",
+                  // minWidth: "650px",
                 }}
               >
                 <Skeleton variant="text" width="60%" />
