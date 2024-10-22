@@ -6,12 +6,11 @@ import {
   FormControl,
   InputLabel,
   Select,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   IconButton,
   MenuItem,
+  Snackbar,
+  Alert,
+  Skeleton,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -21,6 +20,7 @@ import {
   Add as AddIcon,
   List as ListIcon,
 } from "@mui/icons-material";
+import { useState } from "react";
 import PageContainer from "../../../components/container/PageContainer";
 import SupplierForm from "./SupplierForm";
 import DashboardCard from "../../../components/shared/DashboardCard";
@@ -32,6 +32,8 @@ const SupplierPage = () => {
     suppliers,
     currentSupplier,
     productListRef,
+    setSuccessMessage,
+    setErrorMessage,
     retrieveProducts,
     currentProduct,
     productsBySupplier,
@@ -61,18 +63,32 @@ const SupplierPage = () => {
     page,
     setPage,
     totalPages,
+    totalItems,
+    handleItemsPerPageChange,
     setVisibleProducts,
     allProductTypes,
     searchProductTermBySupplier,
     handleSearchProductChange,
+    loading,
+    errorMessage,
+    size,
+    handleTargetPageChange,
+    goToSpecificPage,
+    successMessage,
+    targetPage,
   } = useSupplier();
 
   return (
     <PageContainer title="Suppliers" description="this is Suppliers page">
       <DashboardCard title="Fornecedores">
-        <Box display="flex" justifyContent="space-between" alignItems="center">
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={2}
+        >
           <Box display="flex" gap={2}>
-            <FormControl sx={{ marginBottom: 2, minWidth: 200 }}>
+            <FormControl sx={{ minWidth: 200 }}>
               <InputLabel id="filter-tipo-produto-label">
                 Tipo de Produto
               </InputLabel>
@@ -83,7 +99,7 @@ const SupplierPage = () => {
                 label="Tipo de Produto"
                 onChange={handleFilterProductTypeChange}
               >
-                <MenuItem value="all">
+                <MenuItem value="">
                   <em>Todos</em>
                 </MenuItem>
                 {allProductTypes.map((productType, index) => (
@@ -93,27 +109,61 @@ const SupplierPage = () => {
                 ))}
               </Select>
             </FormControl>
+
             <TextField
               label="Pesquisar Fornecedor"
               variant="outlined"
               value={searchTerm}
               onChange={handleSearchChange}
               sx={{ minWidth: 200 }}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                },
+              }}
             />
+
+            <FormControl sx={{ minWidth: 150 }}>
+              <InputLabel id="items-per-page-label">
+                Itens por Página
+              </InputLabel>
+              <Select
+                labelId="items-per-page-label"
+                value={size}
+                onChange={(e) => handleItemsPerPageChange(e.target.value)}
+              >
+                {[10, 20, 50, 100].map((sizeOption) => (
+                  <MenuItem key={sizeOption} value={sizeOption}>
+                    {sizeOption}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Box>
 
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleClickOpen}
-            sx={{ marginLeft: "auto" }}
-          >
+          <Button variant="contained" color="primary" onClick={handleClickOpen}>
             Criar Fornecedor
           </Button>
         </Box>
 
-        <Box mt={2}>
-          {suppliers.length > 0 ? (
+        <Box mt={2} sx={{ minHeight: suppliers.length > 0 ? "auto" : "300px" }}>
+          {loading ? (
+            <Box>
+              {[...Array(5)].map((_, index) => (
+                <Skeleton
+                  key={index}
+                  variant="rectangular"
+                  height={60}
+                  animation="wave"
+                  sx={{ mb: 1 }}
+                />
+              ))}
+            </Box>
+          ) : suppliers.length > 0 ? (
             suppliers.map((supplier) => (
               <Box
                 key={supplier.id}
@@ -184,15 +234,7 @@ const SupplierPage = () => {
                       onChange={(e) =>
                         handleSearchProductChange(supplier.id, e.target.value)
                       }
-                      sx={{
-                        minWidth: 400,
-                        marginBottom: 3,
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: "8px",
-                          padding: "0 8px",
-                          boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
-                        },
-                      }}
+                      sx={{ minWidth: 400, marginBottom: 3 }}
                       slotProps={{
                         input: {
                           startAdornment: (
@@ -294,12 +336,14 @@ const SupplierPage = () => {
               </Box>
             ))
           ) : (
-            <Typography variant="h7">
-              Nenhum Fornecedor registrado ainda.
-            </Typography>
+            !loading && (
+              <Alert severity="info" sx={{ mt: 10, justifyContent: "center" }}>
+                Nenhum fornecedor encontrado —{" "}
+                <strong>Verifique os filtros aplicados!</strong>
+              </Alert>
+            )
           )}
         </Box>
-
         <Box
           display="flex"
           justifyContent="space-between"
@@ -308,11 +352,8 @@ const SupplierPage = () => {
         >
           <Button
             variant="contained"
-            color="primary"
             onClick={() => {
               setPage((prev) => Math.max(prev - 1, 0));
-              setVisibleProducts({});
-
               window.scrollTo(0, 0);
             }}
             disabled={page === 0}
@@ -321,15 +362,14 @@ const SupplierPage = () => {
           </Button>
 
           <Typography>
-            Página {page + 1} de {totalPages}
+            Página {page + 1} de {totalPages} (Total de fornecedores:{" "}
+            {totalItems})
           </Typography>
 
           <Button
             variant="contained"
-            color="primary"
             onClick={() => {
               setPage((prev) => Math.min(prev + 1, totalPages - 1));
-              setVisibleProducts({});
               window.scrollTo(0, 0);
             }}
             disabled={page >= totalPages - 1}
@@ -337,8 +377,24 @@ const SupplierPage = () => {
             Próxima Página
           </Button>
         </Box>
-      </DashboardCard>
 
+        <Box display="flex" alignItems="center" mt={2}>
+          <TextField
+            type="number"
+            label="Ir para página"
+            variant="outlined"
+            value={targetPage}
+            onChange={handleTargetPageChange}
+            sx={{ maxWidth: 100, mr: 1 }}
+            slotProps={{
+              htmlInput: { min: 1, max: totalPages },
+            }}
+          />
+          <Button variant="contained" onClick={goToSpecificPage}>
+            Ir
+          </Button>
+        </Box>
+      </DashboardCard>
       <SupplierForm
         open={open}
         handleClose={handleClose}
@@ -347,7 +403,6 @@ const SupplierPage = () => {
         editMode={editMode}
         handleChange={handleChange}
       />
-
       <ProductForm
         open={openProductDialog}
         handleClose={handleCloseProductDialog}
@@ -356,6 +411,22 @@ const SupplierPage = () => {
         editMode={editMode}
         handleChange={handleChangeProduct}
         currentSupplier={currentSupplier}
+      />
+      <Snackbar
+        open={!!errorMessage}
+        autoHideDuration={6000}
+        onClose={() => setErrorMessage("")}
+        message={errorMessage}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        severity="error"
+      />
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={6000}
+        onClose={() => setSuccessMessage("")}
+        message={successMessage}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        severity="success"
       />
     </PageContainer>
   );

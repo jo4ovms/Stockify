@@ -16,7 +16,16 @@ class SupplierService {
     sortBy = "name",
     sortDirection = "asc"
   ) {
-    const params = { name, productType, page, size, sortBy, sortDirection };
+    const params = {};
+
+    if (name) params.name = name;
+    if (productType) params.productType = productType;
+
+    params.page = page;
+    params.size = size;
+    params.sortBy = sortBy;
+    params.sortDirection = sortDirection;
+
     return axiosInstance.get(`${API_URL}/filter`, { params });
   }
 

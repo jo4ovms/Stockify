@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import supplierService from "../services/supplier.service";
 import productService from "../services/productService";
 
@@ -8,6 +8,11 @@ const useSupplier = () => {
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [suppliers, setSuppliers] = useState([]);
   const [productsBySupplier, setProductsBySupplier] = useState({});
   const [searchProductTermBySupplier, setSearchProductTermBySupplier] =
@@ -16,6 +21,7 @@ const useSupplier = () => {
   const [productsTotalPages, setProductsTotalPages] = useState({});
   const productListRef = useRef({});
 
+  const debounceTimeout = useRef(null);
   const [currentSupplier, setCurrentSupplier] = useState({
     id: null,
     name: "",
@@ -41,6 +47,20 @@ const useSupplier = () => {
   const [filterProductType, setFilterProductType] = useState("");
 
   const [allProductTypes, setAllProductTypes] = useState([]);
+  const [targetPage, setTargetPage] = useState(page + 1);
+
+  const handleTargetPageChange = (event) => {
+    setTargetPage(event.target.value);
+  };
+
+  const goToSpecificPage = () => {
+    const newPage = Math.min(
+      Math.max(parseInt(targetPage, 10) - 1, 0),
+      totalPages - 1
+    );
+    window.scrollTo(0, 0);
+    setPage(newPage);
+  };
 
   const scrollToProductListTop = (supplierId) => {
     const interval = setInterval(() => {
@@ -58,6 +78,7 @@ const useSupplier = () => {
   useEffect(() => {
     getAllProductTypes();
   }, []);
+
   const getAllProductTypes = () => {
     supplierService
       .getAllProductTypes()
@@ -83,28 +104,57 @@ const useSupplier = () => {
   };
 
   useEffect(() => {
-    retrieveSuppliers();
+    retrieveSuppliers(page, size);
   }, [page, size, searchTerm, filterProductType]);
 
-  const retrieveSuppliers = () => {
-    supplierService
-      .filterSuppliers(
-        searchTerm,
-        filterProductType,
-        page,
-        size,
-        sortBy,
-        sortDirection
-      )
-      .then((response) => {
-        const suppliersData = response.data._embedded?.supplierDTOList || [];
-        const pageData = response.data.page || { totalPages: 1 };
+  useEffect(() => {
+    setVisibleProducts({});
+  }, [page]);
 
-        setSuppliers(suppliersData);
-        setTotalPages(pageData.totalPages);
-      })
-      .catch(console.log);
-  };
+  const retrieveSuppliers = useCallback(
+    (pageNumber = 0, newSize = size) => {
+      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+
+      setLoading(true);
+      setErrorMessage("");
+
+      debounceTimeout.current = setTimeout(() => {
+        const name = searchTerm || null;
+        const productType = filterProductType || null;
+
+        supplierService
+          .filterSuppliers(
+            name,
+            productType,
+            pageNumber,
+            newSize,
+            sortBy,
+            sortDirection
+          )
+          .then((response) => {
+            const suppliersData =
+              response.data._embedded?.supplierDTOList || [];
+            const pageData = response.data.page || {
+              totalPages: 1,
+              totalElements: 0,
+            };
+
+            setSuppliers(suppliersData);
+            setTotalPages(pageData.totalPages);
+            setTotalItems(pageData.totalElements);
+
+            if (suppliersData.length === 0) {
+              setErrorMessage(
+                "Nenhum fornecedor encontrado para os filtros aplicados."
+              );
+            }
+          })
+          .catch(() => setErrorMessage("Erro ao carregar os fornecedores."))
+          .finally(() => setLoading(false));
+      }, 500);
+    },
+    [sortBy, sortDirection, searchTerm, filterProductType]
+  );
 
   const retrieveProducts = (supplier, page = 0, size = 10) => {
     productService
@@ -128,9 +178,7 @@ const useSupplier = () => {
         setVisibleProducts((prev) => ({ ...prev, [supplier.id]: true }));
         scrollToProductListTop(supplier.id);
       })
-      .catch((error) => {
-        console.error("Erro ao buscar produtos:", error);
-      });
+      .catch(() => setErrorMessage("Erro ao buscar produtos."));
   };
 
   const searchProductsForSupplier = (
@@ -146,16 +194,18 @@ const useSupplier = () => {
           ...prev,
           [supplierId]: products,
         }));
+
         setProductsPage((prev) => ({
           ...prev,
           [supplierId]: page,
         }));
+
         setProductsTotalPages((prev) => ({
           ...prev,
           [supplierId]: totalPages,
         }));
       })
-      .catch(console.log);
+      .catch(() => setErrorMessage("Erro ao buscar produtos."));
   };
 
   const handleClickOpen = () => {
@@ -193,9 +243,18 @@ const useSupplier = () => {
   };
 
   const handleClickShowProducts = (supplier) => {
-    if (visibleProducts[supplier.id]) {
-      setVisibleProducts((prev) => ({ ...prev, [supplier.id]: false }));
-    } else {
+    setVisibleProducts((prev) => {
+      const updatedVisibleProducts = Object.keys(prev).reduce((acc, key) => {
+        acc[key] = false;
+        return acc;
+      }, {});
+
+      updatedVisibleProducts[supplier.id] = !prev[supplier.id];
+
+      return updatedVisibleProducts;
+    });
+
+    if (!visibleProducts[supplier.id]) {
       const searchTerm = searchProductTermBySupplier[supplier.id] || "";
       if (searchTerm) {
         searchProductsForSupplier(supplier.id, searchTerm);
@@ -247,7 +306,7 @@ const useSupplier = () => {
           updateProductTypes(updatedSupplier.productType);
           retrieveSuppliers();
         })
-        .catch(console.log)
+        .catch(() => setErrorMessage("Erro ao atualizar o fornecedor."))
         .finally(handleClose);
     } else {
       supplierService
@@ -256,7 +315,7 @@ const useSupplier = () => {
           updateProductTypes(createdSupplier.productType);
           retrieveSuppliers();
         })
-        .catch(console.log)
+        .catch(() => setErrorMessage("Erro ao criar o fornecedor."))
         .finally(handleClose);
     }
   };
@@ -269,7 +328,7 @@ const useSupplier = () => {
           retrieveProducts(currentSupplier);
           handleCloseProductDialog();
         })
-        .catch(console.log);
+        .catch(() => setErrorMessage("Erro ao atualizar o produto."));
     } else {
       productService
         .createProduct(currentProduct)
@@ -277,7 +336,7 @@ const useSupplier = () => {
           retrieveProducts(currentSupplier);
           handleCloseProductDialog();
         })
-        .catch(console.log);
+        .catch(() => setErrorMessage("Erro ao criar o produto."));
     }
   };
 
@@ -289,8 +348,9 @@ const useSupplier = () => {
       .then(() => {
         removeProductType(supplierToDelete.productType);
         retrieveSuppliers();
+        setSuccessMessage("Fornecedor excluído com sucesso.");
       })
-      .catch(console.log);
+      .catch(() => setErrorMessage("Erro ao excluir o fornecedor."));
   };
 
   const deleteProduct = (id) => {
@@ -300,7 +360,7 @@ const useSupplier = () => {
         retrieveProducts(currentSupplier);
         getAllProductTypes();
       })
-      .catch(console.log);
+      .catch(() => setErrorMessage("Erro ao excluir o produto."));
   };
 
   const handleSearchChange = (e) => {
@@ -316,14 +376,22 @@ const useSupplier = () => {
 
     searchProductsForSupplier(supplierId, searchTerm);
   };
+
   const handleFilterProductTypeChange = (e) => {
     setFilterProductType(e.target.value);
+    setPage(0);
+  };
+
+  const handleItemsPerPageChange = (newSize) => {
+    setSize(newSize);
     setPage(0);
   };
 
   return {
     suppliers,
     allProductTypes,
+    setSuccessMessage,
+    setErrorMessage,
     setVisibleProducts,
     retrieveProducts,
     currentSupplier,
@@ -348,19 +416,26 @@ const useSupplier = () => {
     handleChangeProduct,
     handleSearchChange,
     handleFilterProductTypeChange,
+    handleItemsPerPageChange,
     saveSupplier,
     saveProduct,
     deleteSupplier,
     deleteProduct,
     editProduct,
     page,
+    size,
     setPage,
     totalPages,
+    totalItems,
     retrieveProducts,
     productListRef,
     handleClickShowProducts,
     handleSearchProductChange,
     searchProductTermBySupplier,
+    handleTargetPageChange,
+    goToSpecificPage,
+    targetPage,
+    loading,
   };
 };
 
