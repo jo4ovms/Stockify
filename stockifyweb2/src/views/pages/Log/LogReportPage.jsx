@@ -70,149 +70,68 @@ const renderSummary = (log) => {
   const newValue = tryParseJSON(log.newValue);
   const oldValue = tryParseJSON(log.oldValue);
 
-  if (log.entity === "Stock") {
-    if (log.operationType === "CREATE") {
-      return (
-        <Typography variant="body2">
-          {`Produto: ${
-            newValue?.productName || "Produto não especificado"
-          }, Quantidade: ${newValue?.quantity || "N/A"}, Valor: ${
-            newValue?.value ? formatCurrency(newValue.value) : "N/A"
-          }`}
-        </Typography>
-      );
+  const getSecondaryChange = () => {
+    if (log.entity === "Stock" || log.entity === "Product") {
+      if (oldValue?.quantity !== newValue?.quantity) {
+        return `Quantidade: de ${oldValue?.quantity || "N/A"} para ${newValue?.quantity || "N/A"}`;
+      }
+      if (oldValue?.value !== newValue?.value) {
+        return `Valor: de ${oldValue?.value ? formatCurrency(oldValue.value) : "N/A"} para ${newValue?.value ? formatCurrency(newValue.value) : "N/A"}`;
+      }
+    } else if (log.entity === "Supplier" && oldValue?.cnpj !== newValue?.cnpj) {
+      return `CNPJ: de ${oldValue?.cnpj || "N/A"} para ${newValue?.cnpj || "N/A"}`;
     }
+    return null;
+  };
 
-    if (log.operationType === "UPDATE") {
-      const quantityChanged = oldValue?.quantity !== newValue?.quantity;
-      const valueChanged = oldValue?.value !== newValue?.value;
-      const productChanged = oldValue?.productName !== newValue?.productName;
-
-      return (
-        <Typography variant="body2">
-          {productChanged && (
-            <>
-              {`Produto: ${
-                oldValue?.productName || "Produto não especificado"
-              } (Antes)`}
-              <br />
-              {`Novo Produto: ${
-                newValue?.productName || "Produto não especificado"
-              } (Agora)`}
-              <br />
-            </>
-          )}
-          {quantityChanged && (
-            <>
-              {`Quantidade (Antes: ${oldValue?.quantity || "N/A"}, Agora: ${
-                newValue?.quantity || "N/A"
-              })`}
-              <br />
-            </>
-          )}
-          {valueChanged && (
-            <>
-              {`Valor (Antes: ${
-                oldValue?.value ? formatCurrency(oldValue.value) : "N/A"
-              }, Agora: ${
-                newValue?.value ? formatCurrency(newValue.value) : "N/A"
-              })`}
-            </>
-          )}
-        </Typography>
-      );
+  const getSaleTotal = () => {
+    if (
+      log.entity === "Sale" &&
+      newValue?.stockValueAtSale &&
+      newValue?.quantity
+    ) {
+      return formatCurrency(newValue.stockValueAtSale * newValue.quantity);
     }
+    return "N/A";
+  };
+
+  if (log.operationType === "CREATE") {
+    return (
+      <Typography variant="body2">
+        {log.entity === "Product" || log.entity === "Stock"
+          ? `Produto: ${newValue?.name || newValue?.productName || "Produto não especificado"}`
+          : log.entity === "Sale"
+            ? `  Produto: ${newValue?.productName || "Produto não especificado"}, Valor Total: ${getSaleTotal()}`
+            : `Fornecedor: ${newValue?.name || "Fornecedor não especificado"}`}
+      </Typography>
+    );
   }
 
-  if (log.entity === "Product") {
-    if (log.operationType === "CREATE") {
-      return (
-        <Typography variant="body2">
-          {`Produto: ${
-            newValue?.name || "Produto não especificado"
-          }, Quantidade: ${newValue?.quantity || "N/A"}, Valor: ${
-            newValue?.value ? formatCurrency(newValue.value) : "N/A"
-          }`}
-        </Typography>
-      );
-    }
-
-    if (log.operationType === "UPDATE") {
-      const quantityChanged = oldValue?.quantity !== newValue?.quantity;
-      const valueChanged = oldValue?.value !== newValue?.value;
-      const productChanged = oldValue?.name !== newValue?.name;
-
-      return (
-        <Typography variant="body2">
-          {productChanged && (
-            <>
-              {`Produto: ${
-                oldValue?.name || "Produto não especificado"
-              } (Antes)`}
-              <br />
-              {`Novo Produto: ${
-                newValue?.name || "Produto não especificado"
-              } (Agora)`}
-              <br />
-            </>
-          )}
-          {quantityChanged && (
-            <>
-              {`Quantidade (Antes: ${oldValue?.quantity || "N/A"}, Agora: ${
-                newValue?.quantity || "N/A"
-              })`}
-              <br />
-            </>
-          )}
-          {valueChanged && (
-            <>
-              {`Valor (Antes: ${
-                oldValue?.value ? formatCurrency(oldValue.value) : "N/A"
-              }, Agora: ${
-                newValue?.value ? formatCurrency(newValue.value) : "N/A"
-              })`}
-            </>
-          )}
-        </Typography>
-      );
-    }
+  if (log.operationType === "UPDATE") {
+    const secondaryChange = getSecondaryChange();
+    return (
+      <Typography variant="body2">
+        {log.entity === "Product" || log.entity === "Stock"
+          ? `Produto: ${newValue?.name || newValue?.productName || "Produto não especificado"}`
+          : `Fornecedor: ${newValue?.name || "Fornecedor não especificado"}`}
+        {secondaryChange && (
+          <>
+            <br />
+            {secondaryChange}
+          </>
+        )}
+      </Typography>
+    );
   }
 
-  if (log.entity === "Supplier") {
-    if (log.operationType === "CREATE") {
-      return (
-        <Typography variant="body2">
-          {`Fornecedor: ${
-            newValue?.name || "Fornecedor não especificado"
-          }, CNPJ: ${newValue?.cnpj || "N/A"}`}
-        </Typography>
-      );
-    }
-
-    if (log.operationType === "UPDATE") {
-      const nameChanged = oldValue?.name !== newValue?.name;
-      const cnpjChanged = oldValue?.cnpj !== newValue?.cnpj;
-
-      return (
-        <Typography variant="body2">
-          {nameChanged && (
-            <>
-              {`Nome (Antes: ${oldValue?.name || "N/A"}, Agora: ${
-                newValue?.name || "N/A"
-              })`}
-              <br />
-            </>
-          )}
-          {cnpjChanged && (
-            <>
-              {`CNPJ (Antes: ${oldValue?.cnpj || "N/A"}, Agora: ${
-                newValue?.cnpj || "N/A"
-              })`}
-            </>
-          )}
-        </Typography>
-      );
-    }
+  if (log.operationType === "DELETE") {
+    return (
+      <Typography variant="body2" color="error">
+        {log.entity === "Product" || log.entity === "Stock"
+          ? `Produto excluído: ${oldValue?.name || oldValue?.productName || "Produto não especificado"}`
+          : `Fornecedor excluído: ${oldValue?.name || "Fornecedor não especificado"}`}
+      </Typography>
+    );
   }
 
   return null;
@@ -292,7 +211,10 @@ const LogReportPage = () => {
     return keyTranslationMap[key] || key;
   };
 
-  const translateOperation = (operationType) => {
+  const translateOperation = (operationType, entity) => {
+    if (entity === "Sale" && operationType === "CREATE") {
+      return " ";
+    }
     return operationTranslationMap[operationType] || operationType;
   };
 
@@ -319,12 +241,14 @@ const LogReportPage = () => {
     if (page < totalPages - 1) {
       setPage(page + 1);
     }
+    window.scrollTo(0, 0);
   };
 
   const handlePreviousPage = () => {
     if (page > 0) {
       setPage(page - 1);
     }
+    window.scrollTo(0, 0);
   };
 
   const renderKeyValuePairs = (data) => {
@@ -445,7 +369,7 @@ const LogReportPage = () => {
                         {translateEntity(log.entity)}
                       </Typography>
                       <Typography variant="body2" sx={{ minWidth: "100px" }}>
-                        {translateOperation(log.operationType)}
+                        {translateOperation(log.operationType, log.entity)}
                       </Typography>
                     </Box>
                     <Box sx={{ flex: "0.6 1 200px", textAlign: "right" }}>
