@@ -1,10 +1,10 @@
-import axios from "axios";
+import axiosInstance from "./axiosInstance";
 
 const API_URL = "http://localhost:8081/api/sales";
 
 const registerSale = async (saleData) => {
   try {
-    const response = await axios.post(API_URL, saleData);
+    const response = await axiosInstance.post(API_URL, saleData);
     return response.data;
   } catch (error) {
     console.error("Error Registering Sale", error);
@@ -14,7 +14,7 @@ const registerSale = async (saleData) => {
 
 const getBestSellingItems = async () => {
   try {
-    const response = await axios.get(`${API_URL}/best-sellers`);
+    const response = await axiosInstance.get(`${API_URL}/best-sellers`);
     return response.data;
   } catch (error) {
     console.error("Error Fetching Best Selling Items", error);
@@ -31,7 +31,7 @@ const getAllSoldItems = async (
   endDate = null
 ) => {
   try {
-    const response = await axios.get(`${API_URL}`, {
+    const response = await axiosInstance.get(`${API_URL}`, {
       params: {
         page,
         size,
@@ -54,7 +54,7 @@ const getAllSoldItems = async (
 
 const getSalesGroupedByDay = async (month) => {
   try {
-    const response = await axios.get(`${API_URL}/daily`, {
+    const response = await axiosInstance.get(`${API_URL}/daily`, {
       params: { month },
     });
     return response.data;

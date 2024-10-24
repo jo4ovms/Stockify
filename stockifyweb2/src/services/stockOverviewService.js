@@ -1,4 +1,4 @@
-import axios from "axios";
+import axiosInstance from "./axiosInstance";
 const API_BASE_URL = "http://localhost:8081/api/stock";
 
 const stockOverviewService = {
@@ -11,7 +11,7 @@ const stockOverviewService = {
     sortBy = "quantity",
     sortDirection = "asc"
   ) => {
-    return axios.get(`${API_BASE_URL}/reports/low-stock`, {
+    return axiosInstance.get(`${API_BASE_URL}/reports/low-stock`, {
       params: {
         threshold,
         page,
@@ -33,7 +33,7 @@ const stockOverviewService = {
     sortBy = "quantity",
     sortDirection = "asc"
   ) => {
-    return axios.get(`${API_BASE_URL}/reports/adequate-stock`, {
+    return axiosInstance.get(`${API_BASE_URL}/reports/adequate-stock`, {
       params: {
         query,
         supplierId,
@@ -47,7 +47,7 @@ const stockOverviewService = {
   },
 
   getStockSummary: () => {
-    return axios.get(`${API_BASE_URL}/summary`);
+    return axiosInstance.get(`${API_BASE_URL}/summary`);
   },
   getCriticalStockReport: (
     threshold,
@@ -58,7 +58,7 @@ const stockOverviewService = {
     sortBy = "quantity",
     sortDirection = "asc"
   ) => {
-    return axios.get(`${API_BASE_URL}/reports/critical-stock`, {
+    return axiosInstance.get(`${API_BASE_URL}/reports/critical-stock`, {
       params: {
         threshold,
         page,
@@ -72,7 +72,7 @@ const stockOverviewService = {
   },
 
   getOutOfStockReport: (page = 0, size = 10, query = "", supplierId = null) => {
-    return axios.get(`${API_BASE_URL}/reports/out-of-stock`, {
+    return axiosInstance.get(`${API_BASE_URL}/reports/out-of-stock`, {
       params: {
         page,
         size,

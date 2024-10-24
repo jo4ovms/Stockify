@@ -1,9 +1,9 @@
-import axios from "axios";
+import axiosInstance from "./axiosInstance";
 
 const API_URL = "http://localhost:8081/api/logs";
 
 const getLogs = (entity, operationType, page, size) => {
-  return axios.get(API_URL, {
+  return axiosInstance.get(API_URL, {
     params: {
       entity: entity || "",
       operationType: operationType.toUpperCase() || "",
@@ -14,7 +14,7 @@ const getLogs = (entity, operationType, page, size) => {
 };
 
 const getRecentLogs = (page, size) => {
-  return axios.get(`${API_URL}/recent`, {
+  return axiosInstance.get(`${API_URL}/recent`, {
     params: {
       page: page || 0,
       size: size || 10,
