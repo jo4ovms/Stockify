@@ -1,5 +1,4 @@
-import { Box, Typography, IconButton } from "@mui/material";
-import { IconBrandInstagram, IconBrandWhatsapp } from "@tabler/icons-react";
+import { Box, Typography } from "@mui/material";
 
 const Footer = () => {
   return (

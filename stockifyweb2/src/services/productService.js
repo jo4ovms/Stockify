@@ -25,7 +25,7 @@ const getProductsBySupplier = async (supplierId, page = 0, size = 10) => {
         page,
         size,
       },
-    }
+    },
   );
 
   if (response.data && response.data.page) {
@@ -67,7 +67,7 @@ const searchProductsBySupplier = async (
   supplierId,
   searchTerm,
   page = 0,
-  size = 10
+  size = 10,
 ) => {
   const response = await axiosInstance.get(
     `${API_URL}/supplier/${supplierId}/search`,
@@ -77,7 +77,7 @@ const searchProductsBySupplier = async (
         page,
         size,
       },
-    }
+    },
   );
 
   if (response.data && response.data.page) {

@@ -1,4 +1,3 @@
-import React from "react";
 import { Card } from "@mui/material";
 import PropTypes from "prop-types";
 const BlankCard = ({ children, className }) => {

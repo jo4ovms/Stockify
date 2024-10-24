@@ -1,12 +1,11 @@
-import React from "react";
-import Grid from "@mui/material/Grid2";
 import { Box, useMediaQuery, useTheme } from "@mui/material";
-import PageContainer from "../../components/container/PageContainer";
-import StockOverview from "./components/StockOverview";
-import StockUnderSafety from "./components/StockUnderSafety";
-import SalesOverview from "./components/SalesOverview";
-import RecentTransactions from "./components/RecentTransactions";
-import BestSellingItems from "./components/BestSellingItems";
+import Grid from "@mui/material/Grid2";
+import PageContainer from "../../components/container/PageContainer.jsx";
+import BestSellingItems from "./components/BestSellingItems.jsx";
+import RecentTransactions from "./components/RecentTransactions.jsx";
+import SalesOverview from "./components/SalesOverview.jsx";
+import StockOverview from "./components/StockOverview.jsx";
+import StockUnderSafety from "./components/StockUnderSafety.jsx";
 
 const Dashboard = () => {
   const theme = useTheme();

@@ -1,4 +1,11 @@
 import {
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  Add as AddIcon,
+  List as ListIcon,
+} from "@mui/icons-material";
+import SearchIcon from "@mui/icons-material/Search";
+import {
   Typography,
   Button,
   Box,
@@ -12,20 +19,12 @@ import {
   Alert,
   Skeleton,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
 import InputAdornment from "@mui/material/InputAdornment";
-import {
-  Delete as DeleteIcon,
-  Edit as EditIcon,
-  Add as AddIcon,
-  List as ListIcon,
-} from "@mui/icons-material";
-import { useState } from "react";
-import PageContainer from "../../../components/container/PageContainer";
-import SupplierForm from "./SupplierForm";
-import DashboardCard from "../../../components/shared/DashboardCard";
+import PageContainer from "../../../components/container/PageContainer.jsx";
+import DashboardCard from "../../../components/shared/DashboardCard.jsx";
 import useSupplier from "../../../hooks/useSupplier";
-import ProductForm from "./ProductForm";
+import ProductForm from "./ProductForm.jsx";
+import SupplierForm from "./SupplierForm.jsx";
 
 const SupplierPage = () => {
   const {
@@ -65,7 +64,6 @@ const SupplierPage = () => {
     totalPages,
     totalItems,
     handleItemsPerPageChange,
-    setVisibleProducts,
     allProductTypes,
     searchProductTermBySupplier,
     handleSearchProductChange,

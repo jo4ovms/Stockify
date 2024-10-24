@@ -1,14 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { CssBaseline, ThemeProvider } from "@mui/material";
 import { QueryClient, QueryClientProvider } from "react-query";
-import {
-  CssBaseline,
-  ThemeProvider,
-  Snackbar,
-  Box,
-  Typography,
-} from "@mui/material";
-import Router from "./routes/Router";
 import { useRoutes } from "react-router-dom";
+import Router from "./routes/Router.jsx";
 import { baselightTheme } from "./theme/DefaultColors";
 
 const queryClient = new QueryClient();

@@ -14,7 +14,7 @@ class SupplierService {
     page = 0,
     size = 10,
     sortBy = "name",
-    sortDirection = "asc"
+    sortDirection = "asc",
   ) {
     const params = {};
 

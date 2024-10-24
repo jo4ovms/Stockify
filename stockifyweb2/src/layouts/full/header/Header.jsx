@@ -1,9 +1,7 @@
-import React from "react";
 import { Box, AppBar, Toolbar, styled, Stack, IconButton } from "@mui/material";
-import PropTypes from "prop-types";
-
-import Profile from "./Profile";
 import { IconMenu } from "@tabler/icons-react";
+import PropTypes from "prop-types";
+import Profile from "./Profile.jsx";
 
 const Header = (props) => {
   const AppBarStyled = styled(AppBar)(({ theme }) => ({
@@ -49,6 +47,7 @@ const Header = (props) => {
 };
 
 Header.propTypes = {
+  toggleMobileSidebar: PropTypes.func.isRequired,
   sx: PropTypes.object,
 };
 

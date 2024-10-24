@@ -1,9 +1,8 @@
-import React from "react";
-import Menuitems from "./MenuItems";
-import { useLocation } from "react-router-dom";
 import { Box, List } from "@mui/material";
-import NavItem from "./NavItem/NavItem";
-import NavGroup from "./NavGroup/NavGroup";
+import { useLocation } from "react-router-dom";
+import Menuitems from "./MenuItems.jsx";
+import NavGroup from "./NavGroup/NavGroup.jsx";
+import NavItem from "./NavItem/NavItem.jsx";
 
 const SidebarItems = () => {
   const { pathname } = useLocation();

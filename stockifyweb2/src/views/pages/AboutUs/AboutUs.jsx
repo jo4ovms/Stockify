@@ -1,9 +1,8 @@
-import React from "react";
-import DashboardCard from "../../../components/shared/DashboardCard";
-import Grid from "@mui/material/Grid2";
 import { Typography, CardContent } from "@mui/material";
-import PageContainer from "../../../components/container/PageContainer";
-import BlankCard from "../../../components/shared/BlankCard";
+import Grid from "@mui/material/Grid2";
+import PageContainer from "../../../components/container/PageContainer.jsx";
+import BlankCard from "../../../components/shared/BlankCard.jsx";
+import DashboardCard from "../../../components/shared/DashboardCard.jsx";
 const AboutUs = () => {
   return (
     <PageContainer title="Sobre Nós" description="Informações sobre a Stockify">

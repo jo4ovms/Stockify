@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -14,16 +14,16 @@ import {
   Skeleton,
   Alert,
 } from "@mui/material";
-import { useParams } from "react-router-dom";
 import Grid from "@mui/material/Grid2";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useParams } from "react-router-dom";
+import DashboardCard from "../../../components/shared/DashboardCard.jsx";
 import stockService from "../../../services/stockService";
-import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
-import DashboardCard from "../../../components/shared/DashboardCard";
-import StockForm from "./StockForm";
+import StockForm from "./StockForm.jsx";
 
 const StockPage = () => {
   const { id } = useParams();
-  const [stock, setStock] = useState(null);
+  const [, setStock] = useState(null);
   const [stocks, setStocks] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [suppliers, setSuppliers] = useState([]);
@@ -37,8 +37,8 @@ const StockPage = () => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [minMaxQuantity, setMinMaxQuantity] = useState([0, 100]);
-  const [minMaxValue, setMinMaxValue] = useState([0, 10000]);
+  const [, setMinMaxQuantity] = useState([0, 100]);
+  const [, setMinMaxValue] = useState([0, 10000]);
   const [quantityRange, setQuantityRange] = useState([0, 100]);
   const [initialMinMaxValue, setInitialMinMaxValue] = useState([0, 10000]);
   const [valueRange, setValueRange] = useState([0, 10000]);

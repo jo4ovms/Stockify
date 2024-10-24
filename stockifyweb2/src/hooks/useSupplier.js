@@ -1,18 +1,17 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import supplierService from "../services/supplier.service";
 import productService from "../services/productService";
+import supplierService from "../services/supplier.service";
 
 const useSupplier = () => {
-  const [sortBy, setSortBy] = useState("name");
-  const [sortDirection, setSortDirection] = useState("asc");
+  const [sortBy] = useState("name");
+  const [sortDirection] = useState("asc");
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [, setErrorMessage] = useState("");
+  const [, setSuccessMessage] = useState("");
   const [suppliers, setSuppliers] = useState([]);
   const [productsBySupplier, setProductsBySupplier] = useState({});
   const [searchProductTermBySupplier, setSearchProductTermBySupplier] =
@@ -38,7 +37,7 @@ const useSupplier = () => {
     supplierId: null,
     supplierName: "",
   });
-  const [products, setProducts] = useState([]);
+  const [products] = useState([]);
   const [visibleProducts, setVisibleProducts] = useState({});
   const [open, setOpen] = useState(false);
   const [openProductDialog, setOpenProductDialog] = useState(false);
@@ -427,9 +426,7 @@ const useSupplier = () => {
     setPage,
     totalPages,
     totalItems,
-    retrieveProducts,
     productListRef,
-    handleClickShowProducts,
     handleSearchProductChange,
     searchProductTermBySupplier,
     handleTargetPageChange,

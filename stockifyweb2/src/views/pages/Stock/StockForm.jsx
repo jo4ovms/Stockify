@@ -1,4 +1,3 @@
-import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -8,8 +7,10 @@ import {
   DialogActions,
   Box,
 } from "@mui/material";
+import PropTypes from "prop-types";
+import { useState, useEffect } from "react";
 import stockService from "../../../services/stockService";
-import ProductSearch from "./ProductSearch";
+import ProductSearch from "./ProductSearch.jsx";
 
 const StockForm = ({
   open,
@@ -161,6 +162,21 @@ const StockForm = ({
       </DialogActions>
     </Dialog>
   );
+};
+
+StockForm.propTypes = {
+  open: PropTypes.bool.isRequired,
+  handleClose: PropTypes.func.isRequired,
+  editMode: PropTypes.bool,
+  currentStock: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    productId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    quantity: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  }),
+  retrieveStocks: PropTypes.func.isRequired,
+  setSuccessMessage: PropTypes.func.isRequired,
+  fetchLimits: PropTypes.func.isRequired,
 };
 
 export default StockForm;

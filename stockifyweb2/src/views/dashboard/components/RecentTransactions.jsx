@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import DashboardCard from "../../../components/shared/DashboardCard";
-import { useNavigate } from "react-router-dom";
-import { IconArrowRight } from "@tabler/icons-react";
-import logService from "../../../services/logService";
+import InventoryIcon from "@mui/icons-material/Inventory";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import StoreIcon from "@mui/icons-material/Store";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import {
   Timeline,
   TimelineItem,
@@ -20,17 +20,16 @@ import {
   Tooltip,
   Skeleton,
 } from "@mui/material";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import InventoryIcon from "@mui/icons-material/Inventory";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import StoreIcon from "@mui/icons-material/Store";
+import { IconArrowRight } from "@tabler/icons-react";
 import { useQuery } from "react-query";
+import { useNavigate } from "react-router-dom";
+import DashboardCard from "../../../components/shared/DashboardCard.jsx";
+import logService from "../../../services/logService";
 
 const tryParseJSON = (str) => {
   try {
     return JSON.parse(str);
-  } catch (e) {
+  } catch {
     return null;
   }
 };

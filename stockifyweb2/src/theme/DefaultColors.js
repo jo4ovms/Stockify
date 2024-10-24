@@ -1,6 +1,6 @@
 import { createTheme } from "@mui/material/styles";
-import typography from "./Typography";
 import { shadows } from "./Shadows";
+import typography from "./Typography";
 
 const baselightTheme = createTheme({
   direction: "ltr",

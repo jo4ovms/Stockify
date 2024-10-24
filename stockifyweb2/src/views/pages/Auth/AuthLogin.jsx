@@ -1,5 +1,3 @@
-import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -9,7 +7,9 @@ import {
   FormGroup,
   FormControlLabel,
 } from "@mui/material";
-import CustomTextField from "../../../components/forms/theme-elements/CustomTextField";
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import CustomTextField from "../../../components/forms/theme-elements/CustomTextField.jsx";
 import AuthService from "../../../services/AuthService";
 
 const AuthLogin = () => {

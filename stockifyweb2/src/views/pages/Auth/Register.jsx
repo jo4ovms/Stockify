@@ -1,9 +1,8 @@
-import React from "react";
 import { Box, Card } from "@mui/material";
 import Grid from "@mui/material/Grid2";
-import PageContainer from "../../../components/container/PageContainer";
-import Logo from "../../../layouts/full/shared/logo/Logo";
-import AuthRegister from "./AuthRegister";
+import PageContainer from "../../../components/container/PageContainer.jsx";
+import Logo from "../../../layouts/full/shared/logo/Logo.jsx";
+import AuthRegister from "./AuthRegister.jsx";
 
 const Register = () => (
   <PageContainer title="Register" description="this is Register page">

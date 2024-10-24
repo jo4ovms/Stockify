@@ -1,5 +1,3 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Typography,
   Fab,
@@ -12,9 +10,12 @@ import {
   Skeleton,
 } from "@mui/material";
 import { IconArrowRight } from "@tabler/icons-react";
-import DashboardCard from "../../../components/shared/DashboardCard";
-import saleService from "../../../services/saleService";
+import PropTypes from "prop-types";
+import { useCallback } from "react";
 import { useQuery } from "react-query";
+import { useNavigate } from "react-router-dom";
+import DashboardCard from "../../../components/shared/DashboardCard.jsx";
+import saleService from "../../../services/saleService";
 
 const fetchBestSellingItems = async () => {
   const response = await saleService.getBestSellingItems();
@@ -127,4 +128,7 @@ const BestSellingItems = ({ sx }) => {
   );
 };
 
+BestSellingItems.propTypes = {
+  sx: PropTypes.object,
+};
 export default BestSellingItems;

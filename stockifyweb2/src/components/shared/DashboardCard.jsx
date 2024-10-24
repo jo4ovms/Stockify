@@ -1,6 +1,5 @@
-import React from "react";
 import { Card, CardContent, Typography, Stack, Box } from "@mui/material";
-
+import PropTypes from "prop-types";
 const DashboardCard = ({
   title,
   subtitle,
@@ -55,6 +54,19 @@ const DashboardCard = ({
       {footer}
     </Card>
   );
+};
+
+DashboardCard.propTypes = {
+  title: PropTypes.string,
+  subtitle: PropTypes.string,
+  children: PropTypes.node,
+  action: PropTypes.node,
+  footer: PropTypes.node,
+  cardheading: PropTypes.bool,
+  headtitle: PropTypes.string,
+  headsubtitle: PropTypes.string,
+  middlecontent: PropTypes.node,
+  sx: PropTypes.object,
 };
 
 export default DashboardCard;

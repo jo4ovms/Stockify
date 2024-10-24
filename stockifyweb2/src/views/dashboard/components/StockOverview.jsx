@@ -1,10 +1,19 @@
-import React, { useState, useEffect } from "react";
-import { Stack, Typography, Avatar, Fab, Box, Skeleton } from "@mui/material";
+import {
+  Stack,
+  Typography,
+  Avatar,
+  Fab,
+  Box,
+  Skeleton,
+  useTheme,
+  useMediaQuery,
+} from "@mui/material";
 import Grid from "@mui/material/Grid2";
-import { useTheme, useMediaQuery } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+
 import { IconAlertTriangle, IconCheck, IconBox } from "@tabler/icons-react";
-import DashboardCard from "../../../components/shared/DashboardCard";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import DashboardCard from "../../../components/shared/DashboardCard.jsx";
 import stockOverviewService from "../../../services/stockOverviewService";
 
 const StockOverview = () => {

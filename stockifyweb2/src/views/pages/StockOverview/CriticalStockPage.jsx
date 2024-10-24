@@ -1,4 +1,3 @@
-import React, { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Button,
@@ -12,15 +11,16 @@ import {
   IconButton,
   Skeleton,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
 import Grid from "@mui/material/Grid2";
 import {
   IconAlertTriangle,
   IconEye,
   IconExclamationCircle,
 } from "@tabler/icons-react";
-import PageContainer from "../../../components/container/PageContainer";
-import DashboardCard from "../../../components/shared/DashboardCard";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import PageContainer from "../../../components/container/PageContainer.jsx";
+import DashboardCard from "../../../components/shared/DashboardCard.jsx";
 import stockOverviewService from "../../../services/stockOverviewService";
 import stockService from "../../../services/stockService";
 
@@ -37,7 +37,7 @@ const CriticalStockPage = () => {
   const threshold = 4;
   const [query, setQuery] = useState("");
   const [supplierId, setSupplierId] = useState(null);
-  const [sortBy, setSortBy] = useState("quantity");
+  const [sortBy] = useState("quantity");
   const [sortDirection, setSortDirection] = useState("desc");
 
   const getSupplierName = () => {

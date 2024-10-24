@@ -1,9 +1,10 @@
-import React, { useRef, useState, useCallback, useEffect } from "react";
-import { CircularProgress, TextField, Box } from "@mui/material";
 import { useAutocomplete } from "@mui/base";
+import { CircularProgress, TextField, Box } from "@mui/material";
+import PropTypes from "prop-types";
+import { useRef, useState, useCallback } from "react";
 import productService from "../../../services/productService";
 
-const ProductSearch = ({ setSelectedProduct, setStock, selectedProduct }) => {
+const ProductSearch = ({ setSelectedProduct, setStock }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -66,7 +67,6 @@ const ProductSearch = ({ setSelectedProduct, setStock, selectedProduct }) => {
       }, 300);
     },
     onChange: (event, newValue) => {
-      console.log("Produto selecionado:", newValue);
       if (newValue) {
         setSelectedProduct(newValue);
         setStock((prev) => ({
@@ -138,6 +138,11 @@ const ProductSearch = ({ setSelectedProduct, setStock, selectedProduct }) => {
       ) : null}
     </Box>
   );
+};
+
+ProductSearch.propTypes = {
+  setSelectedProduct: PropTypes.func.isRequired,
+  setStock: PropTypes.func.isRequired,
 };
 
 export default ProductSearch;

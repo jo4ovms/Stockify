@@ -1,21 +1,19 @@
-import React, { useState, useEffect, useRef } from "react";
 import {
   Button,
   TextField,
-  Typography,
   Box,
   CircularProgress,
   Alert,
+  Autocomplete,
 } from "@mui/material";
-import { Autocomplete } from "@mui/material";
+import { useState, useEffect } from "react";
+import PageContainer from "../../../components/container/PageContainer.jsx";
+import DashboardCard from "../../../components/shared/DashboardCard.jsx";
 import saleService from "../../../services/saleService";
 import stockService from "../../../services/stockService";
-import DashboardCard from "../../../components/shared/DashboardCard";
-import PageContainer from "../../../components/container/PageContainer";
 
 const SalePage = () => {
   const [stockId, setStockId] = useState(null);
-  const [productId, setProductId] = useState(null);
   const [quantity, setQuantity] = useState("");
   const [stocks, setStocks] = useState([]);
   const [error, setError] = useState("");
@@ -85,7 +83,7 @@ const SalePage = () => {
     };
 
     try {
-      const result = await saleService.registerSale(saleData);
+      await saleService.registerSale(saleData);
       setSuccessMessage(
         `Venda registrada com sucesso para o produto: ${selectedStock?.productName}`
       );
@@ -145,7 +143,6 @@ const SalePage = () => {
             }
           }}
           onChange={(e, value) => {
-            console.log("Produto selecionado:", value);
             setStockId(value?.id || null);
             setSelectedStock(value);
           }}

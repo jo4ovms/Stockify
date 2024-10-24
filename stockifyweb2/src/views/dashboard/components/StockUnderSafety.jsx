@@ -1,11 +1,11 @@
-import { useTheme } from "@mui/material";
-import { useNavigate } from "react-router-dom";
 import { Typography, Avatar, Fab, Box, Paper, Skeleton } from "@mui/material";
+
 import Grid from "@mui/material/Grid2";
 import { IconAlertTriangle } from "@tabler/icons-react";
-import DashboardCard from "../../../components/shared/DashboardCard";
-import stockOverviewService from "../../../services/stockOverviewService";
 import { useQuery } from "react-query";
+import { useNavigate } from "react-router-dom";
+import DashboardCard from "../../../components/shared/DashboardCard.jsx";
+import stockOverviewService from "../../../services/stockOverviewService";
 
 const fetchCriticalStock = async () => {
   const response = await stockOverviewService.getCriticalStockReport(
@@ -25,7 +25,6 @@ const fetchCriticalStock = async () => {
 
 const StockUnderSafety = () => {
   const navigate = useNavigate();
-  const theme = useTheme();
 
   const errorlight = "#fdede8";
 
@@ -33,9 +32,6 @@ const StockUnderSafety = () => {
     "criticalStock",
     fetchCriticalStock
   );
-
-  const products = data?.products || [];
-  const totalCriticalProducts = data?.totalCriticalProducts || 0;
 
   const handleProductClick = (productId) => {
     navigate(`/stock/${productId}/edit`);

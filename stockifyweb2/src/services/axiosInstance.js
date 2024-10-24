@@ -1,5 +1,5 @@
-import AuthService from "./AuthService";
 import axios from "axios";
+import AuthService from "./AuthService";
 
 const axiosInstance = axios.create({
   baseURL: "http://localhost:8081/api",
@@ -18,7 +18,7 @@ axiosInstance.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 axiosInstance.interceptors.response.use(
@@ -45,7 +45,7 @@ axiosInstance.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default axiosInstance;

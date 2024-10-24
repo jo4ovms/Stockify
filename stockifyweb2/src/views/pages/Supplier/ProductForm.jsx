@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Dialog,
   DialogTitle,
@@ -7,6 +6,7 @@ import {
   TextField,
   Button,
 } from "@mui/material";
+import PropTypes from "prop-types";
 
 const ProductForm = ({
   open,
@@ -65,6 +65,22 @@ const ProductForm = ({
       </DialogActions>
     </Dialog>
   );
+};
+
+ProductForm.propTypes = {
+  open: PropTypes.bool.isRequired,
+  handleClose: PropTypes.func.isRequired,
+  handleSave: PropTypes.func.isRequired,
+  currentProduct: PropTypes.shape({
+    name: PropTypes.string,
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    quantity: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  }),
+  editMode: PropTypes.bool,
+  handleChange: PropTypes.func.isRequired,
+  currentSupplier: PropTypes.shape({
+    name: PropTypes.string,
+  }),
 };
 
 export default ProductForm;

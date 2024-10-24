@@ -28,7 +28,7 @@ const getAllSoldItems = async (
   sortDirection = "desc",
   supplierId = null,
   startDate = null,
-  endDate = null
+  endDate = null,
 ) => {
   try {
     const response = await axiosInstance.get(`${API_URL}`, {

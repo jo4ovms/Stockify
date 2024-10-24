@@ -1,5 +1,3 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Avatar,
   Box,
@@ -10,8 +8,9 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
-
 import { IconUser } from "@tabler/icons-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const [anchorEl2, setAnchorEl2] = useState(null);

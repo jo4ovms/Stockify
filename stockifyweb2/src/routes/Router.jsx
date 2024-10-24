@@ -1,23 +1,25 @@
-import React, { lazy } from "react";
+import { lazy } from "react";
 import { Navigate } from "react-router-dom";
-import StockUnderSafetyPage from "../views/pages/StockOverview/StockUnderSafetyPage";
-import StockSafetyPage from "../views/pages/StockOverview/StockSafetyPage";
-import OutOfStockPage from "../views/pages/StockOverview/OutOfStockPage";
-import CriticalStockPage from "../views/pages/StockOverview/CriticalStockPage";
-import LogReportPage from "../views/pages/Log/LogReportPage";
-import SalePage from "../views/pages/Sale/SalePage";
-import SoldItemsPage from "../views/pages/Sale/SoldItemsPage";
-import PrivateRoute from "../components/PrivateRoute";
+import PrivateRoute from "../components/PrivateRoute.jsx";
+import LogReportPage from "../views/pages/Log/LogReportPage.jsx";
+import SalePage from "../views/pages/Sale/SalePage.jsx";
+import SoldItemsPage from "../views/pages/Sale/SoldItemsPage.jsx";
+import CriticalStockPage from "../views/pages/StockOverview/CriticalStockPage.jsx";
+import OutOfStockPage from "../views/pages/StockOverview/OutOfStockPage.jsx";
+import StockSafetyPage from "../views/pages/StockOverview/StockSafetyPage.jsx";
+import StockUnderSafetyPage from "../views/pages/StockOverview/StockUnderSafetyPage.jsx";
 
-const FullLayout = lazy(() => import("../layouts/full/FullLayout"));
-const BlankLayout = lazy(() => import("../layouts/Blank/BlankLayout"));
+const FullLayout = lazy(() => import("../layouts/full/FullLayout.jsx"));
+const BlankLayout = lazy(() => import("../layouts/Blank/BlankLayout.jsx"));
 
-const SupplierPage = lazy(() => import("../views/pages/Supplier/SupplierPage"));
-const StockPage = lazy(() => import("../views/pages/Stock/StockPage"));
-const AboutUs = lazy(() => import("../views/pages/AboutUs/AboutUs"));
-const Dashboard = lazy(() => import("../views/dashboard/Dashboard"));
-const Login = lazy(() => import("../views/pages/Auth/Login"));
-const Register = lazy(() => import("../views/pages/Auth/Register"));
+const SupplierPage = lazy(
+  () => import("../views/pages/Supplier/SupplierPage.jsx")
+);
+const StockPage = lazy(() => import("../views/pages/Stock/StockPage.jsx"));
+const AboutUs = lazy(() => import("../views/pages/AboutUs/AboutUs.jsx"));
+const Dashboard = lazy(() => import("../views/dashboard/Dashboard.jsx"));
+const Login = lazy(() => import("../views/pages/Auth/Login.jsx"));
+const Register = lazy(() => import("../views/pages/Auth/Register.jsx"));
 
 const Router = [
   {

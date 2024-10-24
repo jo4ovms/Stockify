@@ -1,4 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import { ExpandMore, ExpandLess } from "@mui/icons-material";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import {
   Box,
   Button,
@@ -9,22 +12,18 @@ import {
   MenuItem,
   Snackbar,
   Skeleton,
-  CircularProgress,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
-import { ExpandMore, ExpandLess } from "@mui/icons-material";
-import PageContainer from "../../../components/container/PageContainer";
-import DashboardCard from "../../../components/shared/DashboardCard";
-import logService from "../../../services/logService";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
+import PageContainer from "../../../components/container/PageContainer.jsx";
+import DashboardCard from "../../../components/shared/DashboardCard.jsx";
+import logService from "../../../services/logService";
 
 const tryParseJSON = (str) => {
   try {
     return JSON.parse(str);
-  } catch (e) {
+  } catch {
     return null;
   }
 };
@@ -337,7 +336,11 @@ const LogReportPage = () => {
               <Typography variant="body2" fontWeight="bold" mr={1}>
                 {translateKey(key)}:
               </Typography>
-              <Typography variant="body2">{value || "N/A"}</Typography>
+              <Typography variant="body2">
+                {typeof value === "string" || typeof value === "number"
+                  ? value
+                  : "N/A"}
+              </Typography>
             </Box>
           </Grid>
         ))}

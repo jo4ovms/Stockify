@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
 import { Select, MenuItem, Box, Skeleton } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import DashboardCard from "../../../components/shared/DashboardCard";
+import { useState, useEffect } from "react";
 import Chart from "react-apexcharts";
+import DashboardCard from "../../../components/shared/DashboardCard.jsx";
 import saleService from "../../../services/saleService";
 
 const SalesOverview = () => {

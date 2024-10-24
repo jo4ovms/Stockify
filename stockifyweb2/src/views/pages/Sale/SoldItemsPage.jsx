@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { Refresh } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -13,12 +13,12 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { IconSortAscending, IconSortDescending } from "@tabler/icons-react";
-import PageContainer from "../../../components/container/PageContainer";
-import DashboardCard from "../../../components/shared/DashboardCard";
+import { debounce } from "lodash";
+import { useState, useEffect, useCallback } from "react";
+import PageContainer from "../../../components/container/PageContainer.jsx";
+import DashboardCard from "../../../components/shared/DashboardCard.jsx";
 import saleService from "../../../services/saleService";
 import stockService from "../../../services/stockService";
-import { debounce } from "lodash";
-import { Refresh } from "@mui/icons-material";
 
 let debounceTimeout = null;
 const SoldItemsPage = () => {
@@ -58,7 +58,7 @@ const SoldItemsPage = () => {
             setTotalPages(response.totalPages || 1);
             setLoading(false);
           })
-          .catch((error) => {
+          .catch(() => {
             setLoading(false);
             setErrorMessage(
               "Erro ao carregar produtos vendidos. Tente novamente."

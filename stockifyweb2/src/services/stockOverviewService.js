@@ -9,7 +9,7 @@ const stockOverviewService = {
     query = "",
     supplierId = null,
     sortBy = "quantity",
-    sortDirection = "asc"
+    sortDirection = "asc",
   ) => {
     return axiosInstance.get(`${API_BASE_URL}/reports/low-stock`, {
       params: {
@@ -31,7 +31,7 @@ const stockOverviewService = {
     page = 0,
     size = 10,
     sortBy = "quantity",
-    sortDirection = "asc"
+    sortDirection = "asc",
   ) => {
     return axiosInstance.get(`${API_BASE_URL}/reports/adequate-stock`, {
       params: {
@@ -56,7 +56,7 @@ const stockOverviewService = {
     query = "",
     supplierId = null,
     sortBy = "quantity",
-    sortDirection = "asc"
+    sortDirection = "asc",
   ) => {
     return axiosInstance.get(`${API_BASE_URL}/reports/critical-stock`, {
       params: {

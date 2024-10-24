@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Dialog,
   DialogTitle,
@@ -7,6 +6,7 @@ import {
   TextField,
   Button,
 } from "@mui/material";
+import PropTypes from "prop-types";
 import InputMask from "react-input-mask";
 
 const SupplierForm = ({
@@ -91,6 +91,21 @@ const SupplierForm = ({
       </DialogActions>
     </Dialog>
   );
+};
+
+SupplierForm.propTypes = {
+  open: PropTypes.bool.isRequired,
+  handleClose: PropTypes.func.isRequired,
+  handleSave: PropTypes.func.isRequired,
+  supplier: PropTypes.shape({
+    name: PropTypes.string,
+    email: PropTypes.string,
+    cnpj: PropTypes.string,
+    phone: PropTypes.string,
+    productType: PropTypes.string,
+  }),
+  editMode: PropTypes.bool,
+  handleChange: PropTypes.func.isRequired,
 };
 
 export default SupplierForm;
