@@ -8,7 +8,7 @@ import {
   Box,
 } from "@mui/material";
 import PropTypes from "prop-types";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import stockService from "../../../services/stockService";
 import ProductSearch from "./ProductSearch.jsx";
 
@@ -27,7 +27,7 @@ const StockForm = ({
     value: "",
   });
   const [selectedProduct, setSelectedProduct] = useState(null);
-
+  const inputRef = useRef(null);
   useEffect(() => {
     if (selectedProduct) {
       document.getElementsByName("selectedProduct")[0].value =
@@ -49,6 +49,12 @@ const StockForm = ({
       });
     } catch (error) {
       console.error("Erro ao carregar o estoque:", error);
+    }
+  };
+
+  const handleClick = () => {
+    if (inputRef.current) {
+      inputRef.current.focus();
     }
   };
 
@@ -120,6 +126,7 @@ const StockForm = ({
             setSelectedProduct={setSelectedProduct}
             setStock={setStock}
             selectedProduct={selectedProduct}
+            inputRef={inputRef}
           />
 
           <TextField

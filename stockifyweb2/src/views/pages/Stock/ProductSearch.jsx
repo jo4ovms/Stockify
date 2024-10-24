@@ -1,10 +1,9 @@
-import { useAutocomplete } from "@mui/base";
-import { CircularProgress, TextField, Box } from "@mui/material";
+import { CircularProgress, TextField, Box, Autocomplete } from "@mui/material";
 import PropTypes from "prop-types";
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, forwardRef } from "react";
 import productService from "../../../services/productService";
 
-const ProductSearch = ({ setSelectedProduct, setStock }) => {
+const ProductSearch = ({ setSelectedProduct, setStock, inputRef }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -47,95 +46,79 @@ const ProductSearch = ({ setSelectedProduct, setStock }) => {
     [page, hasMoreProducts]
   );
 
-  const {
-    getRootProps,
-    getInputProps,
-    getListboxProps,
-    getOptionProps,
-    groupedOptions,
-    popupOpen,
-  } = useAutocomplete({
-    id: "product-autocomplete",
-    options: products,
-    getOptionLabel: (option) => `${option.name} - ${option.supplierName}`,
-    onInputChange: (event, newInputValue) => {
-      setInputValue(newInputValue);
-      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
-      debounceTimeout.current = setTimeout(() => {
-        setHasMoreProducts(true);
-        loadProducts(newInputValue, true);
-      }, 300);
-    },
-    onChange: (event, newValue) => {
-      if (newValue) {
-        setSelectedProduct(newValue);
-        setStock((prev) => ({
-          ...prev,
-          productId: newValue.id,
-        }));
-        setInputValue(newValue.name);
-      }
-    },
-  });
+  const ListboxComponent = forwardRef((props, ref) => (
+    <div
+      ref={ref}
+      {...props}
+      onScroll={handleScroll}
+      style={{ maxHeight: 200, overflowY: "auto" }}
+    />
+  ));
 
   const handleScroll = (event) => {
-    const { scrollTop, scrollHeight, clientHeight } = event.target;
-    if (scrollTop + clientHeight >= scrollHeight - 10 && !loading) {
+    const listboxNode = event.currentTarget;
+    const bottomReached =
+      listboxNode.scrollHeight - listboxNode.scrollTop ===
+      listboxNode.clientHeight;
+    if (bottomReached && !loading && hasMoreProducts) {
       loadProducts(inputValue);
     }
   };
 
   return (
-    <Box {...getRootProps()}>
-      <TextField
-        label="Buscar Produto"
-        fullWidth
-        variant="outlined"
-        margin="normal"
-        autoComplete="off"
-        value={inputValue}
-        slotProps={{
-          input: {
-            ...getInputProps(),
-          },
-          endAdornment: loading ? (
-            <CircularProgress size={20} aria-label="Carregando" />
-          ) : null,
+    <Box>
+      <Autocomplete
+        id="product-autocomplete"
+        options={products}
+        value={products.find((product) => product.name === inputValue) || null}
+        getOptionLabel={(option) => `${option.name} - ${option.supplierName}`}
+        onInputChange={(event, newInputValue) => {
+          setInputValue(newInputValue);
+          if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+          debounceTimeout.current = setTimeout(() => {
+            setHasMoreProducts(true);
+            loadProducts(newInputValue, true);
+          }, 300);
         }}
+        onFocus={() => {
+          if (products.length === 0) {
+            loadProducts();
+          }
+        }}
+        onChange={(event, newValue) => {
+          if (newValue) {
+            setSelectedProduct(newValue);
+            setStock((prev) => ({
+              ...prev,
+              productId: newValue.id,
+            }));
+            setInputValue(newValue.name);
+          }
+        }}
+        ListboxComponent={ListboxComponent}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label="Buscar Produto"
+            fullWidth
+            variant="outlined"
+            margin="normal"
+            autoComplete="off"
+            inputRef={inputRef}
+            slotProps={{
+              input: {
+                ...params.InputProps,
+                endAdornment: (
+                  <>
+                    {loading ? <CircularProgress size={20} /> : null}
+                    {params.InputProps.endAdornment}
+                  </>
+                ),
+              },
+            }}
+          />
+        )}
       />
-      {popupOpen && groupedOptions.length > 0 ? (
-        <ul
-          {...getListboxProps()}
-          onScroll={handleScroll}
-          style={{
-            maxHeight: 200,
-            overflowY: "auto",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-            marginTop: "10px",
-            padding: "5px",
-            listStyle: "none",
-          }}
-        >
-          {groupedOptions.map((option, index) => (
-            <li
-              key={option.id}
-              {...getOptionProps({ option, index })}
-              style={{
-                padding: "10px",
-                borderBottom: "1px solid #eee",
-                cursor: "pointer",
-                backgroundColor:
-                  option.id === setSelectedProduct?.id
-                    ? "#f0f0f0"
-                    : "transparent",
-              }}
-            >
-              {`${option.name} - ${option.supplierName}`}
-            </li>
-          ))}
-        </ul>
-      ) : null}
     </Box>
   );
 };
