@@ -11,6 +11,18 @@ import PropTypes from "prop-types";
 import { useState, useEffect, useRef } from "react";
 import stockService from "../../../services/stockService";
 import ProductSearch from "./ProductSearch.jsx";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+
+const StockSchema = Yup.object().shape({
+  productId: Yup.string().required("É obrigatório selecionar um produto."),
+  quantity: Yup.number()
+    .min(1, "Quantidade deve ser maior que 0.")
+    .required("É obrigatório informar a quantidade."),
+  value: Yup.number()
+    .min(0.01, "Valor deve ser maior que 0.")
+    .required("É obrigatório informar o valor."),
+});
 
 const StockForm = ({
   open,
@@ -26,18 +38,14 @@ const StockForm = ({
     quantity: "",
     value: "",
   });
+
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const inputRef = useRef(null);
   const [originalProductName, setOriginalProductName] = useState("");
+  const inputRef = useRef(null);
 
   const loadStockById = async (stockId) => {
     try {
       const stock = await stockService.getStockById(stockId);
-      setStock({
-        productId: stock.productId,
-        quantity: stock.quantity,
-        value: stock.value,
-      });
       const productInfo = {
         id: stock.productId,
         name: stock.productName,
@@ -45,27 +53,24 @@ const StockForm = ({
       };
       setSelectedProduct(productInfo);
       setOriginalProductName(stock.productName);
+      return stock;
     } catch (error) {
       console.error("Erro ao carregar o estoque:", error);
+      return null;
     }
   };
 
   const resetForm = () => {
-    setStock({
-      productId: "",
-      quantity: "",
-      value: "",
-    });
     setSelectedProduct(null);
     setOriginalProductName("");
   };
 
   useEffect(() => {
     if (open) {
-      resetForm();
-
       if (editMode && currentStock?.id) {
         loadStockById(currentStock.id);
+      } else {
+        resetForm();
       }
     }
   }, [open, editMode, currentStock]);
@@ -79,33 +84,25 @@ const StockForm = ({
     }
   }, [selectedProduct]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setStock((prev) => ({ ...prev, [name]: value }));
-  };
+  const handleSubmit = (values) => {
+    const action = editMode
+      ? stockService.updateStock(currentStock.id, values)
+      : stockService.createStock(values);
 
-  const handleSubmit = () => {
-    if (editMode) {
-      stockService.updateStock(currentStock.id, stock).then(() => {
+    action
+      .then(() => {
         retrieveStocks();
         fetchLimits();
-        resetForm();
-        handleClose();
         setSuccessMessage(
-          `Estoque de ${selectedProduct?.name || originalProductName} atualizado com sucesso.`
+          `Estoque de ${selectedProduct?.name || originalProductName} ${
+            editMode ? "atualizado" : "criado"
+          } com sucesso.`
         );
-      });
-    } else {
-      stockService.createStock(stock).then(() => {
-        retrieveStocks();
-        fetchLimits();
-        resetForm();
         handleClose();
-        setSuccessMessage(
-          `Estoque de ${selectedProduct?.name || originalProductName} criado com sucesso.`
-        );
+      })
+      .catch((error) => {
+        console.error("Erro ao salvar o estoque:", error);
       });
-    }
   };
 
   return (
@@ -117,42 +114,79 @@ const StockForm = ({
       </DialogTitle>
       <DialogContent>
         <Box sx={{ mt: 3 }}>
-          <ProductSearch
-            setSelectedProduct={setSelectedProduct}
-            setStock={setStock}
-            selectedProduct={selectedProduct}
-            inputRef={inputRef}
-          />
+          <Formik
+            enableReinitialize
+            initialValues={{
+              productId: selectedProduct?.id || "",
+              quantity: currentStock?.quantity || "",
+              value: currentStock?.value || "",
+            }}
+            validationSchema={StockSchema}
+            onSubmit={handleSubmit}
+          >
+            {({
+              values,
+              errors,
+              touched,
+              handleChange,
+              handleBlur,
+              setFieldValue,
+            }) => (
+              <Form>
+                <ProductSearch
+                  setSelectedProduct={(product) => {
+                    setSelectedProduct(product);
+                    setFieldValue("productId", product?.id || "");
+                  }}
+                  setStock={(stock) => {
+                    setFieldValue("quantity", stock.quantity);
+                    setFieldValue("value", stock.value);
+                  }}
+                  selectedProduct={selectedProduct}
+                  inputRef={inputRef}
+                />
 
-          <TextField
-            margin="normal"
-            name="quantity"
-            label="Quantidade"
-            type="number"
-            fullWidth
-            value={stock.quantity}
-            onChange={handleChange}
-          />
+                <Field
+                  as={TextField}
+                  margin="normal"
+                  name="quantity"
+                  label="Quantidade"
+                  type="number"
+                  fullWidth
+                  value={values.quantity}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  error={touched.quantity && Boolean(errors.quantity)}
+                  helperText={<ErrorMessage name="quantity" />}
+                />
 
-          <TextField
-            margin="normal"
-            name="value"
-            label="Valor"
-            type="number"
-            fullWidth
-            value={stock.value}
-            onChange={handleChange}
-          />
+                <Field
+                  as={TextField}
+                  margin="normal"
+                  name="value"
+                  label="Valor"
+                  type="number"
+                  fullWidth
+                  value={values.value}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  error={touched.value && Boolean(errors.value)}
+                  helperText={<ErrorMessage name="value" />}
+                />
+
+                <DialogActions>
+                  <Button onClick={handleClose} color="primary">
+                    Cancelar
+                  </Button>
+                  <Button type="submit" color="primary">
+                    {editMode ? "Salvar" : "Adicionar"}
+                  </Button>
+                </DialogActions>
+              </Form>
+            )}
+          </Formik>
         </Box>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} color="primary">
-          Cancelar
-        </Button>
-        <Button onClick={handleSubmit} color="primary">
-          {editMode ? "Salvar" : "Adicionar"}
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 };
