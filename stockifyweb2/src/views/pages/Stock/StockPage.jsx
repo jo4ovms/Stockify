@@ -40,7 +40,9 @@ const StockPage = () => {
   const [minMaxQuantity, setMinMaxQuantity] = useState([0, 100]);
   const [minMaxValue, setMinMaxValue] = useState([0, 10000]);
   const [quantityRange, setQuantityRange] = useState([0, 100]);
+  const [initialMinMaxValue, setInitialMinMaxValue] = useState([0, 10000]);
   const [valueRange, setValueRange] = useState([0, 10000]);
+  const [initialMinMaxQuantity, setInitialMinMaxQuantity] = useState([0, 100]);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [targetPage, setTargetPage] = useState(page + 1);
 
@@ -50,13 +52,20 @@ const StockPage = () => {
     try {
       const limits = await stockService.getStockLimits();
 
-      if (limits) {
-        setMinMaxQuantity([0, limits.maxQuantity || 100]);
-        setMinMaxValue([0, limits.maxValue || 10000]);
-        setQuantityRange([0, limits.maxQuantity || 100]);
-        setValueRange([0, limits.maxValue || 10000]);
+      if (limits && typeof limits.maxQuantity === "number") {
+        const maxQuantity = limits.maxQuantity;
+        setInitialMinMaxQuantity([0, maxQuantity]);
+        setQuantityRange([0, maxQuantity]);
       } else {
-        setErrorMessage("Limites de estoque não retornados corretamente.");
+        setErrorMessage("Limites de quantidade não retornados corretamente.");
+      }
+
+      if (limits && typeof limits.maxValue === "number") {
+        const maxValue = limits.maxValue;
+        setInitialMinMaxValue([0, maxValue]);
+        setValueRange([0, maxValue]);
+      } else {
+        setErrorMessage("Limites de valor não retornados corretamente.");
       }
     } catch (error) {
       setErrorMessage(`Erro ao obter os limites de estoque: ${error.message}`);
@@ -182,7 +191,15 @@ const StockPage = () => {
       .catch(() => setErrorMessage("Erro ao deletar o produto em estoque."));
   };
 
-  const handleSliderChange = (setter) => (event, newValue) => setter(newValue);
+  const handleSliderChange = (event, newValue) => {
+    if (!Array.isArray(newValue) || newValue.length < 2) return;
+
+    if (newValue[1] > initialMinMaxValue[1]) {
+      setValueRange([newValue[0], initialMinMaxValue[1]]);
+    } else {
+      setValueRange(newValue);
+    }
+  };
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
@@ -266,10 +283,17 @@ const StockPage = () => {
               <Typography gutterBottom>Quantidade</Typography>
               <Slider
                 value={quantityRange}
-                onChange={handleSliderChange(setQuantityRange)}
+                onChange={(event, newValue) => {
+                  if (!Array.isArray(newValue) || newValue.length < 2) return;
+                  if (newValue[1] > initialMinMaxQuantity[1]) {
+                    setQuantityRange([newValue[0], initialMinMaxQuantity[1]]);
+                  } else {
+                    setQuantityRange(newValue);
+                  }
+                }}
                 valueLabelDisplay="auto"
-                min={minMaxQuantity[0]}
-                max={minMaxQuantity[1]}
+                min={initialMinMaxQuantity[0]}
+                max={initialMinMaxQuantity[1]}
               />
               <Typography variant="body2">
                 {`${quantityRange[0]} - ${quantityRange[1]}`}
@@ -282,10 +306,10 @@ const StockPage = () => {
               <Typography gutterBottom>Valor</Typography>
               <Slider
                 value={valueRange}
-                onChange={handleSliderChange(setValueRange)}
+                onChange={handleSliderChange}
                 valueLabelDisplay="auto"
-                min={minMaxValue[0]}
-                max={minMaxValue[1]}
+                min={initialMinMaxValue[0]}
+                max={initialMinMaxValue[1]}
               />
               <Typography variant="body2">
                 {`R$${valueRange[0]} - R$${valueRange[1]}`}
