@@ -12,6 +12,10 @@ import {
   Slider,
   Snackbar,
   Skeleton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   Alert,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
@@ -45,6 +49,11 @@ const StockPage = () => {
   const [initialMinMaxQuantity, setInitialMinMaxQuantity] = useState([0, 100]);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [targetPage, setTargetPage] = useState(page + 1);
+  const [confirmDelete, setConfirmDelete] = useState({
+    open: false,
+    id: null,
+    productName: "",
+  });
 
   let debounceTimeout = useRef(null);
 
@@ -180,7 +189,8 @@ const StockPage = () => {
     setOpen(true);
   };
 
-  const handleDelete = (id, productName) => {
+  const handleDeleteConfirm = () => {
+    const { id, productName } = confirmDelete;
     stockService
       .deleteStock(id)
       .then(() => {
@@ -188,7 +198,14 @@ const StockPage = () => {
         retrieveStocks(page, itemsPerPage);
         fetchLimits();
       })
-      .catch(() => setErrorMessage("Erro ao deletar o produto em estoque."));
+      .catch(() => setErrorMessage("Erro ao deletar o produto em estoque."))
+      .finally(() =>
+        setConfirmDelete({ open: false, id: null, productName: "" })
+      );
+  };
+
+  const handleOpenDeleteDialog = (id, productName) => {
+    setConfirmDelete({ open: true, id, productName });
   };
 
   const handleSliderChange = (event, newValue) => {
@@ -380,7 +397,9 @@ const StockPage = () => {
                 </IconButton>
                 <IconButton
                   color="secondary"
-                  onClick={() => handleDelete(stock.id, stock.productName)}
+                  onClick={() =>
+                    handleOpenDeleteDialog(stock.id, stock.productName)
+                  }
                 >
                   <DeleteIcon />
                 </IconButton>
@@ -469,6 +488,40 @@ const StockPage = () => {
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         severity="success"
       />
+
+      <Dialog
+        open={confirmDelete.open}
+        onClose={() =>
+          setConfirmDelete({ open: false, id: null, productName: "" })
+        }
+        aria-labelledby="confirm-delete-dialog"
+        aria-describedby="confirm-delete-description"
+      >
+        <DialogTitle id="confirm-delete-dialog">Confirmar Exclusão</DialogTitle>
+        <DialogContent>
+          <Typography id="confirm-delete-description">
+            Tem certeza de que deseja excluir o produto{" "}
+            <strong>{confirmDelete.productName}</strong>?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() =>
+              setConfirmDelete({ open: false, id: null, productName: "" })
+            }
+            color="primary"
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            color="primary"
+            variant="contained"
+          >
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </DashboardCard>
   );
 };

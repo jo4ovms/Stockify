@@ -28,6 +28,7 @@ const StockForm = ({
   });
   const [selectedProduct, setSelectedProduct] = useState(null);
   const inputRef = useRef(null);
+  const [originalProductName, setOriginalProductName] = useState("");
 
   const loadStockById = async (stockId) => {
     try {
@@ -37,11 +38,13 @@ const StockForm = ({
         quantity: stock.quantity,
         value: stock.value,
       });
-      setSelectedProduct({
+      const productInfo = {
         id: stock.productId,
         name: stock.productName,
         supplierName: stock.supplierName,
-      });
+      };
+      setSelectedProduct(productInfo);
+      setOriginalProductName(stock.productName);
     } catch (error) {
       console.error("Erro ao carregar o estoque:", error);
     }
@@ -54,6 +57,7 @@ const StockForm = ({
       value: "",
     });
     setSelectedProduct(null);
+    setOriginalProductName("");
   };
 
   useEffect(() => {
@@ -88,7 +92,7 @@ const StockForm = ({
         resetForm();
         handleClose();
         setSuccessMessage(
-          `Estoque de ${selectedProduct.name} atualizado com sucesso.`
+          `Estoque de ${selectedProduct?.name || originalProductName} atualizado com sucesso.`
         );
       });
     } else {
@@ -98,7 +102,7 @@ const StockForm = ({
         resetForm();
         handleClose();
         setSuccessMessage(
-          `Estoque de ${selectedProduct.name} criado com sucesso.`
+          `Estoque de ${selectedProduct?.name || originalProductName} criado com sucesso.`
         );
       });
     }
@@ -107,24 +111,17 @@ const StockForm = ({
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>
-        {editMode ? "Editar Estoque" : "Adicionar ao Estoque"}
+        {editMode
+          ? `Editando ${selectedProduct?.name || originalProductName}`
+          : "Adicionar ao Estoque"}
       </DialogTitle>
       <DialogContent>
-        <Box sx={{ mt: 2 }}>
+        <Box sx={{ mt: 3 }}>
           <ProductSearch
             setSelectedProduct={setSelectedProduct}
             setStock={setStock}
             selectedProduct={selectedProduct}
             inputRef={inputRef}
-          />
-
-          <TextField
-            margin="normal"
-            name="selectedProduct"
-            value={selectedProduct?.productName || selectedProduct?.name || ""}
-            label="Produto Selecionado"
-            fullWidth
-            disabled
           />
 
           <TextField
