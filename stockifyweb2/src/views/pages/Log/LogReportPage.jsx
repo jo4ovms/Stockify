@@ -71,154 +71,71 @@ const renderSummary = (log) => {
   const newValue = tryParseJSON(log.newValue);
   const oldValue = tryParseJSON(log.oldValue);
 
-  if (log.entity === "Stock") {
-    if (log.operationType === "CREATE") {
-      return (
-        <Typography variant="body2">
-          {`Produto: ${
-            newValue?.productName || "Produto não especificado"
-          }, Quantidade: ${newValue?.quantity || "N/A"}, Valor: ${
-            newValue?.value ? formatCurrency(newValue.value) : "N/A"
-          }`}
-        </Typography>
-      );
-    }
+  // Nome do produto
+  const productName =
+    newValue?.productName ||
+    oldValue?.productName ||
+    newValue?.name ||
+    oldValue?.name ||
+    "Produto não especificado";
 
-    if (log.operationType === "UPDATE") {
-      const quantityChanged = oldValue?.quantity !== newValue?.quantity;
-      const valueChanged = oldValue?.value !== newValue?.value;
-      const productChanged = oldValue?.productName !== newValue?.productName;
+  // Quantidade e valor
+  const quantity = newValue?.quantity || oldValue?.quantity;
+  const value = newValue?.value || oldValue?.value;
 
-      return (
-        <Typography variant="body2">
-          {productChanged && (
-            <>
-              {`Produto: ${
-                oldValue?.productName || "Produto não especificado"
-              } (Antes)`}
-              <br />
-              {`Novo Produto: ${
-                newValue?.productName || "Produto não especificado"
-              } (Agora)`}
-              <br />
-            </>
-          )}
-          {quantityChanged && (
-            <>
-              {`Quantidade (Antes: ${oldValue?.quantity || "N/A"}, Agora: ${
-                newValue?.quantity || "N/A"
-              })`}
-              <br />
-            </>
-          )}
-          {valueChanged && (
-            <>
-              {`Valor (Antes: ${
-                oldValue?.value ? formatCurrency(oldValue.value) : "N/A"
-              }, Agora: ${
-                newValue?.value ? formatCurrency(newValue.value) : "N/A"
-              })`}
-            </>
-          )}
-        </Typography>
-      );
-    }
+  // Verificação de entidades
+  if (
+    log.entity === "Sale" ||
+    log.entity === "Product" ||
+    log.entity === "Stock"
+  ) {
+    return (
+      <Typography variant="body2">
+        {`Produto: ${productName}`}
+        {quantity && (
+          <>
+            <br />
+            {`Quantidade: ${quantity}`}
+          </>
+        )}
+        {value && (
+          <>
+            <br />
+            {`Valor: ${formatCurrency(value)}`}
+          </>
+        )}
+      </Typography>
+    );
   }
 
-  if (log.entity === "Product") {
-    if (log.operationType === "CREATE") {
-      return (
-        <Typography variant="body2">
-          {`Produto: ${
-            newValue?.name || "Produto não especificado"
-          }, Quantidade: ${newValue?.quantity || "N/A"}, Valor: ${
-            newValue?.value ? formatCurrency(newValue.value) : "N/A"
-          }`}
-        </Typography>
-      );
-    }
-
-    if (log.operationType === "UPDATE") {
-      const quantityChanged = oldValue?.quantity !== newValue?.quantity;
-      const valueChanged = oldValue?.value !== newValue?.value;
-      const productChanged = oldValue?.name !== newValue?.name;
-
-      return (
-        <Typography variant="body2">
-          {productChanged && (
-            <>
-              {`Produto: ${
-                oldValue?.name || "Produto não especificado"
-              } (Antes)`}
-              <br />
-              {`Novo Produto: ${
-                newValue?.name || "Produto não especificado"
-              } (Agora)`}
-              <br />
-            </>
-          )}
-          {quantityChanged && (
-            <>
-              {`Quantidade (Antes: ${oldValue?.quantity || "N/A"}, Agora: ${
-                newValue?.quantity || "N/A"
-              })`}
-              <br />
-            </>
-          )}
-          {valueChanged && (
-            <>
-              {`Valor (Antes: ${
-                oldValue?.value ? formatCurrency(oldValue.value) : "N/A"
-              }, Agora: ${
-                newValue?.value ? formatCurrency(newValue.value) : "N/A"
-              })`}
-            </>
-          )}
-        </Typography>
-      );
-    }
-  }
-
+  // Para 'Supplier'
   if (log.entity === "Supplier") {
-    if (log.operationType === "CREATE") {
-      return (
-        <Typography variant="body2">
-          {`Fornecedor: ${
-            newValue?.name || "Fornecedor não especificado"
-          }, CNPJ: ${newValue?.cnpj || "N/A"}`}
-        </Typography>
-      );
-    }
+    const nameChanged = oldValue?.name !== newValue?.name;
+    const cnpjChanged = oldValue?.cnpj !== newValue?.cnpj;
 
-    if (log.operationType === "UPDATE") {
-      const nameChanged = oldValue?.name !== newValue?.name;
-      const cnpjChanged = oldValue?.cnpj !== newValue?.cnpj;
-
-      return (
-        <Typography variant="body2">
-          {nameChanged && (
-            <>
-              {`Nome (Antes: ${oldValue?.name || "N/A"}, Agora: ${
-                newValue?.name || "N/A"
-              })`}
-              <br />
-            </>
-          )}
-          {cnpjChanged && (
-            <>
-              {`CNPJ (Antes: ${oldValue?.cnpj || "N/A"}, Agora: ${
-                newValue?.cnpj || "N/A"
-              })`}
-            </>
-          )}
-        </Typography>
-      );
-    }
+    return (
+      <Typography variant="body2">
+        {`Fornecedor: ${
+          newValue?.name || oldValue?.name || "Fornecedor não especificado"
+        }`}
+        {nameChanged && (
+          <>
+            <br />
+            {`Nome: ${oldValue?.name || "N/A"} para ${newValue?.name || "N/A"}`}
+          </>
+        )}
+        {cnpjChanged && (
+          <>
+            <br />
+            {`CNPJ: ${oldValue?.cnpj || "N/A"} para ${newValue?.cnpj || "N/A"}`}
+          </>
+        )}
+      </Typography>
+    );
   }
 
   return null;
 };
-
 const LogReportPage = () => {
   const [logs, setLogs] = useState([]);
   const [expandedLogId, setExpandedLogId] = useState(null);

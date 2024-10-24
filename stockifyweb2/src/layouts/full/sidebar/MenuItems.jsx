@@ -58,12 +58,6 @@ const Menuitems = [
     icon: IconInfoCircle,
     href: "/about-us",
   },
-  {
-    id: uniqueId(),
-    title: "Entrar em contato",
-    icon: IconInfoCircle,
-    href: "/contact-us",
-  },
 ];
 
 export default Menuitems;
