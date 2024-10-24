@@ -28,12 +28,6 @@ const StockForm = ({
   });
   const [selectedProduct, setSelectedProduct] = useState(null);
   const inputRef = useRef(null);
-  useEffect(() => {
-    if (selectedProduct) {
-      document.getElementsByName("selectedProduct")[0].value =
-        selectedProduct.productName;
-    }
-  }, [selectedProduct]);
 
   const loadStockById = async (stockId) => {
     try {
@@ -44,17 +38,12 @@ const StockForm = ({
         value: stock.value,
       });
       setSelectedProduct({
-        productId: stock.productId,
-        productName: stock.productName,
+        id: stock.productId,
+        name: stock.productName,
+        supplierName: stock.supplierName,
       });
     } catch (error) {
       console.error("Erro ao carregar o estoque:", error);
-    }
-  };
-
-  const handleClick = () => {
-    if (inputRef.current) {
-      inputRef.current.focus();
     }
   };
 
@@ -81,7 +70,7 @@ const StockForm = ({
     if (selectedProduct) {
       setStock((prev) => ({
         ...prev,
-        productId: selectedProduct.productId || selectedProduct.id,
+        productId: selectedProduct.id,
       }));
     }
   }, [selectedProduct]);
@@ -99,7 +88,7 @@ const StockForm = ({
         resetForm();
         handleClose();
         setSuccessMessage(
-          `Estoque de ${selectedProduct.productName} atualizado com sucesso.`
+          `Estoque de ${selectedProduct.name} atualizado com sucesso.`
         );
       });
     } else {
@@ -109,7 +98,7 @@ const StockForm = ({
         resetForm();
         handleClose();
         setSuccessMessage(
-          `Estoque de ${selectedProduct.productName} criado com sucesso.`
+          `Estoque de ${selectedProduct.name} criado com sucesso.`
         );
       });
     }

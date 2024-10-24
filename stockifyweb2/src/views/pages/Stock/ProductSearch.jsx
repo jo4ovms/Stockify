@@ -1,109 +1,98 @@
 import { CircularProgress, TextField, Box, Autocomplete } from "@mui/material";
 import PropTypes from "prop-types";
-import { useRef, useState, useCallback, forwardRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import productService from "../../../services/productService";
 
-const ProductSearch = ({ setSelectedProduct, setStock, inputRef }) => {
+const ProductSearch = ({
+  setSelectedProduct,
+  setStock,
+  inputRef,
+  selectedProduct,
+}) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [inputValue, setInputValue] = useState("");
-  const [hasMoreProducts, setHasMoreProducts] = useState(true);
-  const debounceTimeout = useRef(null);
   const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const listboxRef = useRef(null);
 
-  const uniqueProducts = (existingProducts, newProducts) => {
-    const combinedProducts = [...existingProducts, ...newProducts];
-    return Array.from(
-      new Map(combinedProducts.map((product) => [product.id, product])).values()
-    );
+  const fetchProducts = async (search = "", newPage = 0) => {
+    setLoading(true);
+    try {
+      const newProducts = await productService.searchProducts(
+        search,
+        newPage,
+        10
+      );
+
+      const allProducts = [...products, ...newProducts];
+      const uniqueProducts = Array.from(
+        new Map(allProducts.map((product) => [product.id, product])).values()
+      );
+
+      setProducts(newPage === 0 ? newProducts : uniqueProducts);
+      setHasMore(newProducts.length === 10);
+    } catch (error) {
+      console.error("Error loading products:", error);
+    }
+    setLoading(false);
   };
 
-  const loadProducts = useCallback(
-    async (searchTerm = "", reset = false) => {
-      if (!hasMoreProducts && !reset) return;
-      setLoading(true);
-      try {
-        const newPage = reset ? 0 : page;
-        const newProducts = await productService.searchProducts(
-          searchTerm,
-          newPage,
-          10
-        );
-        if (newProducts.length === 0) {
-          setHasMoreProducts(false);
-        } else {
-          setProducts((prevProducts) =>
-            reset ? newProducts : uniqueProducts(prevProducts, newProducts)
-          );
-          setPage((prevPage) => (reset ? 1 : prevPage + 1));
-        }
-      } catch (error) {
-        console.error("Erro ao carregar produtos:", error);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [page, hasMoreProducts]
-  );
-
-  const ListboxComponent = forwardRef((props, ref) => (
-    <div
-      ref={ref}
-      {...props}
-      onScroll={handleScroll}
-      style={{ maxHeight: 200, overflowY: "auto" }}
-    />
-  ));
+  useEffect(() => {
+    if (selectedProduct && !searchTerm) {
+      setProducts([selectedProduct]);
+    }
+    fetchProducts(searchTerm, 0);
+  }, [searchTerm, selectedProduct]);
 
   const handleScroll = (event) => {
-    const listboxNode = event.currentTarget;
-    const bottomReached =
-      listboxNode.scrollHeight - listboxNode.scrollTop ===
-      listboxNode.clientHeight;
-    if (bottomReached && !loading && hasMoreProducts) {
-      loadProducts(inputValue);
+    const { scrollTop, scrollHeight, clientHeight } = event.target;
+    const bottomReached = scrollHeight - scrollTop <= clientHeight + 5;
+
+    setScrollPosition(scrollTop);
+
+    if (bottomReached && hasMore && !loading) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchProducts(searchTerm, nextPage);
     }
   };
 
   return (
     <Box>
       <Autocomplete
+        disablePortal
         id="product-autocomplete"
         options={products}
-        value={products.find((product) => product.name === inputValue) || null}
         getOptionLabel={(option) => `${option.name} - ${option.supplierName}`}
-        onInputChange={(event, newInputValue) => {
-          setInputValue(newInputValue);
-          if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
-          debounceTimeout.current = setTimeout(() => {
-            setHasMoreProducts(true);
-            loadProducts(newInputValue, true);
-          }, 300);
+        isOptionEqualToValue={(option, value) => option.id === value.id}
+        value={selectedProduct}
+        onInputChange={(e, newInputValue) => {
+          setSearchTerm(newInputValue);
+          setPage(0);
+          fetchProducts(newInputValue, 0);
         }}
-        onFocus={() => {
-          if (products.length === 0) {
-            loadProducts();
-          }
+        onChange={(e, newValue) => {
+          setSelectedProduct(newValue);
+          setStock((prev) => ({ ...prev, productId: newValue?.id }));
         }}
-        onChange={(event, newValue) => {
-          if (newValue) {
-            setSelectedProduct(newValue);
-            setStock((prev) => ({
-              ...prev,
-              productId: newValue.id,
-            }));
-            setInputValue(newValue.name);
-          }
+        ListboxProps={{
+          ref: listboxRef,
+          onScroll: handleScroll,
+          style: { maxHeight: 200, overflowY: "auto" },
         }}
-        ListboxComponent={ListboxComponent}
+        renderOption={(props, option) => (
+          <li {...props} key={option.id}>
+            {`${option.name} - ${option.supplierName}`}
+          </li>
+        )}
         renderInput={(params) => (
           <TextField
             {...params}
             label="Buscar Produto"
             fullWidth
             variant="outlined"
-            margin="normal"
-            autoComplete="off"
             inputRef={inputRef}
             slotProps={{
               input: {
@@ -126,6 +115,7 @@ const ProductSearch = ({ setSelectedProduct, setStock, inputRef }) => {
 ProductSearch.propTypes = {
   setSelectedProduct: PropTypes.func.isRequired,
   setStock: PropTypes.func.isRequired,
+  selectedProduct: PropTypes.object,
 };
 
 export default ProductSearch;
