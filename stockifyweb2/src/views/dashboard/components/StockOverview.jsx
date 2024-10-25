@@ -11,46 +11,56 @@ import {
 import Grid from "@mui/material/Grid2";
 
 import { IconAlertTriangle, IconCheck, IconBox } from "@tabler/icons-react";
-import { useState, useEffect } from "react";
+import { useQuery } from "react-query";
 import { useNavigate } from "react-router-dom";
 import DashboardCard from "../../../components/shared/DashboardCard.jsx";
 import stockOverviewService from "../../../services/stockOverviewService";
 
-const StockOverview = () => {
-  const [totalItems, setTotalItems] = useState(0);
-  const [lowStockItems, setLowStockItems] = useState(0);
-  const [outOfStockItems, setOutOfStockItems] = useState(0);
-  const [adequateStockItems, setAdequateStockItems] = useState(0);
-  const [loading, setLoading] = useState(true);
+const fetchStockSummary = async () => {
+  const response = await stockOverviewService.getStockSummary();
+  return response.data;
+};
 
+const OverviewItem = ({ count, label, color, icon, navigatePath }) => {
+  const navigate = useNavigate();
+
+  return (
+    <Box
+      display="flex"
+      alignItems="center"
+      onClick={() => {
+        navigate(navigatePath);
+        window.scrollTo(0, 0);
+      }}
+      sx={{ cursor: "pointer" }}
+    >
+      <Avatar sx={{ bgcolor: color, width: 40, height: 40, mr: 2 }}>
+        {icon}
+      </Avatar>
+      <Box>
+        <Typography variant="h5">{count}</Typography>
+        <Typography variant="subtitle2" color="textSecondary">
+          {label}
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
+
+const StockOverview = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const fetchStockSummary = async () => {
-    try {
-      const response = await stockOverviewService.getStockSummary();
-      const stockData = response.data;
-
-      setTotalItems(stockData.totalProducts);
-      setLowStockItems(stockData.betweenThreshold);
-      setOutOfStockItems(stockData.zeroQuantity);
-      setAdequateStockItems(stockData.aboveThreshold);
-
-      setLoading(false);
-    } catch (error) {
-      console.error("Erro ao buscar resumo do estoque:", error);
-      setLoading(false);
+  const { data, isLoading, isError } = useQuery(
+    "stockSummary",
+    fetchStockSummary,
+    {
+      staleTime: 900000,
+      cacheTime: 1800000,
+      refetchOnWindowFocus: false,
     }
-  };
-
-  useEffect(() => {
-    fetchStockSummary();
-
-    const interval = setInterval(fetchStockSummary, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
+  );
 
   const handleNavigate = (path) => {
     navigate(path);
@@ -91,38 +101,33 @@ const StockOverview = () => {
           width: "100%",
         }}
       >
-        {loading ? (
-          <Grid container spacing={5}>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "space-between",
-                mt: 2,
-              }}
-            >
-              {[...Array(3)].map((_, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    mb: 2,
-                    mr: 10,
-                  }}
-                >
-                  <Skeleton variant="circular" width={40} height={40} />
-                  <Skeleton
-                    variant="text"
-                    width={100}
-                    height={20}
-                    sx={{ mt: 1 }}
-                  />
-                </Box>
-              ))}
-            </Box>
-          </Grid>
+        {isLoading ? (
+          <Stack direction="row" spacing={3}>
+            {[...Array(3)].map((_, index) => (
+              <Box
+                key={index}
+                display="flex"
+                flexDirection="column"
+                alignItems="center"
+              >
+                <Skeleton variant="circular" width={40} height={40} />
+                <Skeleton
+                  variant="text"
+                  width={100}
+                  height={20}
+                  sx={{ mt: 1 }}
+                />
+              </Box>
+            ))}
+          </Stack>
+        ) : isError ? (
+          <Typography
+            variant="subtitle1"
+            color="error"
+            sx={{ mt: 2, textAlign: "center" }}
+          >
+            Falha ao carregar dados do estoque.
+          </Typography>
         ) : (
           <Box>
             <Box
@@ -132,7 +137,7 @@ const StockOverview = () => {
               mb={2}
             >
               <Typography variant="h4" fontWeight="700" mt="-10px">
-                {totalItems} Itens
+                {data.totalProducts} Itens
               </Typography>
               <Typography variant="subtitle2" color="textSecondary">
                 Total em Estoque
@@ -145,68 +150,41 @@ const StockOverview = () => {
               justifyContent="space-between"
               alignItems="center"
             >
-              <Box
-                display="flex"
-                alignItems="center"
-                onClick={() => handleNavigate("/stock/under-safety")}
-                style={{ cursor: "pointer" }}
-              >
-                <Avatar
-                  sx={{ bgcolor: warninglight, width: 40, height: 40, mr: 2 }}
-                >
+              <OverviewItem
+                count={data.betweenThreshold}
+                label="Baixo Estoque"
+                color={warninglight}
+                icon={
                   <IconAlertTriangle
                     width={24}
                     color={theme.palette.warning.main}
                   />
-                </Avatar>
-                <Box>
-                  <Typography variant="h5">{lowStockItems}</Typography>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Baixo Estoque
-                  </Typography>
-                </Box>
-              </Box>
+                }
+                navigatePath="/stock/under-safety"
+              />
 
-              <Box
-                display="flex"
-                alignItems="center"
-                onClick={() => handleNavigate("/stock/out-of-stock")}
-                style={{ cursor: "pointer" }}
-              >
-                <Avatar
-                  sx={{ bgcolor: errorlight, width: 40, height: 40, mr: 2 }}
-                >
+              <OverviewItem
+                count={data.zeroQuantity}
+                label="Fora de Estoque"
+                color={errorlight}
+                icon={
                   <IconAlertTriangle
                     width={24}
                     color={theme.palette.error.main}
                   />
-                </Avatar>
-                <Box>
-                  <Typography variant="h5">{outOfStockItems}</Typography>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Fora de Estoque
-                  </Typography>
-                </Box>
-              </Box>
+                }
+                navigatePath="/stock/out-of-stock"
+              />
 
-              <Box
-                display="flex"
-                alignItems="center"
-                onClick={() => handleNavigate("/stock/safety")}
-                style={{ cursor: "pointer" }}
-              >
-                <Avatar
-                  sx={{ bgcolor: successlight, width: 40, height: 40, mr: 2 }}
-                >
+              <OverviewItem
+                count={data.aboveThreshold}
+                label="Estoque Adequado"
+                color={successlight}
+                icon={
                   <IconCheck width={24} color={theme.palette.success.main} />
-                </Avatar>
-                <Box>
-                  <Typography variant="h5">{adequateStockItems}</Typography>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Estoque Adequado
-                  </Typography>
-                </Box>
-              </Box>
+                }
+                navigatePath="/stock/safety"
+              />
             </Stack>
           </Box>
         )}

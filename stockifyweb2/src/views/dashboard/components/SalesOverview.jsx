@@ -1,6 +1,6 @@
 import { Select, MenuItem, Box, Skeleton } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Chart from "react-apexcharts";
 import DashboardCard from "../../../components/shared/DashboardCard.jsx";
 import saleService from "../../../services/saleService";
@@ -53,70 +53,74 @@ const SalesOverview = () => {
     setMonth(event.target.value);
   };
 
-  const optionsLineChart = {
-    chart: {
-      type: "line",
-      fontFamily: "'Plus Jakarta Sans', sans-serif;",
-      foreColor: "#adb0bb",
-      toolbar: {
-        show: false,
-      },
-      height: 370,
-    },
-
-    plotOptions: {
-      bar: {
-        columnWidth: "50%",
-        barHeight: "70%",
-      },
-    },
-    colors: [theme.palette.primary.main, theme.palette.secondary.main],
-    stroke: {
-      curve: "smooth",
-      width: 3,
-    },
-    markers: {
-      size: 5,
-    },
-    grid: {
-      borderColor: "rgba(0,0,0,0.1)",
-      strokeDashArray: 3,
-    },
-    xaxis: {
-      categories: salesData.map((data) => data.day),
-      labels: {
-        style: {
-          fontSize: "11.9px",
-          colors: theme.palette.text.secondary,
+  const optionsLineChart = useMemo(
+    () => ({
+      chart: {
+        type: "line",
+        fontFamily: "'Plus Jakarta Sans', sans-serif;",
+        foreColor: "#adb0bb",
+        toolbar: {
+          show: false,
         },
-        rotate: -45,
+        height: 370,
       },
-    },
-    yaxis: {
-      tickAmount: 5,
-      min: 0,
-      max: Math.max(...salesData.map((data) => data.sales)) + 1,
-      labels: {
-        formatter: (val) => val.toFixed(0),
-      },
-    },
-    tooltip: {
-      theme: theme.palette.mode === "dark" ? "dark" : "light",
-      x: {
-        formatter: (val) => `Dia ${val}`,
-      },
-      y: {
-        formatter: (val) => `${val} vendas`,
-      },
-    },
-  };
 
-  const seriesLineChart = [
-    {
-      name: "Vendas",
-      data: salesData.map((data) => data.sales),
-    },
-  ];
+      plotOptions: {
+        bar: {
+          columnWidth: "50%",
+          barHeight: "70%",
+        },
+      },
+      colors: [theme.palette.primary.main, theme.palette.secondary.main],
+      stroke: {
+        curve: "smooth",
+        width: 3,
+      },
+      markers: {
+        size: 5,
+      },
+      grid: {
+        borderColor: "rgba(0,0,0,0.1)",
+        strokeDashArray: 3,
+      },
+      xaxis: {
+        categories: salesData.map((data) => data.day),
+        labels: {
+          style: {
+            fontSize: "11.9px",
+            colors: theme.palette.text.secondary,
+          },
+          rotate: -45,
+        },
+      },
+      yaxis: {
+        tickAmount: 5,
+        min: 0,
+        max: Math.max(...salesData.map((data) => data.sales)) + 1,
+        labels: {
+          formatter: (val) => val.toFixed(0),
+        },
+      },
+      tooltip: {
+        theme: theme.palette.mode === "dark" ? "dark" : "light",
+        x: {
+          formatter: (val) => `Dia ${val}`,
+        },
+        y: { formatter: (val) => `${val} vendas` },
+      },
+    }),
+    [salesData, theme]
+  );
+
+  const seriesLineChart = useMemo(
+    () => [
+      {
+        name: "Vendas",
+        data: salesData.map((data) => data.sales),
+      },
+    ],
+    [salesData]
+  );
 
   return (
     <DashboardCard
@@ -130,18 +134,11 @@ const SalesOverview = () => {
           onChange={handleChange}
           sx={{ minWidth: 120 }}
         >
-          <MenuItem value={1}>Janeiro</MenuItem>
-          <MenuItem value={2}>Fevereiro</MenuItem>
-          <MenuItem value={3}>Março</MenuItem>
-          <MenuItem value={4}>Abril</MenuItem>
-          <MenuItem value={5}>Maio</MenuItem>
-          <MenuItem value={6}>Junho</MenuItem>
-          <MenuItem value={7}>Julho</MenuItem>
-          <MenuItem value={8}>Agosto</MenuItem>
-          <MenuItem value={9}>Setembro</MenuItem>
-          <MenuItem value={10}>Outubro</MenuItem>
-          <MenuItem value={11}>Novembro</MenuItem>
-          <MenuItem value={12}>Dezembro</MenuItem>
+          {Array.from({ length: 12 }, (_, index) => (
+            <MenuItem key={index} value={index + 1}>
+              {new Date(0, index).toLocaleString("default", { month: "long" })}
+            </MenuItem>
+          ))}
         </Select>
       }
       sx={{ height: "100%", width: "100%" }}

@@ -16,34 +16,29 @@ const Dashboard = () => {
       <Box
         sx={{
           display: "flex",
-          justifyContent: "left",
-          alignItems: "center",
+          flexDirection: "column",
           minHeight: "100vh",
-          padding: isSmallScreen ? theme.spacing(0) : theme.spacing(8),
+          padding: isSmallScreen ? theme.spacing(2) : theme.spacing(8),
         }}
       >
         <Grid container spacing={1}>
-          <Grid size={{ xs: 12, sm: 6, lg: 7 }}>
+          <Grid size={{ xs: 12, md: 7 }}>
             <SalesOverview />
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 5 }}>
-            <Grid container spacing={1}>
-              <Grid size={{ xs: 12, sm: 6, lg: 6 }}>
-                <StockOverview />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, lg: 6 }}>
-                <StockUnderSafety />
-              </Grid>
+          <Grid size={{ xs: 12, md: 5 }} container spacing={1}>
+            <Grid size={{ xs: 12 }}>
+              <StockOverview />
+            </Grid>
+            <Grid>
+              <StockUnderSafety />
             </Grid>
           </Grid>
 
-          <Grid container spacing={1}>
-            <Grid size={{ xs: 12, sm: 8, lg: 7 }}>
-              <RecentTransactions />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4, lg: 4 }}>
-              <BestSellingItems />
-            </Grid>
+          <Grid size={{ xs: 12, md: 7 }}>
+            <RecentTransactions />
+          </Grid>
+          <Grid size={{ xs: 12, md: 4 }}>
+            <BestSellingItems />
           </Grid>
         </Grid>
       </Box>
