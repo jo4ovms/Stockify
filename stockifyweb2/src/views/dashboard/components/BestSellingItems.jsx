@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { IconArrowRight } from "@tabler/icons-react";
 import PropTypes from "prop-types";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useQuery } from "react-query";
 import { useNavigate } from "react-router-dom";
 import DashboardCard from "../../../components/shared/DashboardCard.jsx";
@@ -24,12 +24,42 @@ const fetchBestSellingItems = async () => {
 
 const BestSellingItems = ({ sx }) => {
   const navigate = useNavigate();
-
   const {
     data: bestSellingItems = [],
     isLoading,
     isError,
-  } = useQuery("bestSellingItems", fetchBestSellingItems);
+  } = useQuery("bestSellingItems", fetchBestSellingItems, {
+    staleTime: 60000,
+    cacheTime: 300000,
+  });
+
+  const renderTableBody = useMemo(() => {
+    if (bestSellingItems.length > 0) {
+      return (
+        <TableBody>
+          {bestSellingItems.map((item, index) => (
+            <TableRow key={index}>
+              <TableCell>
+                <Typography sx={{ fontSize: "16px", fontWeight: "500" }}>
+                  {item.productName}
+                </Typography>
+              </TableCell>
+              <TableCell align="right">
+                <Typography variant="h6">{item.totalQuantitySold}</Typography>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      );
+    } else {
+      return (
+        <Typography variant="body2" sx={{ mt: 2, textAlign: "center" }}>
+          Nenhum Produto Vendido.
+        </Typography>
+      );
+    }
+  }, [bestSellingItems]);
+
   const handleViewAllClick = useCallback(() => {
     navigate("/sold-items");
     window.scrollTo(0, 0);
@@ -49,15 +79,16 @@ const BestSellingItems = ({ sx }) => {
         </Fab>
       }
       sx={{
-        height: "600px",
-        width: "527px",
-
+        height: "100%",
+        width: "100%",
+        minWidth: "157%",
+        maxWidth: "155%",
         ...sx,
       }}
     >
-      <Box sx={{ overflowX: "auto" }}>
+      <Box sx={{ overflowX: "auto", width: "100%", height: "100%" }}>
         {isLoading ? (
-          <>
+          <Box sx={{ mt: 2, p: 2 }}>
             {Array.from(new Array(6)).map((_, index) => (
               <Box
                 key={index}
@@ -72,7 +103,7 @@ const BestSellingItems = ({ sx }) => {
                 <Skeleton variant="text" width="40%" />
               </Box>
             ))}
-          </>
+          </Box>
         ) : isError ? (
           <Typography variant="subtitle1" sx={{ mt: 2, textAlign: "center" }}>
             Falha ao carregar produtos mais vendidos.
@@ -101,22 +132,7 @@ const BestSellingItems = ({ sx }) => {
                 </TableCell>
               </TableRow>
             </TableHead>
-            <TableBody>
-              {bestSellingItems.map((item, index) => (
-                <TableRow key={index}>
-                  <TableCell>
-                    <Typography sx={{ fontSize: "16px", fontWeight: "500" }}>
-                      {item.productName}{" "}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="right">
-                    <Typography variant="h6">
-                      {item.totalQuantitySold}
-                    </Typography>{" "}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
+            {renderTableBody}
           </Table>
         ) : (
           <Typography variant="body2" sx={{ mt: 2, textAlign: "center" }}>
