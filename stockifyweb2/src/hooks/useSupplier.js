@@ -10,8 +10,8 @@ const useSupplier = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [, setErrorMessage] = useState("");
-  const [, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [suppliers, setSuppliers] = useState([]);
   const [productsBySupplier, setProductsBySupplier] = useState({});
   const [searchProductTermBySupplier, setSearchProductTermBySupplier] =
@@ -19,6 +19,17 @@ const useSupplier = () => {
   const [productsPage, setProductsPage] = useState({});
   const [productsTotalPages, setProductsTotalPages] = useState({});
   const productListRef = useRef({});
+  const [confirmDeleteDialog, setConfirmDeleteDialog] = useState({
+    open: false,
+    productId: null,
+    productName: "",
+  });
+  const [confirmDeleteSupplierDialog, setConfirmDeleteSupplierDialog] =
+    useState({
+      open: false,
+      supplierId: null,
+      supplierName: "",
+    });
 
   const debounceTimeout = useRef(null);
   const [currentSupplier, setCurrentSupplier] = useState({
@@ -228,6 +239,11 @@ const useSupplier = () => {
   };
 
   const handleClickCreateProduct = (supplier) => {
+    if (!supplier?.id) {
+      setErrorMessage("Supplier information is required.");
+      return;
+    }
+
     setEditMode(false);
     setCurrentSupplier(supplier);
     setCurrentProduct({
@@ -292,74 +308,176 @@ const useSupplier = () => {
       value: product.value,
       quantity: product.quantity,
       supplierId: product.supplierId,
-      supplierName: currentSupplier.name,
+      supplierName: product.supplierName,
     });
     setOpenProductDialog(true);
   };
 
-  const saveSupplier = () => {
-    if (editMode) {
-      supplierService
-        .update(currentSupplier.id, currentSupplier)
-        .then(({ data: updatedSupplier }) => {
-          updateProductTypes(updatedSupplier.productType);
-          retrieveSuppliers();
-        })
-        .catch(() => setErrorMessage("Erro ao atualizar o fornecedor."))
-        .finally(handleClose);
-    } else {
-      supplierService
-        .create(currentSupplier)
-        .then(({ data: createdSupplier }) => {
-          updateProductTypes(createdSupplier.productType);
-          retrieveSuppliers();
-        })
-        .catch(() => setErrorMessage("Erro ao criar o fornecedor."))
-        .finally(handleClose);
+  const formatPhoneNumber = (phone) => {
+    const cleaned = phone.replace(/\D/g, "");
+
+    if (cleaned.length === 10) {
+      return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+    } else if (cleaned.length === 11) {
+      return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
     }
+
+    return phone;
   };
 
-  const saveProduct = () => {
+  const saveSupplier = (supplierData) => {
+    setLoading(true);
+    setErrorMessage("");
+
+    const formattedSupplier = {
+      ...supplierData,
+      cnpj: supplierData.cnpj.replace(/\D/g, ""),
+      phone: formatPhoneNumber(supplierData.phone),
+    };
+
+    if (editMode) {
+      supplierService
+        .update(currentSupplier.id, formattedSupplier)
+        .then(({ data: updatedSupplier }) => {
+          setSuccessMessage(
+            `Fornecedor ${updatedSupplier.name} atualizado com sucesso.`
+          );
+          retrieveSuppliers();
+        })
+        .catch((error) => {
+          console.error("Error updating supplier:", error.response?.data);
+          const backendError =
+            error?.response?.data?.message || "Erro ao atualizar o fornecedor.";
+          setErrorMessage(backendError);
+        })
+        .finally(() => setLoading(false));
+    } else {
+      supplierService
+        .create(formattedSupplier)
+        .then(({ data: createdSupplier }) => {
+          setSuccessMessage(
+            `Fornecedor ${createdSupplier.name} criado com sucesso.`
+          );
+          retrieveSuppliers();
+        })
+        .catch((error) => {
+          console.error("Error creating supplier:", error.response?.data);
+          const backendError =
+            error?.response?.data?.message || "Erro ao criar o fornecedor.";
+          setErrorMessage(backendError);
+        })
+        .finally(() => setLoading(false));
+    }
+  };
+  const saveProduct = (product) => {
+    if (!product.supplierId) {
+      setErrorMessage("Supplier ID is required.");
+      return;
+    }
+
+    const productData = {
+      ...product,
+      name: product.name ? product.name : null,
+      value: product.value ? parseFloat(product.value) : null,
+      quantity: product.quantity ? parseInt(product.quantity, 10) : null,
+    };
+
+    if (!productData.name || !productData.value || !productData.quantity) {
+      setErrorMessage("Todos os campos são obrigatórios.");
+      return;
+    }
+
     if (editMode) {
       productService
-        .updateProduct(currentProduct.id, currentProduct)
+        .updateProduct(productData.id, productData)
         .then(() => {
           retrieveProducts(currentSupplier);
           handleCloseProductDialog();
+          setSuccessMessage(
+            `Produto ${productData.name} atualizado com sucesso.`
+          );
         })
         .catch(() => setErrorMessage("Erro ao atualizar o produto."));
     } else {
       productService
-        .createProduct(currentProduct)
+        .createProduct(productData)
         .then(() => {
           retrieveProducts(currentSupplier);
           handleCloseProductDialog();
+          setSuccessMessage(`Produto ${productData.name} criado com sucesso.`);
         })
         .catch(() => setErrorMessage("Erro ao criar o produto."));
     }
   };
-
-  const deleteSupplier = (id) => {
-    const supplierToDelete = suppliers.find((s) => s.id === id);
-
-    supplierService
-      .delete(id)
-      .then(() => {
-        removeProductType(supplierToDelete.productType);
-        retrieveSuppliers();
-        setSuccessMessage("Fornecedor excluído com sucesso.");
-      })
-      .catch(() => setErrorMessage("Erro ao excluir o fornecedor."));
+  const handleDeleteSupplier = (supplierId, supplierName) => {
+    setConfirmDeleteSupplierDialog({
+      open: true,
+      supplierId,
+      supplierName,
+    });
   };
 
-  const deleteProduct = (id) => {
-    productService
-      .deleteProduct(id)
+  const cancelDeleteSupplier = () => {
+    setConfirmDeleteSupplierDialog({
+      open: false,
+      supplierId: null,
+      supplierName: "",
+    });
+  };
+
+  const confirmDeleteSupplier = () => {
+    const { supplierId, supplierName } = confirmDeleteSupplierDialog;
+
+    supplierService
+      .delete(supplierId)
       .then(() => {
+        setSuccessMessage(`Fornecedor ${supplierName} excluído com sucesso.`);
+        retrieveSuppliers();
+      })
+      .catch(() => setErrorMessage("Erro ao excluir o fornecedor."))
+      .finally(() => {
+        setConfirmDeleteSupplierDialog({
+          open: false,
+          supplierId: null,
+          supplierName: "",
+        });
+      });
+  };
+
+  const handleDeleteProduct = (productId, productName) => {
+    setConfirmDeleteDialog({
+      open: true,
+      productId,
+      productName,
+    });
+  };
+
+  const confirmDeleteProduct = () => {
+    const { productId, productName } = confirmDeleteDialog;
+
+    productService
+      .deleteProduct(productId)
+      .then(() => {
+        setSuccessMessage(`Produto ${productName} excluído com sucesso.`);
         retrieveProducts(currentSupplier);
         getAllProductTypes();
       })
-      .catch(() => setErrorMessage("Erro ao excluir o produto."));
+      .catch(() => setErrorMessage("Erro ao excluir o produto."))
+      .finally(() => {
+        setConfirmDeleteDialog({
+          open: false,
+          productId: null,
+          productName: "",
+        });
+      });
+  };
+
+  const cancelDeleteProduct = () => {
+    setConfirmDeleteDialog({
+      open: false,
+      productId: null,
+      productName: "",
+    });
   };
 
   const handleSearchChange = (e) => {
@@ -418,8 +536,6 @@ const useSupplier = () => {
     handleItemsPerPageChange,
     saveSupplier,
     saveProduct,
-    deleteSupplier,
-    deleteProduct,
     editProduct,
     page,
     size,
@@ -431,8 +547,18 @@ const useSupplier = () => {
     searchProductTermBySupplier,
     handleTargetPageChange,
     goToSpecificPage,
+    successMessage,
+    errorMessage,
     targetPage,
     loading,
+    confirmDeleteProduct,
+    cancelDeleteProduct,
+    handleDeleteProduct,
+    confirmDeleteDialog,
+    confirmDeleteSupplier,
+    cancelDeleteSupplier,
+    handleDeleteSupplier,
+    confirmDeleteSupplierDialog,
   };
 };
 

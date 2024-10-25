@@ -17,9 +17,11 @@ import * as Yup from "yup";
 const StockSchema = Yup.object().shape({
   productId: Yup.string().required("É obrigatório selecionar um produto."),
   quantity: Yup.number()
+
     .min(1, "Quantidade deve ser maior que 0.")
     .required("É obrigatório informar a quantidade."),
   value: Yup.number()
+
     .min(0.01, "Valor deve ser maior que 0.")
     .required("É obrigatório informar o valor."),
 });
