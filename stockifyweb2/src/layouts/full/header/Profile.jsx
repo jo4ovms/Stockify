@@ -11,6 +11,7 @@ import {
 import { IconUser } from "@tabler/icons-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import AuthService from "../../../services/AuthService";
 
 const Profile = () => {
   const [anchorEl2, setAnchorEl2] = useState(null);
@@ -25,8 +26,8 @@ const Profile = () => {
   };
 
   const handleLogout = () => {
-    //authservice.logout()
-    navigate("/login");
+    AuthService.Logout();
+    navigate("/auth/login");
     window.location.reload();
   };
 
