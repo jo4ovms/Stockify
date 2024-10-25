@@ -17,6 +17,10 @@ import {
   MenuItem,
   Snackbar,
   Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   Skeleton,
 } from "@mui/material";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -56,8 +60,6 @@ const SupplierPage = () => {
     handleFilterProductTypeChange,
     saveSupplier,
     saveProduct,
-    deleteSupplier,
-    deleteProduct,
     editProduct,
     page,
     setPage,
@@ -74,6 +76,14 @@ const SupplierPage = () => {
     goToSpecificPage,
     successMessage,
     targetPage,
+    confirmDeleteProduct,
+    cancelDeleteProduct,
+    handleDeleteProduct,
+    confirmDeleteDialog,
+    confirmDeleteSupplier,
+    cancelDeleteSupplier,
+    handleDeleteSupplier,
+    confirmDeleteSupplierDialog,
   } = useSupplier();
 
   return (
@@ -216,7 +226,9 @@ const SupplierPage = () => {
 
                     <IconButton
                       color="secondary"
-                      onClick={() => deleteSupplier(supplier.id)}
+                      onClick={() =>
+                        handleDeleteSupplier(supplier.id, supplier.name)
+                      }
                     >
                       <DeleteIcon />
                     </IconButton>
@@ -271,7 +283,9 @@ const SupplierPage = () => {
                             </IconButton>
                             <IconButton
                               color="secondary"
-                              onClick={() => deleteProduct(product.id)}
+                              onClick={() =>
+                                handleDeleteProduct(product.id, product.name)
+                              }
                             >
                               <DeleteIcon />
                             </IconButton>
@@ -401,31 +415,89 @@ const SupplierPage = () => {
         editMode={editMode}
         handleChange={handleChange}
       />
-      <ProductForm
-        open={openProductDialog}
-        handleClose={handleCloseProductDialog}
-        handleSave={saveProduct}
-        currentProduct={currentProduct}
-        editMode={editMode}
-        handleChange={handleChangeProduct}
-        currentSupplier={currentSupplier}
-      />
+      {currentSupplier?.id && (
+        <ProductForm
+          open={openProductDialog}
+          handleClose={handleCloseProductDialog}
+          handleSave={saveProduct}
+          currentProduct={currentProduct}
+          editMode={editMode}
+          handleChange={handleChangeProduct}
+          currentSupplier={currentSupplier}
+          setSuccessMessage={setSuccessMessage}
+          setErrorMessage={setErrorMessage}
+        />
+      )}
+
       <Snackbar
         open={!!errorMessage}
         autoHideDuration={6000}
         onClose={() => setErrorMessage("")}
         message={errorMessage}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        severity="error"
       />
+
       <Snackbar
         open={!!successMessage}
         autoHideDuration={6000}
         onClose={() => setSuccessMessage("")}
         message={successMessage}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        severity="success"
       />
+      <Dialog
+        open={confirmDeleteDialog.open}
+        onClose={cancelDeleteProduct}
+        aria-labelledby="confirm-delete-dialog-title"
+      >
+        <DialogTitle id="confirm-delete-dialog-title">
+          Confirmar Exclusão
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            Tem certeza de que deseja excluir o produto{" "}
+            <strong>{confirmDeleteDialog.productName}</strong>?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cancelDeleteProduct} color="primary">
+            Cancelar
+          </Button>
+          <Button
+            onClick={confirmDeleteProduct}
+            color="primary"
+            variant="contained"
+          >
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={confirmDeleteSupplierDialog.open}
+        onClose={cancelDeleteSupplier}
+        aria-labelledby="confirm-delete-supplier-dialog-title"
+      >
+        <DialogTitle id="confirm-delete-supplier-dialog-title">
+          Confirmar Exclusão
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            Tem certeza de que deseja excluir o fornecedor{" "}
+            <strong>{confirmDeleteSupplierDialog.supplierName}</strong>?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cancelDeleteSupplier} color="primary">
+            Cancelar
+          </Button>
+          <Button
+            onClick={confirmDeleteSupplier}
+            color="secondary"
+            variant="contained"
+          >
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </PageContainer>
   );
 };
