@@ -3,8 +3,13 @@ import axiosInstance from "./axiosInstance";
 const API_URL = "http://localhost:8081/api/suppliers";
 
 class SupplierService {
-  getAll(page = 0, size = 10) {
+  getAll(page = 0, size = 10, search = "") {
     const params = { page, size };
+
+    if (search) {
+      params.search = search;
+    }
+
     return axiosInstance.get(API_URL, { params });
   }
 
@@ -14,7 +19,7 @@ class SupplierService {
     page = 0,
     size = 10,
     sortBy = "name",
-    sortDirection = "asc",
+    sortDirection = "asc"
   ) {
     const params = {};
 
