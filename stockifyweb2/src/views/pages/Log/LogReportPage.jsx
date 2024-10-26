@@ -12,6 +12,8 @@ import {
   MenuItem,
   Snackbar,
   Skeleton,
+  useMediaQuery,
+  Tooltip,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -19,6 +21,7 @@ import { useParams } from "react-router-dom";
 import PageContainer from "../../../components/container/PageContainer.jsx";
 import DashboardCard from "../../../components/shared/DashboardCard.jsx";
 import logService from "../../../services/logService";
+import Pagination from "../../../components/shared/Pagination.jsx";
 
 const tryParseJSON = (str) => {
   try {
@@ -73,13 +76,16 @@ const renderSummary = (log) => {
   const getSecondaryChange = () => {
     if (log.entity === "Stock" || log.entity === "Product") {
       if (oldValue?.quantity !== newValue?.quantity) {
-        return `Quantidade: de ${oldValue?.quantity || "N/A"} para ${newValue?.quantity || "N/A"}`;
+        return `Quantidade alterada: de ${oldValue?.quantity || "N/A"} para ${newValue?.quantity || "N/A"}`;
       }
       if (oldValue?.value !== newValue?.value) {
-        return `Valor: de ${oldValue?.value ? formatCurrency(oldValue.value) : "N/A"} para ${newValue?.value ? formatCurrency(newValue.value) : "N/A"}`;
+        return `Valor alterado: de ${oldValue?.value ? formatCurrency(oldValue.value) : "N/A"} para ${newValue?.value ? formatCurrency(newValue.value) : "N/A"}`;
       }
-    } else if (log.entity === "Supplier" && oldValue?.cnpj !== newValue?.cnpj) {
-      return `CNPJ: de ${oldValue?.cnpj || "N/A"} para ${newValue?.cnpj || "N/A"}`;
+    } else if (
+      log.entity === "Supplier" &&
+      oldValue?.productType !== newValue?.productType
+    ) {
+      return `Tipo de Produto alterado: de ${oldValue?.productType || "N/A"} para ${newValue?.productType || "N/A"}`;
     }
     return null;
   };
@@ -97,12 +103,26 @@ const renderSummary = (log) => {
 
   if (log.operationType === "CREATE") {
     return (
-      <Typography variant="body2">
-        {log.entity === "Product" || log.entity === "Stock"
-          ? `Produto: ${newValue?.name || newValue?.productName || "Produto não especificado"}`
-          : log.entity === "Sale"
-            ? `  Produto: ${newValue?.productName || "Produto não especificado"}, Valor Total: ${getSaleTotal()}`
-            : `Fornecedor: ${newValue?.name || "Fornecedor não especificado"}`}
+      <Typography variant="body2" sx={{ mb: 0.5 }}>
+        {log.entity === "Product" || log.entity === "Stock" ? (
+          `Produto: ${newValue?.name || newValue?.productName || "Produto não especificado"}`
+        ) : log.entity === "Sale" ? (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+            <Typography variant="body2" sx={{ mb: 0.5 }}>
+              Produto: {newValue?.productName || "Produto não especificado"}
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 0.5 }}>
+              Valor Total: {getSaleTotal()}
+            </Typography>
+          </Box>
+        ) : (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+            <Typography variant="body2" sx={{ mb: 3 }}>
+              Fornecedor Criado:
+              {newValue?.name || "Fornecedor não especificado"}
+            </Typography>
+          </Box>
+        )}
       </Typography>
     );
   }
@@ -110,27 +130,30 @@ const renderSummary = (log) => {
   if (log.operationType === "UPDATE") {
     const secondaryChange = getSecondaryChange();
     return (
-      <Typography variant="body2">
-        {log.entity === "Product" || log.entity === "Stock"
-          ? `Produto: ${newValue?.name || newValue?.productName || "Produto não especificado"}`
-          : `Fornecedor: ${newValue?.name || "Fornecedor não especificado"}`}
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+        <Typography variant="body2" sx={{ mb: 0.5 }}>
+          {log.entity === "Product" || log.entity === "Stock"
+            ? `Produto: ${newValue?.name || newValue?.productName || "Produto não especificado"}`
+            : `Fornecedor: ${newValue?.name || "Fornecedor não especificado"}`}
+        </Typography>
         {secondaryChange && (
-          <>
-            <br />
+          <Typography variant="body2" sx={{ mt: 0.5 }}>
             {secondaryChange}
-          </>
+          </Typography>
         )}
-      </Typography>
+      </Box>
     );
   }
 
   if (log.operationType === "DELETE") {
     return (
-      <Typography variant="body2" color="error">
-        {log.entity === "Product" || log.entity === "Stock"
-          ? `Produto excluído: ${oldValue?.name || oldValue?.productName || "Produto não especificado"}`
-          : `Fornecedor excluído: ${oldValue?.name || "Fornecedor não especificado"}`}
-      </Typography>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+        <Typography variant="body2" color="error" sx={{ mb: 3 }}>
+          {log.entity === "Product" || log.entity === "Stock"
+            ? `Produto excluído: ${oldValue?.name || oldValue?.productName || "Produto não especificado"}`
+            : `Fornecedor excluído: ${oldValue?.name || "Fornecedor não especificado"}`}
+        </Typography>
+      </Box>
     );
   }
 
@@ -148,6 +171,11 @@ const LogReportPage = () => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const { logId } = useParams();
+  const [targetPage, setTargetPage] = useState(page + 1);
+  const [totalItems, setTotalItems] = useState(0);
+
+  const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down("sm"));
+
   let debounceTimeout = useRef(null);
 
   useEffect(() => {
@@ -160,15 +188,19 @@ const LogReportPage = () => {
 
   useEffect(() => {
     if (logId && logs.length > 0) {
-      setExpandedLogId(logId);
+      const targetLogId = parseInt(logId);
 
-      const logExists = logs.some((log) => log.id === parseInt(logId));
+      const logExists = logs.some((log) => log.id === targetLogId);
 
       if (logExists) {
-        const element = document.getElementById(`log-${logId}`);
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
+        setExpandedLogId(targetLogId);
+
+        setTimeout(() => {
+          const element = document.getElementById(`log-${targetLogId}`);
+          if (element) {
+            element.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }, 100);
       }
     }
   }, [logId, logs]);
@@ -187,6 +219,7 @@ const LogReportPage = () => {
               logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
             );
             setTotalPages(response.data.page.totalPages);
+            setTotalItems(response.data.page.totalElements);
 
             if (logId) {
               setExpandedLogId(logId);
@@ -237,34 +270,30 @@ const LogReportPage = () => {
     }
   };
 
-  const handleNextPage = () => {
-    if (page < totalPages - 1) {
-      setPage(page + 1);
-    }
-    window.scrollTo(0, 0);
-  };
-
-  const handlePreviousPage = () => {
-    if (page > 0) {
-      setPage(page - 1);
-    }
-    window.scrollTo(0, 0);
-  };
-
   const renderKeyValuePairs = (data) => {
     return (
       <Grid container spacing={2}>
         {Object.entries(data).map(([key, value]) => (
-          <Grid size={{ xs: 6 }} key={key}>
-            <Box display="flex" mb={1}>
+          <Grid size={{ xs: 12, sm: 6 }} key={key}>
+            <Box display="flex" mb={1} sx={{ overflow: "hidden" }}>
               <Typography variant="body2" fontWeight="bold" mr={1}>
                 {translateKey(key)}:
               </Typography>
-              <Typography variant="body2">
-                {typeof value === "string" || typeof value === "number"
-                  ? value
-                  : "N/A"}
-              </Typography>
+              <Tooltip title={value}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    maxWidth: "200px",
+                  }}
+                >
+                  {typeof value === "string" || typeof value === "number"
+                    ? value
+                    : "N/A"}
+                </Typography>
+              </Tooltip>
             </Box>
           </Grid>
         ))}
@@ -272,14 +301,237 @@ const LogReportPage = () => {
     );
   };
 
+  const getMainInfo = (log) => {
+    const newValue = tryParseJSON(log.newValue);
+    const oldValue = tryParseJSON(log.oldValue);
+
+    if (log.operationType === "DELETE") {
+      return (
+        oldValue?.name ||
+        oldValue?.productName ||
+        oldValue?.supplierName ||
+        "Informação não disponível"
+      );
+    }
+
+    return (
+      newValue?.name ||
+      newValue?.productName ||
+      newValue?.supplierName ||
+      "Informação não disponível"
+    );
+  };
+
   const shouldShowNewValue = (operationType) => {
     return operationType !== "DELETE";
   };
 
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+  };
   const shouldShowOldValue = (operationType) => {
     return operationType === "UPDATE" || operationType === "DELETE";
   };
 
+  const renderLogs = () => {
+    if (loading) {
+      return (
+        <Grid container spacing={2}>
+          {[...Array(5)].map((_, index) => (
+            <Grid xs={12} key={index}>
+              <Box display="flex" alignItems="center" p={2}>
+                <Skeleton variant="circular" width={40} height={40} />
+                <Skeleton
+                  variant="text"
+                  width={120}
+                  height={20}
+                  sx={{ ml: 2 }}
+                />
+              </Box>
+            </Grid>
+          ))}
+        </Grid>
+      );
+    }
+
+    if (logs.length === 0) {
+      return <Typography variant="body2">Nenhum log encontrado.</Typography>;
+    }
+
+    return logs.map((log) => {
+      const newValue = tryParseJSON(log.newValue);
+      const oldValue = tryParseJSON(log.oldValue);
+
+      let changeSummary = "";
+      if (log.operationType === "UPDATE" && newValue && oldValue) {
+        for (const key in newValue) {
+          if (newValue[key] !== oldValue[key]) {
+            changeSummary = `Alteração de ${translateKey(key)}: de \"${oldValue[key] || "N/A"}\" para \"${newValue[key] || "N/A"}\"`;
+            break;
+          }
+        }
+      }
+
+      return (
+        <Box
+          key={log.id}
+          id={`log-${log.id}`}
+          p={2}
+          mb={2}
+          border="0.2px solid #ccc"
+          borderRadius={2}
+          backgroundColor="#fff"
+          sx={{
+            backgroundColor: "#fff",
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+            transition: "all 0.3s ease",
+            height: "auto",
+          }}
+        >
+          <Box
+            display="flex"
+            flexDirection={isSmallScreen ? "column" : "row"}
+            alignItems={isSmallScreen ? "flex-start" : "center"}
+            justifyContent="space-between"
+            gap={2}
+          >
+            <Box display="flex" alignItems="center">
+              {getOperationIcon(log.operationType)}
+              <Typography
+                variant="h6"
+                mr={1}
+                sx={{
+                  fontSize: isSmallScreen ? "14px" : "16px",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {translateEntity(log.entity)}
+              </Typography>
+              <Typography
+                variant="body2"
+                color="textSecondary"
+                noWrap
+                sx={{ overflow: "hidden", textOverflow: "ellipsis", flex: 1 }}
+              >
+                {getMainInfo(log)}
+              </Typography>
+            </Box>
+
+            <Box display="flex" alignItems="center" gap={1}>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontSize: isSmallScreen ? "12px" : "14px",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {new Date(
+                  log.timestamp[0],
+                  log.timestamp[1] - 1,
+                  log.timestamp[2],
+                  log.timestamp[3],
+                  log.timestamp[4]
+                ).toLocaleString("pt-BR", {
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontSize: isSmallScreen ? "12px" : "14px",
+                  color: "gray",
+                }}
+              >
+                {translateOperation(log.operationType, log.entity)}
+              </Typography>
+            </Box>
+          </Box>
+
+          {!isSmallScreen && renderSummary(log)}
+          <Box
+            sx={{
+              mt: isSmallScreen ? 0 : -5,
+              display: "flex",
+              justifyContent: "flex-end",
+            }}
+          >
+            <Button
+              variant="outlined"
+              color="primary"
+              size={isSmallScreen ? "small" : "medium"}
+              onClick={() => toggleLogDetails(log.id)}
+              sx={{ width: isSmallScreen ? "100%" : "15%" }}
+            >
+              {expandedLogId === log.id ? <ExpandLess /> : <ExpandMore />} Ver
+              Detalhes
+            </Button>
+          </Box>
+
+          <Collapse in={expandedLogId === log.id} sx={{ mt: 2 }}>
+            <Box p={2} borderTop="1px solid #ccc" backgroundColor="#fff">
+              {shouldShowNewValue(log.operationType) && (
+                <>
+                  <Typography variant="body2" fontWeight="bold" mb={1}>
+                    Valor Atual:
+                  </Typography>
+                  {log.newValue ? (
+                    tryParseJSON(log.newValue) ? (
+                      renderKeyValuePairs(tryParseJSON(log.newValue))
+                    ) : (
+                      <Typography
+                        variant="body2"
+                        sx={{ wordBreak: "break-all" }}
+                      >
+                        {log.newValue}
+                      </Typography>
+                    )
+                  ) : (
+                    <Typography variant="body2">N/A</Typography>
+                  )}
+                  <Divider sx={{ my: 2 }} />
+                </>
+              )}
+              {shouldShowOldValue(log.operationType) && (
+                <>
+                  <Typography variant="body2" fontWeight="bold" mb={1}>
+                    Valor Antigo:
+                  </Typography>
+                  {log.oldValue ? (
+                    tryParseJSON(log.oldValue) ? (
+                      renderKeyValuePairs(tryParseJSON(log.oldValue))
+                    ) : (
+                      <Typography
+                        variant="body2"
+                        sx={{ wordBreak: "break-all" }}
+                      >
+                        {log.oldValue}
+                      </Typography>
+                    )
+                  ) : (
+                    <Typography variant="body2">N/A</Typography>
+                  )}
+                  <Divider sx={{ my: 2 }} />
+                </>
+              )}
+              <Typography variant="body2">
+                <strong>Detalhes:</strong> {log.details || "N/A"}
+              </Typography>
+            </Box>
+          </Collapse>
+        </Box>
+      );
+    });
+  };
   return (
     <PageContainer
       title="Relatórios de Log"
@@ -292,7 +544,13 @@ const LogReportPage = () => {
           onClose={() => setErrorMessage("")}
           message={errorMessage}
         />
-        <Box mt={2} mb={3} display="flex" gap={2}>
+        <Box
+          mt={2}
+          mb={3}
+          display="flex"
+          flexDirection={isSmallScreen ? "column" : "row"}
+          gap={2}
+        >
           <Select
             value={entityFilter}
             onChange={(e) => setEntityFilter(e.target.value)}
@@ -305,7 +563,6 @@ const LogReportPage = () => {
             <MenuItem value="Stock">Estoque</MenuItem>
             <MenuItem value="Sale">Venda</MenuItem>
           </Select>
-
           <Select
             value={operationTypeFilter}
             onChange={(e) => setOperationTypeFilter(e.target.value)}
@@ -319,160 +576,14 @@ const LogReportPage = () => {
           </Select>
         </Box>
 
-        {loading ? (
-          <Grid container spacing={2}>
-            {[...Array(5)].map((_, index) => (
-              <Grid size={{ xs: 12 }} key={index}>
-                <Box
-                  display="flex"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  p={2}
-                >
-                  <Box display="flex" alignItems="center">
-                    <Skeleton variant="circular" width={40} height={40} />
-                    <Skeleton
-                      variant="text"
-                      width={120}
-                      height={20}
-                      sx={{ ml: 2 }}
-                    />
-                  </Box>
-                  <Skeleton variant="text" width={200} height={20} />
-                  <Skeleton variant="rectangular" width={100} height={40} />
-                </Box>
-              </Grid>
-            ))}
-          </Grid>
-        ) : (
-          <Box mt={2}>
-            {logs.length > 0 ? (
-              logs.map((log) => (
-                <Box
-                  key={log.id}
-                  id={`log-${log.id}`}
-                  display="flex"
-                  flexDirection="column"
-                  p={2}
-                  borderBottom="1px solid #ccc"
-                  mb={2}
-                >
-                  <Box
-                    display="flex"
-                    justifyContent="space-between"
-                    alignItems="center"
-                    sx={{ width: "100%" }}
-                  >
-                    <Box display="flex" alignItems="center">
-                      {getOperationIcon(log.operationType)}
-                      <Typography variant="h6" mr={2}>
-                        {translateEntity(log.entity)}
-                      </Typography>
-                      <Typography variant="body2" sx={{ minWidth: "100px" }}>
-                        {translateOperation(log.operationType, log.entity)}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ flex: "0.6 1 200px", textAlign: "right" }}>
-                      <Typography variant="body2" sx={{ textAlign: "right" }}>
-                        {new Date(
-                          log.timestamp[0],
-                          log.timestamp[1] - 1,
-                          log.timestamp[2],
-                          log.timestamp[3],
-                          log.timestamp[4],
-                          log.timestamp[5]
-                        ).toLocaleString("pt-BR", {
-                          day: "2-digit",
-                          month: "long",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </Typography>
-                    </Box>
-                    <Button
-                      variant="outlined"
-                      color="primary"
-                      onClick={() => toggleLogDetails(log.id)}
-                    >
-                      {expandedLogId === log.id ? (
-                        <ExpandLess />
-                      ) : (
-                        <ExpandMore />
-                      )}
-                      Ver Detalhes
-                    </Button>
-                  </Box>
-                  <Box mt={1}>{renderSummary(log)}</Box>
-                  <Collapse in={parseInt(expandedLogId) === log.id}>
-                    <Box mt={2}>
-                      {shouldShowNewValue(log.operationType) && (
-                        <>
-                          <Typography variant="body2" fontWeight="bold" mb={1}>
-                            Valor Atual:
-                          </Typography>
-                          {log.newValue ? (
-                            tryParseJSON(log.newValue) ? (
-                              renderKeyValuePairs(tryParseJSON(log.newValue))
-                            ) : (
-                              <Typography variant="body2">
-                                {log.newValue}
-                              </Typography>
-                            )
-                          ) : (
-                            <Typography variant="body2">N/A</Typography>
-                          )}
-                          <Divider sx={{ my: 2 }} />
-                        </>
-                      )}
-                      {shouldShowOldValue(log.operationType) && (
-                        <>
-                          <Typography variant="body2" fontWeight="bold" mb={1}>
-                            Valor Antigo:
-                          </Typography>
-                          {log.oldValue ? (
-                            tryParseJSON(log.oldValue) ? (
-                              renderKeyValuePairs(tryParseJSON(log.oldValue))
-                            ) : (
-                              <Typography variant="body2">
-                                {log.oldValue}
-                              </Typography>
-                            )
-                          ) : (
-                            <Typography variant="body2">N/A</Typography>
-                          )}
-                          <Divider sx={{ my: 2 }} />
-                        </>
-                      )}
-                      <Typography variant="body2">
-                        <strong>Detalhes:</strong> {log.details || "N/A"}
-                      </Typography>
-                    </Box>
-                  </Collapse>
-                </Box>
-              ))
-            ) : (
-              <Typography variant="h7">Nenhum log encontrado.</Typography>
-            )}
-          </Box>
-        )}
+        <Box mt={2}>{renderLogs()}</Box>
 
-        <Box display="flex" justifyContent="space-between" mt={2}>
-          <Button
-            variant="contained"
-            onClick={handlePreviousPage}
-            disabled={page === 0}
-          >
-            Página Anterior
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleNextPage}
-            disabled={page >= totalPages - 1}
-          >
-            Próxima Página
-          </Button>
-        </Box>
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          onPageChange={handlePageChange}
+        />
       </DashboardCard>
     </PageContainer>
   );
