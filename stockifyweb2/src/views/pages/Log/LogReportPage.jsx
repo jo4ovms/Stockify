@@ -338,15 +338,83 @@ const LogReportPage = () => {
       return (
         <Grid container spacing={2}>
           {[...Array(5)].map((_, index) => (
-            <Grid xs={12} key={index}>
-              <Box display="flex" alignItems="center" p={2}>
-                <Skeleton variant="circular" width={40} height={40} />
-                <Skeleton
-                  variant="text"
-                  width={120}
-                  height={20}
-                  sx={{ ml: 2 }}
-                />
+            <Grid size={{ xs: 12 }} key={index}>
+              <Box
+                p={2}
+                mb={0}
+                border="1px solid #ccc"
+                borderRadius={2}
+                display="flex"
+                flexDirection="column"
+                backgroundColor="#fff"
+                sx={{
+                  transition: "all 0.3s ease",
+                  height: isSmallScreen ? "auto" : "165px",
+                }}
+              >
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  justifyContent={isSmallScreen ? "center" : "space-between"}
+                  flexDirection={isSmallScreen ? "column" : "row"}
+                  mb={1}
+                >
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    gap={1}
+                    flex={isSmallScreen ? "none" : "1"}
+                    mb={isSmallScreen ? 1 : 0}
+                    ml={isSmallScreen ? -2 : 0}
+                  >
+                    <Skeleton
+                      variant="circular"
+                      width={isSmallScreen ? 25 : 30}
+                      height={isSmallScreen ? 25 : 30}
+                      sx={{ ml: isSmallScreen ? -10 : 0 }}
+                    />
+                    <Box
+                      display="flex"
+                      flexDirection={"row"}
+                      flexGrow={1}
+                      gap={1}
+                    >
+                      <Skeleton
+                        variant="text"
+                        width={isSmallScreen ? 60 : "10%"}
+                        height={25}
+                      />
+                      <Skeleton
+                        variant="text"
+                        width={isSmallScreen ? 110 : "15%"}
+                        height={25}
+                      />
+                    </Box>
+                  </Box>
+
+                  <Skeleton
+                    variant="text"
+                    width={isSmallScreen ? 250 : 350}
+                    height={20}
+                    sx={{ ml: isSmallScreen ? -6 : "auto" }}
+                  />
+                </Box>
+
+                {!isSmallScreen && (
+                  <Box display="flex" flexDirection="column" gap={1} mb={2}>
+                    <Skeleton variant="text" width="20%" height={20} />
+                    <Skeleton variant="text" width="20%" height={20} />
+                  </Box>
+                )}
+
+                <Box display="flex" justifyContent="flex-end">
+                  <Skeleton
+                    variant="rectangular"
+                    width={isSmallScreen ? 300 : 150}
+                    height={isSmallScreen ? 25 : 30}
+                    sx={{ mt: !isSmallScreen ? -5.5 : 0 }}
+                  />
+                </Box>
               </Box>
             </Grid>
           ))}
