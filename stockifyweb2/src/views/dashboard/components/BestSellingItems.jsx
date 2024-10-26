@@ -7,7 +7,11 @@ import {
   TableRow,
   TableBody,
   TableCell,
+  Card,
+  CardContent,
   Skeleton,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { IconArrowRight } from "@tabler/icons-react";
 import PropTypes from "prop-types";
@@ -24,6 +28,9 @@ const fetchBestSellingItems = async () => {
 
 const BestSellingItems = ({ sx }) => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+
   const {
     data: bestSellingItems = [],
     isLoading,
@@ -33,14 +40,109 @@ const BestSellingItems = ({ sx }) => {
     cacheTime: 300000,
   });
 
-  const renderTableBody = useMemo(() => {
-    if (bestSellingItems.length > 0) {
+  const renderContent = useMemo(() => {
+    if (isLoading) {
       return (
+        <Box sx={{ mt: 2, p: 2 }}>
+          {Array.from(new Array(6)).map((_, index) => (
+            <Box
+              key={index}
+              sx={{
+                mb: 2,
+                padding: "10px",
+                width: "100%",
+              }}
+            >
+              <Skeleton variant="text" width="80%" height={30} />
+              <Skeleton variant="text" width="60%" height={30} />
+            </Box>
+          ))}
+        </Box>
+      );
+    }
+
+    if (isError || bestSellingItems.length === 0) {
+      return (
+        <Typography variant="body2" sx={{ mt: 2, textAlign: "center" }}>
+          {isError
+            ? "Falha ao carregar produtos mais vendidos."
+            : "Nenhum Produto Vendido."}
+        </Typography>
+      );
+    }
+
+    if (isSmallScreen) {
+      return (
+        <Box sx={{ mt: 2, p: 1 }}>
+          {bestSellingItems.map((item, index) => (
+            <Card
+              key={index}
+              variant="outlined"
+              sx={{
+                mb: 1,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                p: 2,
+                borderRadius: "8px",
+              }}
+            >
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  fontWeight: 500,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  maxWidth: "90%",
+                }}
+              >
+                {item.productName}
+              </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                {item.totalQuantitySold}
+              </Typography>
+            </Card>
+          ))}
+        </Box>
+      );
+    }
+
+    return (
+      <Table
+        aria-label="best selling items table"
+        sx={{
+          width: "100%",
+          mt: 0,
+        }}
+      >
+        <TableHead>
+          <TableRow>
+            <TableCell>
+              <Typography variant="subtitle2" fontWeight={600}>
+                Produto
+              </Typography>
+            </TableCell>
+            <TableCell align="right">
+              <Typography variant="subtitle2" fontWeight={600}>
+                Quantidade Vendida
+              </Typography>
+            </TableCell>
+          </TableRow>
+        </TableHead>
         <TableBody>
           {bestSellingItems.map((item, index) => (
             <TableRow key={index}>
               <TableCell>
-                <Typography sx={{ fontSize: "16px", fontWeight: "500" }}>
+                <Typography
+                  sx={{
+                    fontSize: "16px",
+                    fontWeight: "500",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
                   {item.productName}
                 </Typography>
               </TableCell>
@@ -50,15 +152,9 @@ const BestSellingItems = ({ sx }) => {
             </TableRow>
           ))}
         </TableBody>
-      );
-    } else {
-      return (
-        <Typography variant="body2" sx={{ mt: 2, textAlign: "center" }}>
-          Nenhum Produto Vendido.
-        </Typography>
-      );
-    }
-  }, [bestSellingItems]);
+      </Table>
+    );
+  }, [bestSellingItems, isLoading, isError, isSmallScreen]);
 
   const handleViewAllClick = useCallback(() => {
     navigate("/sold-items");
@@ -79,67 +175,13 @@ const BestSellingItems = ({ sx }) => {
         </Fab>
       }
       sx={{
-        height: "100%",
-        width: "100%",
-        minWidth: "157%",
-        maxWidth: "155%",
+        height: isSmallScreen ? "auto" : "660px",
+        width: isSmallScreen ? "100%" : "124%",
+        overflow: "hidden",
         ...sx,
       }}
     >
-      <Box sx={{ overflowX: "auto", width: "100%", height: "100%" }}>
-        {isLoading ? (
-          <Box sx={{ mt: 2, p: 2 }}>
-            {Array.from(new Array(6)).map((_, index) => (
-              <Box
-                key={index}
-                sx={{
-                  mb: 2,
-                  padding: "10px",
-                  width: "100%",
-                  minWidth: "300px",
-                }}
-              >
-                <Skeleton variant="text" width="60%" />
-                <Skeleton variant="text" width="40%" />
-              </Box>
-            ))}
-          </Box>
-        ) : isError ? (
-          <Typography variant="subtitle1" sx={{ mt: 2, textAlign: "center" }}>
-            Falha ao carregar produtos mais vendidos.
-          </Typography>
-        ) : bestSellingItems.length > 0 ? (
-          <Table
-            aria-label="best selling items table"
-            sx={{
-              width: "100%",
-              maxWidth: "600px",
-              whiteSpace: "nowrap",
-              mt: 0,
-            }}
-          >
-            <TableHead>
-              <TableRow>
-                <TableCell>
-                  <Typography variant="subtitle2" fontWeight={600}>
-                    Produto
-                  </Typography>
-                </TableCell>
-                <TableCell align="right">
-                  <Typography variant="subtitle2" fontWeight={600}>
-                    Quantitidade Vendida
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            {renderTableBody}
-          </Table>
-        ) : (
-          <Typography variant="body2" sx={{ mt: 2, textAlign: "center" }}>
-            Nenhum Produto Vendido.
-          </Typography>
-        )}
-      </Box>
+      <Box sx={{ px: isSmallScreen ? 0 : 0 }}>{renderContent}</Box>
     </DashboardCard>
   );
 };
@@ -147,4 +189,5 @@ const BestSellingItems = ({ sx }) => {
 BestSellingItems.propTypes = {
   sx: PropTypes.object,
 };
+
 export default BestSellingItems;

@@ -10,6 +10,7 @@ import StockUnderSafety from "./components/StockUnderSafety.jsx";
 const Dashboard = () => {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const isMediumScreen = useMediaQuery(theme.breakpoints.between("sm", "md"));
 
   return (
     <PageContainer title="Dashboard" description="this is Dashboard">
@@ -18,26 +19,30 @@ const Dashboard = () => {
           display: "flex",
           flexDirection: "column",
           minHeight: "100vh",
-          padding: isSmallScreen ? theme.spacing(2) : theme.spacing(8),
+          padding: isSmallScreen ? theme.spacing(1) : theme.spacing(4),
         }}
       >
-        <Grid container spacing={1}>
+        <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 7 }}>
             <SalesOverview />
           </Grid>
-          <Grid size={{ xs: 12, md: 5 }} container spacing={1}>
-            <Grid size={{ xs: 12 }}>
-              <StockOverview />
-            </Grid>
-            <Grid>
-              <StockUnderSafety />
+
+          <Grid size={{ xs: 12, md: 5 }}>
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12 }}>
+                <StockOverview />
+              </Grid>
+              <Grid size={{ xs: 12 }}>
+                <StockUnderSafety />
+              </Grid>
             </Grid>
           </Grid>
 
           <Grid size={{ xs: 12, md: 7 }}>
             <RecentTransactions />
           </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
+
+          <Grid size={{ xs: 12, md: 5 }}>
             <BestSellingItems />
           </Grid>
         </Grid>

@@ -8,7 +8,6 @@ import {
   useTheme,
   useMediaQuery,
 } from "@mui/material";
-import Grid from "@mui/material/Grid2";
 
 import { IconAlertTriangle, IconCheck, IconBox } from "@tabler/icons-react";
 import { useQuery } from "react-query";
@@ -32,7 +31,7 @@ const OverviewItem = ({ count, label, color, icon, navigatePath }) => {
         navigate(navigatePath);
         window.scrollTo(0, 0);
       }}
-      sx={{ cursor: "pointer" }}
+      sx={{ cursor: "pointer", mb: 1 }}
     >
       <Avatar sx={{ bgcolor: color, width: 40, height: 40, mr: 2 }}>
         {icon}
@@ -85,20 +84,21 @@ const StockOverview = () => {
         </Fab>
       }
       sx={{
-        height: "240px",
-        width: isSmallScreen ? "150%" : "125%",
-        minWidth: isSmallScreen ? "100%" : "120%",
-        maxWidth: isSmallScreen ? "150%" : "250%",
-        padding: isSmallScreen ? theme.spacing(2) : theme.spacing(0),
+        height: "auto",
+        width: "100%",
+        maxWidth: isSmallScreen ? "100%" : "550px",
+        minWidth: isSmallScreen ? "100%" : "550px",
+        padding: isSmallScreen ? theme.spacing(3.5) : theme.spacing(1),
       }}
     >
       <Box
         sx={{
           display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-around",
+          flexDirection: isSmallScreen ? "column" : "row",
+          justifyContent: isSmallScreen ? "center" : "space-between",
           alignItems: "center",
           width: "100%",
+          gap: isSmallScreen ? theme.spacing(2) : theme.spacing(3),
         }}
       >
         {isLoading ? (
@@ -145,10 +145,11 @@ const StockOverview = () => {
             </Box>
 
             <Stack
-              direction="row"
-              spacing={3}
-              justifyContent="space-between"
+              direction={isSmallScreen ? "column" : "row"}
+              spacing={isSmallScreen ? 2.5 : 3.5}
+              justifyContent="center"
               alignItems="center"
+              sx={{ width: "100%" }}
             >
               <OverviewItem
                 count={data.betweenThreshold}

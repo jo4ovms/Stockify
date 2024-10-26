@@ -1,4 +1,4 @@
-import { Select, MenuItem, Box, Skeleton } from "@mui/material";
+import { Select, MenuItem, Box, Skeleton, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useState, useEffect, useMemo } from "react";
 import Chart from "react-apexcharts";
@@ -10,6 +10,7 @@ const SalesOverview = () => {
   const [salesData, setSalesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
     fetchSalesData(month);
@@ -53,23 +54,45 @@ const SalesOverview = () => {
     setMonth(event.target.value);
   };
 
-  const optionsLineChart = useMemo(
+  const options = useMemo(
     () => ({
       chart: {
-        type: "line",
+        type: isSmallScreen ? "bar" : "line",
         fontFamily: "'Plus Jakarta Sans', sans-serif;",
         foreColor: "#adb0bb",
         toolbar: {
           show: false,
         },
-        height: 370,
+        height: isSmallScreen ? 350 : 400,
       },
-
       plotOptions: {
         bar: {
+          horizontal: isSmallScreen,
           columnWidth: "50%",
-          barHeight: "70%",
+          barHeight: "60%",
+          dataLabels: {
+            position: "top",
+          },
         },
+      },
+      dataLabels: {
+        enabled: true,
+        style: {
+          fontSize: "14px",
+          fontWeight: "bold",
+          colors: ["#333"],
+          background: {
+            enabled: true,
+            color: "#fff",
+            opacity: 0.8,
+            borderRadius: 2,
+            padding: 2,
+          },
+        },
+        formatter: (val) => (val > 0 ? val : ""),
+        offsetY: isSmallScreen ? -1 : -5,
+        offsetX: isSmallScreen ? 12 : 0,
+        position: isSmallScreen ? "right" : "top",
       },
       colors: [theme.palette.primary.main, theme.palette.secondary.main],
       stroke: {
@@ -86,12 +109,14 @@ const SalesOverview = () => {
       xaxis: {
         categories: salesData.map((data) => data.day),
         labels: {
+          show: !isSmallScreen || salesData.length < 10,
+          rotate: -45,
           style: {
-            fontSize: "11.9px",
+            fontSize: isSmallScreen ? "10px" : "12px",
             colors: theme.palette.text.secondary,
           },
-          rotate: -45,
         },
+        tickAmount: isSmallScreen ? 7 : undefined,
       },
       yaxis: {
         tickAmount: 5,
@@ -106,13 +131,18 @@ const SalesOverview = () => {
         x: {
           formatter: (val) => `Dia ${val}`,
         },
-        y: { formatter: (val) => `${val} vendas` },
+        y: {
+          formatter: (val) => `${val} vendas`,
+          style: {
+            fontSize: "14px",
+          },
+        },
       },
     }),
-    [salesData, theme]
+    [salesData, theme, isSmallScreen]
   );
 
-  const seriesLineChart = useMemo(
+  const series = useMemo(
     () => [
       {
         name: "Vendas",
@@ -141,16 +171,16 @@ const SalesOverview = () => {
           ))}
         </Select>
       }
-      sx={{ height: "100%", width: "100%" }}
+      sx={{ height: isSmallScreen ? "100%" : "100%", width: "100%" }}
     >
-      <Box sx={{ height: 400, width: "100%" }}>
+      <Box sx={{ height: 460, width: "100%" }}>
         {loading ? (
           <Skeleton variant="rectangular" width="100%" height="100%" />
         ) : (
           <Chart
-            options={optionsLineChart}
-            series={seriesLineChart}
-            type="line"
+            options={options}
+            series={series}
+            type={isSmallScreen ? "bar" : "line"}
             height="100%"
             width="100%"
           />
