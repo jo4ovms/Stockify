@@ -237,7 +237,19 @@ const LogReportPage = () => {
   );
 
   const toggleLogDetails = (logId) => {
-    setExpandedLogId(expandedLogId === logId ? null : logId);
+    const newExpandedLogId = expandedLogId === logId ? null : logId;
+    setExpandedLogId(newExpandedLogId);
+
+    if (newExpandedLogId !== null) {
+      setTimeout(() => {
+        const element = document.getElementById(`log-${logId}`);
+        if (element) {
+          const offset =
+            element.getBoundingClientRect().top + window.scrollY - 100;
+          window.scrollTo({ top: offset, behavior: "smooth" });
+        }
+      }, 100);
+    }
   };
 
   const translateKey = (key) => {
@@ -279,7 +291,9 @@ const LogReportPage = () => {
               <Typography variant="body2" fontWeight="bold" mr={1}>
                 {translateKey(key)}:
               </Typography>
-              <Tooltip title={value}>
+              <Tooltip
+                title={typeof value === "string" ? value : String(value)}
+              >
                 <Typography
                   variant="body2"
                   sx={{
@@ -349,7 +363,7 @@ const LogReportPage = () => {
                 backgroundColor="#fff"
                 sx={{
                   transition: "all 0.3s ease",
-                  height: isSmallScreen ? "auto" : "165px",
+                  height: isSmallScreen ? "165px" : "165px",
                 }}
               >
                 <Box
@@ -411,8 +425,12 @@ const LogReportPage = () => {
                   <Skeleton
                     variant="rectangular"
                     width={isSmallScreen ? 300 : 150}
-                    height={isSmallScreen ? 25 : 30}
-                    sx={{ mt: !isSmallScreen ? -5.5 : 0 }}
+                    height={isSmallScreen ? 30 : 30}
+                    sx={{
+                      mt: !isSmallScreen ? -5.5 : 1,
+                      border: "1px solid #ccc",
+                      borderRadius: "4px",
+                    }}
                   />
                 </Box>
               </Box>
