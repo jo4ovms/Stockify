@@ -29,6 +29,7 @@ import DashboardCard from "../../../components/shared/DashboardCard.jsx";
 import useSupplier from "../../../hooks/useSupplier";
 import ProductForm from "./ProductForm.jsx";
 import SupplierForm from "./SupplierForm.jsx";
+import Pagination from "../../../components/shared/Pagination.jsx";
 
 const SupplierPage = () => {
   const {
@@ -72,10 +73,9 @@ const SupplierPage = () => {
     loading,
     errorMessage,
     size,
-    handleTargetPageChange,
-    goToSpecificPage,
+
     successMessage,
-    targetPage,
+
     confirmDeleteProduct,
     cancelDeleteProduct,
     handleDeleteProduct,
@@ -356,56 +356,12 @@ const SupplierPage = () => {
             )
           )}
         </Box>
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mt={3}
-        >
-          <Button
-            variant="contained"
-            onClick={() => {
-              setPage((prev) => Math.max(prev - 1, 0));
-              window.scrollTo(0, 0);
-            }}
-            disabled={page === 0}
-          >
-            Página Anterior
-          </Button>
-
-          <Typography>
-            Página {page + 1} de {totalPages} (Total de fornecedores:{" "}
-            {totalItems})
-          </Typography>
-
-          <Button
-            variant="contained"
-            onClick={() => {
-              setPage((prev) => Math.min(prev + 1, totalPages - 1));
-              window.scrollTo(0, 0);
-            }}
-            disabled={page >= totalPages - 1}
-          >
-            Próxima Página
-          </Button>
-        </Box>
-
-        <Box display="flex" alignItems="center" mt={2}>
-          <TextField
-            type="number"
-            label="Ir para página"
-            variant="outlined"
-            value={targetPage}
-            onChange={handleTargetPageChange}
-            sx={{ maxWidth: 100, mr: 1 }}
-            slotProps={{
-              htmlInput: { min: 1, max: totalPages },
-            }}
-          />
-          <Button variant="contained" onClick={goToSpecificPage}>
-            Ir
-          </Button>
-        </Box>
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          onPageChange={setPage}
+        />
       </DashboardCard>
       <SupplierForm
         open={open}
@@ -491,7 +447,7 @@ const SupplierPage = () => {
           </Button>
           <Button
             onClick={confirmDeleteSupplier}
-            color="secondary"
+            color="primary"
             variant="contained"
           >
             Confirmar

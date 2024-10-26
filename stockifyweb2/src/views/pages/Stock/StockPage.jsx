@@ -24,6 +24,7 @@ import { useParams } from "react-router-dom";
 import DashboardCard from "../../../components/shared/DashboardCard.jsx";
 import stockService from "../../../services/stockService";
 import StockForm from "./StockForm.jsx";
+import Pagination from "../../../components/shared/Pagination.jsx";
 
 const StockPage = () => {
   const { id } = useParams();
@@ -220,8 +221,6 @@ const StockPage = () => {
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
-    retrieveStocks(newPage, itemsPerPage);
-    window.scrollTo(0, 0);
   };
 
   const handleItemsPerPageChange = (event) => {
@@ -229,20 +228,6 @@ const StockPage = () => {
     setPage(0);
     setTargetPage(1);
     retrieveStocks(0, event.target.value);
-  };
-
-  const handleTargetPageChange = (event) => {
-    setTargetPage(event.target.value);
-  };
-
-  const goToSpecificPage = () => {
-    const newPage = Math.min(
-      Math.max(parseInt(targetPage, 10) - 1, 0),
-      totalPages - 1
-    );
-    window.scrollTo(0, 0);
-    setPage(newPage);
-    retrieveStocks(newPage, itemsPerPage);
   };
 
   return (
@@ -415,54 +400,12 @@ const StockPage = () => {
           )
         )}
       </Box>
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mt={2}
-      >
-        <Button
-          variant="contained"
-          onClick={() => {
-            handlePageChange(Math.max(page - 1, 0));
-            window.scrollTo(0, 0);
-          }}
-          disabled={page === 0}
-        >
-          Página Anterior
-        </Button>
-
-        <Typography>
-          Página {page + 1} de {totalPages} (Total de itens: {totalItems})
-        </Typography>
-
-        <Button
-          variant="contained"
-          onClick={() => {
-            handlePageChange(Math.min(page + 1, totalPages - 1));
-            window.scrollTo(0, 0);
-          }}
-          disabled={page >= totalPages - 1}
-        >
-          Próxima Página
-        </Button>
-      </Box>
-      <Box display="flex" alignItems="center" mt={2}>
-        <TextField
-          type="number"
-          label="Ir para página"
-          variant="outlined"
-          value={targetPage}
-          onChange={handleTargetPageChange}
-          sx={{ maxWidth: 100, mr: 1 }}
-          slotProps={{
-            htmlInput: { min: 1, max: totalPages },
-          }}
-        />
-        <Button variant="contained" onClick={goToSpecificPage}>
-          Ir
-        </Button>
-      </Box>
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        onPageChange={handlePageChange}
+      />
       <StockForm
         open={open}
         handleClose={() => setOpen(false)}
