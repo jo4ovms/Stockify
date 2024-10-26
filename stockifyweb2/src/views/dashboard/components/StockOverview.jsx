@@ -72,20 +72,41 @@ const StockOverview = () => {
 
   return (
     <DashboardCard
-      title="Visão Geral do Estoque"
-      action={
-        <Fab
-          color="secondary"
-          size="medium"
-          sx={{ color: "#ffffff" }}
-          onClick={() => handleNavigate("/stock")}
+      title={
+        <Box
+          display="flex"
+          alignItems="center"
+          sx={{
+            flexDirection: isSmallScreen ? "row" : "row",
+            justifyContent: isSmallScreen ? "flex-start" : "center",
+            alignItems: isSmallScreen ? "flex-start" : "center",
+            gap: 1,
+            mb: isSmallScreen ? 2 : 0,
+            mt: isSmallScreen ? -2 : 0,
+            ml: isSmallScreen ? -3.5 : 0,
+          }}
         >
-          <IconBox width={24} />
-        </Fab>
+          <Typography variant="h5" fontWeight="700">
+            Visão Geral do Estoque
+          </Typography>
+          <Fab
+            color="secondary"
+            size="medium"
+            sx={{
+              color: "#ffffff",
+              position: "relative",
+              right: isSmallScreen ? -65 : -225,
+              mt: isSmallScreen ? -2 : 0,
+            }}
+            onClick={() => handleNavigate("/stock")}
+          >
+            <IconBox width={24} />
+          </Fab>
+        </Box>
       }
       sx={{
         height: "auto",
-        width: "100%",
+        width: "400px",
         maxWidth: isSmallScreen ? "100%" : "550px",
         minWidth: isSmallScreen ? "100%" : "550px",
         padding: isSmallScreen ? theme.spacing(3.5) : theme.spacing(1),
@@ -102,32 +123,69 @@ const StockOverview = () => {
         }}
       >
         {isLoading ? (
-          <Stack direction="row" spacing={3}>
-            {[...Array(3)].map((_, index) => (
-              <Box
-                key={index}
-                display="flex"
-                flexDirection="column"
-                alignItems="center"
-              >
-                <Skeleton variant="circular" width={40} height={40} />
-                <Skeleton
-                  variant="text"
-                  width={100}
-                  height={20}
-                  sx={{ mt: 1 }}
-                />
-              </Box>
-            ))}
-          </Stack>
-        ) : isError ? (
-          <Typography
-            variant="subtitle1"
-            color="error"
-            sx={{ mt: 2, textAlign: "center" }}
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            width="100%"
+            height={isSmallScreen ? "250px" : "125px"}
           >
-            Falha ao carregar dados do estoque.
-          </Typography>
+            <Skeleton variant="text" width={50} height={30} sx={{ mb: 1 }} />
+            <Skeleton variant="text" width={100} height={20} sx={{ mb: 3 }} />
+
+            <Stack
+              direction={isSmallScreen ? "column" : "row"}
+              spacing={isSmallScreen ? 3 : 4}
+              justifyContent="center"
+              alignItems="center"
+              width="100%"
+            >
+              {[...Array(3)].map((_, index) => (
+                <Box
+                  key={index}
+                  display="flex"
+                  alignItems="center"
+                  sx={{
+                    mb: isSmallScreen ? 2 : 0,
+                  }}
+                >
+                  <Skeleton
+                    variant="circular"
+                    width={40}
+                    height={40}
+                    sx={{ mr: 2 }}
+                  />
+
+                  <Box display="flex" flexDirection="column">
+                    <Skeleton
+                      variant="text"
+                      width={40}
+                      height={20}
+                      sx={{ mb: 0.5 }}
+                    />
+
+                    <Skeleton variant="text" width={80} height={20} />
+                  </Box>
+                </Box>
+              ))}
+            </Stack>
+          </Box>
+        ) : isError ? (
+          <Box height={isSmallScreen ? "250px" : "125px"}>
+            <Typography
+              variant="body2"
+              sx={{
+                mt: 2,
+                ml: isSmallScreen ? 0 : 15,
+                textAlign: "center",
+                justifyContent: "center",
+                display: "flex",
+                fontWeight: "bold",
+              }}
+            >
+              Falha ao carregar dados do estoque.
+            </Typography>
+          </Box>
         ) : (
           <Box>
             <Box
@@ -149,6 +207,7 @@ const StockOverview = () => {
               spacing={isSmallScreen ? 2.5 : 3.5}
               justifyContent="center"
               alignItems="center"
+              display={isSmallScreen ? "inline" : "flex"}
               sx={{ width: "100%" }}
             >
               <OverviewItem

@@ -4,15 +4,6 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import StoreIcon from "@mui/icons-material/Store";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import {
-  Timeline,
-  TimelineItem,
-  TimelineOppositeContent,
-  TimelineSeparator,
-  TimelineDot,
-  TimelineConnector,
-  TimelineContent,
-} from "@mui/lab";
-import {
   Typography,
   Fab,
   Box,
@@ -20,7 +11,6 @@ import {
   Tooltip,
   Skeleton,
   Card,
-  CardContent,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
@@ -31,11 +21,9 @@ import { useNavigate } from "react-router-dom";
 import DashboardCard from "../../../components/shared/DashboardCard.jsx";
 import logService from "../../../services/logService";
 import {
-  operationTranslationMap,
   entityTranslationMap,
   formatTimestamp,
   translateOperation,
-  getDotColor,
   getLogDetails,
 } from "./utils";
 
@@ -91,19 +79,25 @@ const RecentTransactions = () => {
   const renderLogs = useMemo(() => {
     if (isLoading) {
       return (
-        <Box sx={{ mt: 2, p: 2 }}>
-          {Array.from(new Array(4)).map((_, index) => (
+        <Box sx={{ mt: -3.2, p: 2 }}>
+          {Array.from(new Array(5)).map((_, index) => (
             <Box
-              key={index}
+              display="flex"
+              alignItems="center"
               sx={{
-                mb: 2,
-                padding: "10px",
-                width: "100%",
+                flexDirection: "row",
+                gap: 1,
+                mb: 0,
+                height: "105.5px",
+                width: "90%",
               }}
             >
-              <Skeleton variant="text" width="60%" />
-              <Skeleton variant="text" width="40%" />
               <Skeleton variant="circular" width={40} height={40} />
+              <Box sx={{ display: "flex", flexDirection: "column", flex: 1 }}>
+                <Skeleton variant="text" width="80%" />
+                <Skeleton variant="text" width="30%" />
+                <Skeleton variant="text" width="80%" />
+              </Box>
             </Box>
           ))}
         </Box>
@@ -112,11 +106,16 @@ const RecentTransactions = () => {
 
     if (isError || logs.length === 0) {
       return (
-        <Typography variant="body2" sx={{ mt: 2, textAlign: "center" }}>
-          {isError
-            ? "Falha ao carregar atividades recentes."
-            : "Nenhuma atividade recente"}
-        </Typography>
+        <Box sx={{ height: "518px" }}>
+          <Typography
+            variant="body2"
+            sx={{ mt: 2, textAlign: "center", fontWeight: "bold" }}
+          >
+            {isError
+              ? "Falha ao carregar atividades recentes."
+              : "Nenhuma atividade recente"}
+          </Typography>
+        </Box>
       );
     }
 

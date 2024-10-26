@@ -99,18 +99,30 @@ const StockUnderSafety = () => {
     if (isLoading) {
       return (
         <>
-          <Skeleton variant="text" width={200} height={30} />
-          <Grid container spacing={2} sx={{ width: "100%" }}>
-            {[...Array(2)].map((_, index) => (
-              <Grid size={{ xs: 12 }} key={index}>
-                <Skeleton
-                  variant="rectangular"
-                  height={50}
-                  sx={{ borderRadius: "8px", mb: 2 }}
-                />
-              </Grid>
-            ))}
-          </Grid>
+          <Box sx={{ width: "550px" }}>
+            <Skeleton
+              variant="text"
+              width={150}
+              height={40}
+              sx={{ ml: 25, mb: 1 }}
+            />
+            <Grid container spacing={2} sx={{ width: "100%" }}>
+              {[...Array(2)].map((_, index) => (
+                <Grid size={{ xs: 12 }} key={index}>
+                  <Skeleton
+                    variant="rectangular"
+                    width={300}
+                    height={40}
+                    sx={{
+                      borderRadius: "8px",
+                      mb: 2,
+                      ml: isSmallScreen ? 16 : 3.5,
+                    }}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
         </>
       );
     }
@@ -121,9 +133,23 @@ const StockUnderSafety = () => {
           display="flex"
           justifyContent="center"
           alignItems="center"
-          sx={{ width: "100%", padding: 2 }}
+          sx={{
+            width: "550px",
+            padding: 2,
+            height: isSmallScreen ? "175px" : "100%",
+          }}
         >
-          <Typography variant="subtitle1" color="error">
+          <Typography
+            variant="body2"
+            sx={{
+              mt: isSmallScreen ? -1 : 2,
+              ml: 1,
+              textAlign: "center",
+              justifyContent: "center",
+              display: "flex",
+              fontWeight: "bold",
+            }}
+          >
             Falha ao carregar produtos críticos.
           </Typography>
         </Box>
