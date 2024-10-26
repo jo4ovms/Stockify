@@ -76,9 +76,12 @@ public class SupplierController {
    // @Cacheable(value = "suppliers")
     public ResponseEntity<PagedModel<EntityModel<SupplierDTO>>> getAllSuppliers(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Page<SupplierDTO> suppliers = supplierService.findAllSuppliers(page, size);
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search) {
+
+        Page<SupplierDTO> suppliers = supplierService.findAllSuppliers(page, size, search);
         PagedModel<EntityModel<SupplierDTO>> pagedModel = pagedResourcesAssembler.toModel(suppliers);
+
         return ResponseEntity.ok(pagedModel);
     }
 
