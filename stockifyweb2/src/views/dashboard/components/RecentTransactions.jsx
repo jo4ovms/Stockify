@@ -19,6 +19,10 @@ import {
   IconButton,
   Tooltip,
   Skeleton,
+  Card,
+  CardContent,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { IconArrowRight } from "@tabler/icons-react";
 import { useQuery } from "react-query";
@@ -43,6 +47,8 @@ const fetchLogs = async () => {
 
 const RecentTransactions = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const {
     data: logs = [],
     isLoading,
@@ -83,113 +89,107 @@ const RecentTransactions = () => {
   }, [navigate]);
 
   const renderLogs = useMemo(() => {
-    if (logs.length > 0) {
+    if (isLoading) {
       return (
-        <Timeline sx={{ p: 0 }}>
-          {logs.slice(0, 5).map((log, index) => (
-            <TimelineItem
+        <Box sx={{ mt: 2, p: 2 }}>
+          {Array.from(new Array(4)).map((_, index) => (
+            <Box
               key={index}
               sx={{
                 mb: 2,
-                backgroundColor: index === 0 ? "#f9f9f9" : "transparent",
-                borderRadius: "8px",
                 padding: "10px",
-                boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.1)",
+                width: "100%",
               }}
             >
-              <TimelineOppositeContent
-                sx={{
-                  paddingRight: "12px",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                <Typography
-                  color="textSecondary"
-                  variant="body2"
-                  sx={{ fontSize: "12px" }}
-                >
-                  {formatTimestamp(log.timestamp)}
-                </Typography>
-              </TimelineOppositeContent>
-              <TimelineSeparator>
-                <TimelineDot
-                  color={
-                    [
-                      "primary",
-                      "secondary",
-                      "error",
-                      "info",
-                      "success",
-                      "warning",
-                    ].includes(getDotColor(log.entity))
-                      ? getDotColor(log.entity)
-                      : "default"
-                  }
-                  sx={
-                    getDotColor(log.entity) === "default"
-                      ? { borderColor: "grey", borderWidth: 2 }
-                      : {}
-                  }
-                  variant="outlined"
-                />
-                {index < logs.length - 1 && <TimelineConnector />}
-              </TimelineSeparator>
-              <TimelineContent
-                sx={{
-                  paddingLeft: "25px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  maxWidth: "50%",
-                }}
-              >
-                <Box
-                  sx={{
-                    maxWidth: "80%",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  <Typography
-                    variant="subtitle2"
-                    fontWeight="600"
-                    sx={{ overflow: "hidden", textOverflow: "ellipsis" }}
-                  >
-                    {translateEntity(log.entity)}
-                    {log.entity !== "Sale" ? " - " : " Concluída"}
-                    {translateOperation(log.operationType, log.entity)}
-                  </Typography>
-                  <Tooltip title={getLogDetails(log)}>
-                    <Typography
-                      variant="body2"
-                      sx={{ overflow: "hidden", textOverflow: "ellipsis" }}
-                    >
-                      {getLogDetails(log)}
-                    </Typography>
-                  </Tooltip>
-                </Box>
-                <IconButton
-                  color="primary"
-                  aria-label="Ver detalhes"
-                  onClick={() => handleViewReportClick(log.id)}
-                >
-                  {getEntityIcon(log.entity)}
-                </IconButton>
-              </TimelineContent>
-            </TimelineItem>
+              <Skeleton variant="text" width="60%" />
+              <Skeleton variant="text" width="40%" />
+              <Skeleton variant="circular" width={40} height={40} />
+            </Box>
           ))}
-        </Timeline>
+        </Box>
       );
-    } else {
+    }
+
+    if (isError || logs.length === 0) {
       return (
         <Typography variant="body2" sx={{ mt: 2, textAlign: "center" }}>
-          Nenhuma atividade recente
+          {isError
+            ? "Falha ao carregar atividades recentes."
+            : "Nenhuma atividade recente"}
         </Typography>
       );
     }
-  }, [logs, handleViewReportClick]);
+
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: isSmallScreen ? "column" : "row",
+          gap: 2,
+          flexWrap: "wrap",
+        }}
+      >
+        {logs.slice(0, 5).map((log, index) => (
+          <Card
+            key={index}
+            sx={{
+              mb: 1,
+              p: 2,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              width: "100%",
+              maxWidth: isSmallScreen ? "100%" : "650px",
+              borderRadius: "8px",
+              boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.1)",
+              gap: 1,
+            }}
+          >
+            <Box sx={{ minWidth: "24px" }}>{getEntityIcon(log.entity)}</Box>
+
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                flex: 1,
+                overflow: "hidden",
+              }}
+            >
+              <Typography
+                variant="subtitle2"
+                fontWeight="600"
+                sx={{ overflow: "hidden", textOverflow: "ellipsis" }}
+              >
+                {translateEntity(log.entity)}
+                {log.entity !== "Sale" ? " - " : " Concluída"}
+                {translateOperation(log.operationType, log.entity)}
+              </Typography>
+              <Tooltip title={getLogDetails(log)}>
+                <Typography
+                  variant="body2"
+                  sx={{ overflow: "hidden", textOverflow: "ellipsis" }}
+                >
+                  {getLogDetails(log)}
+                </Typography>
+              </Tooltip>
+              <Typography variant="body2" color="textSecondary">
+                {formatTimestamp(log.timestamp)}
+              </Typography>
+            </Box>
+
+            <IconButton
+              color="primary"
+              aria-label="Ver detalhes"
+              onClick={() => handleViewReportClick(log.id)}
+              sx={{ marginLeft: "auto" }}
+            >
+              <IconArrowRight width={24} />
+            </IconButton>
+          </Card>
+        ))}
+      </Box>
+    );
+  }, [logs, isLoading, isError, isSmallScreen, handleViewReportClick]);
 
   return (
     <DashboardCard
@@ -204,45 +204,19 @@ const RecentTransactions = () => {
           <IconArrowRight width={24} />
         </Fab>
       }
-      sx={{
-        height: "600px",
-        width: "100%",
-        overflow: "hidden",
-      }}
+      sx={{ height: "auto", width: "100%", overflow: "hidden" }}
     >
       <Box
         sx={{
           height: "100%",
           overflowY: "auto",
+          overflowX: "hidden",
           scrollbarWidth: "none",
           msOverflowStyle: "none",
           "&:hover": { overflowY: "scroll" },
         }}
       >
-        {isLoading ? (
-          <Box sx={{ mt: 2, p: 2 }}>
-            {Array.from(new Array(4)).map((_, index) => (
-              <Box
-                key={index}
-                sx={{
-                  mb: 2,
-                  padding: "10px",
-                  width: "100%",
-                }}
-              >
-                <Skeleton variant="text" width="60%" />
-                <Skeleton variant="text" width="40%" />
-                <Skeleton variant="circular" width={40} height={40} />
-              </Box>
-            ))}
-          </Box>
-        ) : isError ? (
-          <Typography variant="subtitle1" sx={{ textAlign: "center", mr: 12 }}>
-            Falha ao carregar atividades recentes.
-          </Typography>
-        ) : (
-          renderLogs
-        )}
+        {renderLogs}
       </Box>
     </DashboardCard>
   );

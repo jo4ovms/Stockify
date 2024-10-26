@@ -1,5 +1,13 @@
-import { Typography, Avatar, Fab, Box, Paper, Skeleton } from "@mui/material";
-
+import {
+  Typography,
+  Avatar,
+  Fab,
+  Box,
+  Paper,
+  Skeleton,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { IconAlertTriangle } from "@tabler/icons-react";
 import { useQuery } from "react-query";
@@ -28,48 +36,47 @@ const fetchCriticalStock = async () => {
   }
 };
 
-const ProductItem = ({ product, handleClick }) => {
-  return (
-    <Grid
-      size={{ xs: 12 }}
-      key={product.id}
-      onClick={() => handleClick(product.id)}
+const ProductItem = ({ product, handleClick }) => (
+  <Grid
+    size={{ xs: 12 }}
+    onClick={() => handleClick(product.id)}
+    sx={{
+      cursor: "pointer",
+      padding: 1,
+      borderRadius: "8px",
+      "&:hover": { backgroundColor: "#f9f9f9" },
+    }}
+  >
+    <Paper
+      elevation={2}
       sx={{
-        cursor: "pointer",
-        padding: 1,
+        padding: 1.5,
         borderRadius: "8px",
-        "&:hover": { backgroundColor: "#f0f0f0" },
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        backgroundColor: "#fff",
       }}
     >
-      <Paper
-        elevation={2}
-        sx={{
-          padding: 1,
-          borderRadius: "8px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          backgroundColor: "#fff",
-        }}
-      >
-        <Box display="flex" alignItems="center">
-          <Avatar sx={{ bgcolor: "#fdede8", width: 25, height: 25, mr: 1 }}>
-            <IconAlertTriangle width={18} color="#d32f2f" />
-          </Avatar>
-          <Typography variant="subtitle2" fontWeight="500">
-            {product.productName}
-          </Typography>
-        </Box>
-        <Typography variant="subtitle2" color="error">
-          Quantidade: {product.quantity}
+      <Box display="flex" alignItems="center">
+        <Avatar sx={{ bgcolor: "#fdede8", width: 25, height: 25, mr: 1 }}>
+          <IconAlertTriangle width={18} color="#d32f2f" />
+        </Avatar>
+        <Typography variant="subtitle2" fontWeight="500">
+          {product.productName}
         </Typography>
-      </Paper>
-    </Grid>
-  );
-};
+      </Box>
+      <Typography variant="subtitle2" color="error">
+        Quantidade: {product.quantity}
+      </Typography>
+    </Paper>
+  </Grid>
+);
 
 const StockUnderSafety = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const { data, isLoading, isError } = useQuery(
     "criticalStock",
     fetchCriticalStock,
@@ -92,13 +99,13 @@ const StockUnderSafety = () => {
     if (isLoading) {
       return (
         <>
-          <Skeleton variant="text" width={500} height={40} />
+          <Skeleton variant="text" width={200} height={30} />
           <Grid container spacing={2} sx={{ width: "100%" }}>
             {[...Array(2)].map((_, index) => (
               <Grid size={{ xs: 12 }} key={index}>
                 <Skeleton
                   variant="rectangular"
-                  height={40}
+                  height={50}
                   sx={{ borderRadius: "8px", mb: 2 }}
                 />
               </Grid>
@@ -114,7 +121,7 @@ const StockUnderSafety = () => {
           display="flex"
           justifyContent="center"
           alignItems="center"
-          sx={{ width: "100%", minWidth: "500px", padding: 2 }}
+          sx={{ width: "100%", padding: 2 }}
         >
           <Typography variant="subtitle1" color="error">
             Falha ao carregar produtos críticos.
@@ -125,7 +132,7 @@ const StockUnderSafety = () => {
 
     return (
       <>
-        <Typography variant="h5" fontWeight="600" mb={0} mt={-2}>
+        <Typography variant="h5" fontWeight="600" mb={1}>
           {data.totalCriticalProducts} produtos críticos
         </Typography>
         <Grid container spacing={2} sx={{ width: "100%" }}>
@@ -138,9 +145,9 @@ const StockUnderSafety = () => {
               width="85%"
             >
               <Typography
-                variant="h7"
+                variant="subtitle1"
                 color="textSecondary"
-                sx={{ ml: 10, mt: 3, textAlign: "center" }}
+                sx={{ mt: 3, textAlign: "center" }}
               >
                 Nenhum produto abaixo da quantidade crítica.
               </Typography>
@@ -174,15 +181,19 @@ const StockUnderSafety = () => {
           <IconAlertTriangle width={24} />
         </Fab>
       }
-      sx={{ width: "125%", height: "270px", maxWidth: "600px" }}
+      sx={{
+        width: isSmallScreen ? "150%" : "120%",
+        height: isSmallScreen ? "100%" : "300px",
+        minWidth: isSmallScreen ? "100%" : "124%",
+        maxWidth: isSmallScreen ? "100%" : "130%",
+      }}
     >
       <Box
         display="flex"
         flexDirection="column"
         alignItems="center"
         justifyContent="center"
-        height="100%"
-        sx={{ width: "100%" }}
+        sx={{ width: "100%", padding: 0 }}
       >
         {renderContent}
       </Box>
