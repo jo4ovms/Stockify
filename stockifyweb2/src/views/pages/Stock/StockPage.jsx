@@ -25,6 +25,7 @@ import DashboardCard from "../../../components/shared/DashboardCard.jsx";
 import stockService from "../../../services/stockService";
 import StockForm from "./StockForm.jsx";
 import Pagination from "../../../components/shared/Pagination.jsx";
+import SupplierFilter from "../../../components/shared/SupplierFilter.jsx";
 
 const StockPage = () => {
   const { id } = useParams();
@@ -259,25 +260,10 @@ const StockPage = () => {
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <FormControl fullWidth>
-              <InputLabel id="filter-supplier-label">Fornecedor</InputLabel>
-              <Select
-                labelId="filter-supplier-label"
-                id="filter-supplier"
-                value={selectedSupplier}
-                label="Fornecedor"
-                onChange={(e) => setSelectedSupplier(e.target.value)}
-              >
-                <MenuItem value="">
-                  <em>Todos</em>
-                </MenuItem>
-                {suppliers.map((supplier) => (
-                  <MenuItem key={supplier.id} value={supplier.id}>
-                    {supplier.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <SupplierFilter
+              value={selectedSupplier}
+              onChange={(newSupplierId) => setSelectedSupplier(newSupplierId)}
+            />
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>

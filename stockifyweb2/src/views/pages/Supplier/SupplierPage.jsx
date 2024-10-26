@@ -73,9 +73,10 @@ const SupplierPage = () => {
     loading,
     errorMessage,
     size,
-
+    handleTargetPageChange,
+    goToSpecificPage,
     successMessage,
-
+    targetPage,
     confirmDeleteProduct,
     cancelDeleteProduct,
     handleDeleteProduct,

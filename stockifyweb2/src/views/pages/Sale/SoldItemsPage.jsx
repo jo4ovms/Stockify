@@ -3,22 +3,21 @@ import {
   Box,
   Button,
   Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   TextField,
   Skeleton,
   Snackbar,
+  Autocomplete,
+  CircularProgress,
 } from "@mui/material";
+import { debounce } from "lodash";
 import Grid from "@mui/material/Grid2";
 import { IconSortAscending, IconSortDescending } from "@tabler/icons-react";
-import { debounce } from "lodash";
 import { useState, useEffect, useCallback } from "react";
 import PageContainer from "../../../components/container/PageContainer.jsx";
 import DashboardCard from "../../../components/shared/DashboardCard.jsx";
 import saleService from "../../../services/saleService";
-import stockService from "../../../services/stockService";
+import Pagination from "../../../components/shared/Pagination.jsx";
+import SupplierFilter from "../../../components/shared/SupplierFilter.jsx";
 
 let debounceTimeout = null;
 const SoldItemsPage = () => {
@@ -26,6 +25,7 @@ const SoldItemsPage = () => {
   const [size] = useState(10);
   const [soldItems, setSoldItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
   const [query, setQuery] = useState("");
   const [suppliers, setSuppliers] = useState([]);
@@ -34,12 +34,19 @@ const SoldItemsPage = () => {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [totalItems, setTotalItems] = useState(0);
+  const [searchInput, setSearchInput] = useState("");
 
-  const debouncedSetQuery = debounce((value) => {
-    setQuery(value);
-  }, 500);
+  const debouncedFetchSoldItems = useCallback(
+    debounce((newQuery) => {
+      setPage(0);
+      setQuery(newQuery);
+    }, 300),
+    []
+  );
+
   const fetchSoldItems = useCallback(
-    (currentPage) => {
+    (currentPage, append = false) => {
       if (debounceTimeout) clearTimeout(debounceTimeout);
       setLoading(true);
       debounceTimeout = setTimeout(() => {
@@ -54,8 +61,12 @@ const SoldItemsPage = () => {
             endDate
           )
           .then((response) => {
-            setSoldItems(response.content || []);
+            const fetchedItems = response.content || [];
+            setSoldItems((prev) =>
+              append ? [...prev, ...fetchedItems] : fetchedItems
+            );
             setTotalPages(response.totalPages || 1);
+            setTotalItems(response.totalElements || 0);
             setLoading(false);
           })
           .catch(() => {
@@ -69,37 +80,20 @@ const SoldItemsPage = () => {
     [query, size, sortDirection, supplierId, startDate, endDate]
   );
 
-  const retrieveSuppliers = useCallback(() => {
-    stockService
-      .getAllWithoutPagination()
-      .then((response) => {
-        setSuppliers(response.data);
-      })
-      .catch(() => setSuppliers([]));
-  }, []);
-
   useEffect(() => {
-    retrieveSuppliers();
     fetchSoldItems(page);
   }, [page, query, sortDirection, supplierId, startDate, endDate]);
 
   const handleInputChange = (setter) => (event) => {
     const value = event.target.value;
-
-    if (setter === setQuery) {
-      debouncedSetQuery(value);
-    } else {
-      setter(value);
-    }
+    setter(value);
     setPage(0);
   };
 
-  const handleNextPage = () => {
-    if (page < totalPages - 1) setPage(page + 1);
-  };
-
-  const handlePreviousPage = () => {
-    if (page > 0) setPage(page - 1);
+  const handleQueryChange = (event) => {
+    const value = event.target.value;
+    setSearchInput(value);
+    debouncedFetchSoldItems(value);
   };
 
   const toggleSortDirection = () => {
@@ -127,34 +121,21 @@ const SoldItemsPage = () => {
             <TextField
               label="Pesquise por Produtos..."
               variant="outlined"
-              value={query}
-              onChange={handleInputChange(setQuery)}
+              value={searchInput}
+              onChange={handleQueryChange}
               fullWidth
               disabled={loading}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
-            <FormControl fullWidth>
-              <InputLabel>Fornecedor</InputLabel>
-              <Select
-                value={supplierId || ""}
-                onChange={(e) => setSupplierId(e.target.value || null)}
-                disabled={loading}
-              >
-                <MenuItem value="">
-                  <em>Todos Fornecedores</em>
-                </MenuItem>
-                {suppliers.length === 0 ? (
-                  <MenuItem disabled>Nenhum fornecedor disponível </MenuItem>
-                ) : (
-                  suppliers.map((supplier) => (
-                    <MenuItem key={supplier.id} value={supplier.id}>
-                      {supplier.name}
-                    </MenuItem>
-                  ))
-                )}
-              </Select>
-            </FormControl>
+            <SupplierFilter
+              value={supplierId}
+              onChange={(newSupplierId) => {
+                if (newSupplierId !== supplierId) {
+                  setSupplierId(newSupplierId);
+                }
+              }}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <TextField
@@ -233,10 +214,9 @@ const SoldItemsPage = () => {
                   }}
                 >
                   <Box display="flex" alignItems="center">
-                    <Skeleton variant="circular" width={27} height={27} />
                     <Skeleton variant="text" width={150} sx={{ ml: 2 }} />
                   </Box>
-                  <Skeleton variant="rectangular" width={80} height={27} />
+                  <Skeleton variant="text" width={80} height={27} />
                 </Box>
               </Grid>
             ))}
@@ -275,30 +255,12 @@ const SoldItemsPage = () => {
           </Grid>
         )}
 
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          mt={2}
-          alignItems="center"
-        >
-          <Button
-            variant="contained"
-            onClick={handlePreviousPage}
-            disabled={page === 0 || loading}
-          >
-            Página Anterior
-          </Button>
-          <Typography>
-            Página {page + 1} de {totalPages}
-          </Typography>
-          <Button
-            variant="contained"
-            onClick={handleNextPage}
-            disabled={page >= totalPages - 1 || loading}
-          >
-            Próxima Página
-          </Button>
-        </Box>
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          onPageChange={setPage}
+        />
       </DashboardCard>
       <Snackbar
         open={!!errorMessage}

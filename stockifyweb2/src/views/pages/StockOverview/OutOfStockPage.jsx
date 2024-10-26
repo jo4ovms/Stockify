@@ -23,7 +23,8 @@ import PageContainer from "../../../components/container/PageContainer.jsx";
 import DashboardCard from "../../../components/shared/DashboardCard.jsx";
 import stockOverviewService from "../../../services/stockOverviewService";
 import stockService from "../../../services/stockService";
-
+import Pagination from "../../../components/shared/Pagination.jsx";
+import SupplierFilter from "../../../components/shared/SupplierFilter.jsx";
 const OutOfStockPage = () => {
   const [page, setPage] = useState(0);
   const [suppliers, setSuppliers] = useState([]);
@@ -34,6 +35,7 @@ const OutOfStockPage = () => {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [supplierId, setSupplierId] = useState(null);
+  const [totalItems, setTotalItems] = useState(0);
   let debounceTimeout = useRef(null);
 
   const getSupplierName = () => {
@@ -63,6 +65,7 @@ const OutOfStockPage = () => {
             const productData = response.data._embedded?.stockDTOList || [];
             setProducts(productData);
             setTotalPages(response.data.page.totalPages);
+            setTotalItems(response.data.page.totalElements);
             setLoading(false);
           })
           .catch((error) => {
@@ -93,18 +96,6 @@ const OutOfStockPage = () => {
     retrieveSuppliers();
   }, [retrieveSuppliers]);
 
-  const handleNextPage = () => {
-    if (page < totalPages - 1) {
-      setPage(page + 1);
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (page > 0) {
-      setPage(page - 1);
-    }
-  };
-
   const handleProductClick = (productId) => {
     navigate(`/stock/${productId}/edit`);
   };
@@ -126,22 +117,10 @@ const OutOfStockPage = () => {
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 4 }}>
-            <FormControl fullWidth>
-              <InputLabel>Fornecedor</InputLabel>
-              <Select
-                value={supplierId || ""}
-                onChange={(e) => setSupplierId(e.target.value || null)}
-              >
-                <MenuItem value="">
-                  <em>Todos os Fornecedores</em>
-                </MenuItem>
-                {suppliers.map((supplier) => (
-                  <MenuItem key={supplier.id} value={supplier.id}>
-                    {supplier.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <SupplierFilter
+              value={supplierId}
+              onChange={(newSupplierId) => setSupplierId(newSupplierId)}
+            />
           </Grid>
         </Grid>
 
@@ -232,22 +211,12 @@ const OutOfStockPage = () => {
             )}
           </Grid>
         )}
-        <Box display="flex" justifyContent="space-between" mt={2}>
-          <Button
-            variant="contained"
-            onClick={handlePreviousPage}
-            disabled={page === 0}
-          >
-            Página Anterior
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleNextPage}
-            disabled={page >= totalPages - 1}
-          >
-            Próxima Página
-          </Button>
-        </Box>
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          onPageChange={setPage}
+        />
       </DashboardCard>
     </PageContainer>
   );
