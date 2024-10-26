@@ -8,7 +8,6 @@ import {
   TableBody,
   TableCell,
   Card,
-  CardContent,
   Skeleton,
   useMediaQuery,
   useTheme,
@@ -43,18 +42,24 @@ const BestSellingItems = ({ sx }) => {
   const renderContent = useMemo(() => {
     if (isLoading) {
       return (
-        <Box sx={{ mt: 2, p: 2 }}>
-          {Array.from(new Array(6)).map((_, index) => (
+        <Box sx={{ mt: -5, p: 2 }}>
+          {Array.from(new Array(8)).map((_, index) => (
             <Box
               key={index}
+              display="flex"
+              alignItems="center"
+              justifyContent="space-between"
               sx={{
-                mb: 2,
-                padding: "10px",
+                flexDirection: "row",
+                gap: 1,
+                mb: -5,
+                height: "105.5px",
                 width: "100%",
               }}
             >
-              <Skeleton variant="text" width="80%" height={30} />
-              <Skeleton variant="text" width="60%" height={30} />
+              <Skeleton variant="text" width="45%" />
+
+              <Skeleton variant="text" width="10%" />
             </Box>
           ))}
         </Box>
@@ -63,7 +68,10 @@ const BestSellingItems = ({ sx }) => {
 
     if (isError || bestSellingItems.length === 0) {
       return (
-        <Typography variant="body2" sx={{ mt: 2, textAlign: "center" }}>
+        <Typography
+          variant="body2"
+          sx={{ mt: 2, textAlign: "center", fontWeight: "bold" }}
+        >
           {isError
             ? "Falha ao carregar produtos mais vendidos."
             : "Nenhum Produto Vendido."}

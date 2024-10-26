@@ -10,7 +10,6 @@ import StockUnderSafety from "./components/StockUnderSafety.jsx";
 const Dashboard = () => {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
-  const isMediumScreen = useMediaQuery(theme.breakpoints.between("sm", "md"));
 
   return (
     <PageContainer title="Dashboard" description="this is Dashboard">
