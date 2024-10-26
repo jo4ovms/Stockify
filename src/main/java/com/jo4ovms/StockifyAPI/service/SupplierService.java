@@ -105,9 +105,15 @@ public class SupplierService {
 
 
     //@Cacheable(value = "suppliers", key = "#page + '-' + #size")
-    public Page<SupplierDTO> findAllSuppliers(int page, int size) {
+    public Page<SupplierDTO> findAllSuppliers(int page, int size, String search) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Supplier> suppliers = supplierRepository.findAll(pageable);
+        Page<Supplier> suppliers;
+        if (search != null && !search.isEmpty()) {
+            suppliers = supplierRepository.findByNameContainingIgnoreCase(search, pageable);
+        } else {
+            suppliers = supplierRepository.findAll(pageable);
+        }
+
         return suppliers.map(supplierMapper::toSupplierDTO);
     }
 
