@@ -68,14 +68,16 @@ const BestSellingItems = ({ sx }) => {
 
     if (isError || bestSellingItems.length === 0) {
       return (
-        <Typography
-          variant="body2"
-          sx={{ mt: 2, textAlign: "center", fontWeight: "bold" }}
-        >
-          {isError
-            ? "Falha ao carregar produtos mais vendidos."
-            : "Nenhum Produto Vendido."}
-        </Typography>
+        <Box sx={{ height: "255.5px" }}>
+          <Typography
+            variant="body2"
+            sx={{ mt: 2, textAlign: "center", fontWeight: "bold" }}
+          >
+            {isError
+              ? "Falha ao carregar produtos mais vendidos."
+              : "Nenhum Produto Vendido."}
+          </Typography>
+        </Box>
       );
     }
 
