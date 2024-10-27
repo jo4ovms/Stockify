@@ -28,6 +28,10 @@ export const keyTranslationMap = {
   stockId: "ID do Estoque",
   stockValueAtSale: "Valor Unitário",
 };
+export const isAuthenticated = () => {
+  const user = JSON.parse(localStorage.getItem("user"));
+  return user && user.accessToken;
+};
 
 export const formatTimestamp = (timestamp) => {
   return new Date(timestamp).toLocaleString("pt-BR", {
