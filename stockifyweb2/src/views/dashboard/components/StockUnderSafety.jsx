@@ -116,7 +116,7 @@ const StockUnderSafety = () => {
                     sx={{
                       borderRadius: "8px",
                       mb: 2,
-                      ml: isSmallScreen ? 16 : 3.5,
+                      ml: isSmallScreen ? 16 : 15,
                     }}
                   />
                 </Grid>
