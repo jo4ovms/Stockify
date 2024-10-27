@@ -1,7 +1,7 @@
 package com.jo4ovms.StockifyAPI.service.stock;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jo4ovms.StockifyAPI.exception.ResourceNotFoundException;
+import com.jo4ovms.StockifyAPI.exception.ValidationException;
 import com.jo4ovms.StockifyAPI.mapper.StockMapper;
 import com.jo4ovms.StockifyAPI.model.DTO.LogDTO;
 import com.jo4ovms.StockifyAPI.model.DTO.StockDTO;
@@ -31,7 +31,6 @@ import java.util.function.Consumer;
 @Service
 public class StockService {
 
-
     private final StockRepository stockRepository;
     private final LogUtils logUtils;
     private final ProductRepository productRepository;
@@ -45,9 +44,8 @@ public class StockService {
         this.productRepository = productRepository;
         this.stockMapper = stockMapper;
         this.logService = logService;
-
-
     }
+
     private <T> boolean updateField(Stock stock, T newValue, T currentValue, Consumer<T> setter) {
         if (!Objects.equals(newValue, currentValue)) {
             setter.accept(newValue);
@@ -56,11 +54,17 @@ public class StockService {
         return false;
     }
 
-   // @CacheEvict(value = "stocks", allEntries = true)
    @Transactional
    public StockDTO createStock(StockDTO stockDTO) {
        Product product = productRepository.findById(stockDTO.getProductId())
                .orElseThrow(() -> new ResourceNotFoundException("Product with id " + stockDTO.getProductId() + " not found"));
+
+       if (product.getQuantity() < stockDTO.getQuantity()) {
+           throw new ValidationException("Insufficient product quantity. Available: " + product.getQuantity());
+       }
+
+       product.setQuantity(product.getQuantity() - stockDTO.getQuantity());
+       productRepository.save(product);
 
        Stock stock = stockMapper.toStock(stockDTO);
        stock.setProduct(product);
@@ -76,7 +80,6 @@ public class StockService {
        return stockMapper.toStockDTO(savedStock);
    }
 
-   // @CacheEvict(value = "stocks", allEntries = true)
    @Transactional
    public StockDTO updateStock(Long id, StockDTO stockDTO) {
        Stock stock = stockRepository.findById(id)
@@ -87,6 +90,14 @@ public class StockService {
 
        StockDTO oldStockDTO = stockMapper.toStockDTO(stock);
 
+       int quantityDifference = stockDTO.getQuantity() - stock.getQuantity();
+
+       if (quantityDifference > 0 && product.getQuantity() < quantityDifference) {
+           throw new ValidationException("Insufficient product quantity. " + quantityDifference + ".");
+       }
+
+       product.setQuantity(product.getQuantity() - quantityDifference);
+       productRepository.save(product);
 
        boolean hasChanges = false;
        hasChanges |= updateField(stock, stockDTO.getQuantity(), stock.getQuantity(), stock::setQuantity);
@@ -100,7 +111,6 @@ public class StockService {
        }
 
        Stock updatedStock = stockRepository.save(stock);
-
 
        LogDTO logDTO = new LogDTO();
        logDTO.setTimestamp(LocalDateTime.now());
@@ -118,7 +128,6 @@ public class StockService {
         });
     }
 
-   // @Cacheable(value = "stocks", key = "#id")
    public StockDTO getStockById(Long id) {
        Stock stock = stockRepository.findById(id)
                .orElseThrow(() -> new ResourceNotFoundException("Stock with id " + id + " not found"));
@@ -129,8 +138,7 @@ public class StockService {
        return stockDTO;
    }
 
-   // @CacheEvict(value = "stocks", allEntries = true)
-    @Transactional
+   @Transactional
    public void deleteStock(Long id) {
        Stock stock = stockRepository.findById(id)
                .orElseThrow(() -> new ResourceNotFoundException("Stock with id " + id + " not found"));
