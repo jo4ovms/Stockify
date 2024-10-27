@@ -22,6 +22,12 @@ import PageContainer from "../../../components/container/PageContainer.jsx";
 import DashboardCard from "../../../components/shared/DashboardCard.jsx";
 import Pagination from "../../../components/shared/Pagination.jsx";
 import logService from "../../../services/logService";
+import {
+  formatTimestamp,
+  keyTranslationMap,
+  operationTranslationMap,
+  entityTranslationMap,
+} from "../../dashboard/components/utils.js";
 
 const tryParseJSON = (str) => {
   try {
@@ -29,37 +35,6 @@ const tryParseJSON = (str) => {
   } catch {
     return null;
   }
-};
-
-const operationTranslationMap = {
-  CREATE: "Criação",
-  UPDATE: "Atualização",
-  DELETE: "Exclusão",
-};
-
-const keyTranslationMap = {
-  name: "Nome",
-  value: "Valor",
-  supplierId: "ID do Fornecedor",
-  supplierName: "Fornecedor",
-  quantity: "Quantidade",
-  id: "ID",
-  phone: "Telefone",
-  email: "Email",
-  productType: "Tipo de Produto",
-  cnpj: "CNPJ",
-  available: "Disponível",
-  productName: "Nome do Produto",
-  productId: "ID do Produto",
-  stockId: "ID do Estoque",
-  stockValueAtSale: "Valor Unitário",
-};
-
-const entityTranslationMap = {
-  Supplier: "Fornecedor",
-  Product: "Produto",
-  Stock: "Estoque",
-  Sale: "Venda",
 };
 
 const formatCurrency = (value) => {
@@ -503,13 +478,7 @@ const LogReportPage = () => {
                   textOverflow: "ellipsis",
                 }}
               >
-                {new Date(log.timestamp).toLocaleString("pt-BR", {
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {formatTimestamp(log.timestamp)}
               </Typography>
               <Typography
                 variant="body2"
