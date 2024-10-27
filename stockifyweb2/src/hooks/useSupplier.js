@@ -59,68 +59,6 @@ const useSupplier = () => {
   const [allProductTypes, setAllProductTypes] = useState([]);
   const [targetPage, setTargetPage] = useState(page + 1);
 
-  const handleTargetPageChange = (event) => {
-    setTargetPage(event.target.value);
-  };
-
-  const goToSpecificPage = () => {
-    const newPage = Math.min(
-      Math.max(parseInt(targetPage, 10) - 1, 0),
-      totalPages - 1
-    );
-    window.scrollTo(0, 0);
-    setPage(newPage);
-  };
-
-  const scrollToProductListTop = (supplierId) => {
-    const interval = setInterval(() => {
-      if (productListRef.current[supplierId]) {
-        const offsetTop = productListRef.current[supplierId].offsetTop;
-        window.scrollTo({
-          top: offsetTop - 60,
-          behavior: "smooth",
-        });
-        clearInterval(interval);
-      }
-    }, 100);
-  };
-
-  useEffect(() => {
-    getAllProductTypes();
-  }, []);
-
-  const getAllProductTypes = () => {
-    supplierService
-      .getAllProductTypes()
-      .then((response) => {
-        setAllProductTypes(["", ...response.data]);
-      })
-      .catch(console.log);
-  };
-
-  const updateProductTypes = (newType) => {
-    setAllProductTypes((prevTypes) => {
-      if (newType && !prevTypes.includes(newType)) {
-        return [...prevTypes, newType];
-      }
-      return prevTypes;
-    });
-  };
-
-  const removeProductType = (typeToRemove) => {
-    setAllProductTypes((prevTypes) =>
-      prevTypes.filter((type) => type !== typeToRemove)
-    );
-  };
-
-  useEffect(() => {
-    retrieveSuppliers(page, size);
-  }, [page, size, searchTerm, filterProductType]);
-
-  useEffect(() => {
-    setVisibleProducts({});
-  }, [page]);
-
   const retrieveSuppliers = useCallback(
     (pageNumber = 0, newSize = size) => {
       if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
@@ -165,6 +103,58 @@ const useSupplier = () => {
     },
     [sortBy, sortDirection, searchTerm, filterProductType]
   );
+
+  const handleTargetPageChange = (event) => {
+    setTargetPage(event.target.value);
+  };
+
+  const goToSpecificPage = () => {
+    const newPage = Math.min(
+      Math.max(parseInt(targetPage, 10) - 1, 0),
+      totalPages - 1
+    );
+    window.scrollTo(0, 0);
+    setPage(newPage);
+  };
+
+  const scrollToProductListTop = (supplierId) => {
+    const interval = setInterval(() => {
+      if (productListRef.current[supplierId]) {
+        const offsetTop = productListRef.current[supplierId].offsetTop;
+        window.scrollTo({
+          top: offsetTop - 60,
+          behavior: "smooth",
+        });
+        clearInterval(interval);
+      }
+    }, 100);
+  };
+
+  useEffect(() => {
+    getAllProductTypes();
+  }, []);
+
+  const refreshProductTypesAndSuppliers = useCallback(() => {
+    getAllProductTypes();
+    retrieveSuppliers();
+  }, [retrieveSuppliers]);
+
+  const getAllProductTypes = useCallback(() => {
+    supplierService
+      .getAllProductTypes()
+      .then((response) => {
+        setAllProductTypes(["", ...response.data]);
+      })
+      .catch(console.log);
+  }, []);
+
+  useEffect(() => {
+    retrieveSuppliers(page, size);
+  }, [page, size, searchTerm, filterProductType, retrieveSuppliers]);
+
+  useEffect(() => {
+    setVisibleProducts({});
+  }, [page]);
 
   const retrieveProducts = (supplier, page = 0, size = 10) => {
     productService
@@ -342,7 +332,7 @@ const useSupplier = () => {
           setSuccessMessage(
             `Fornecedor ${updatedSupplier.name} atualizado com sucesso.`
           );
-          retrieveSuppliers();
+          refreshProductTypesAndSuppliers();
         })
         .catch((error) => {
           console.error("Error updating supplier:", error.response?.data);
@@ -358,7 +348,7 @@ const useSupplier = () => {
           setSuccessMessage(
             `Fornecedor ${createdSupplier.name} criado com sucesso.`
           );
-          retrieveSuppliers();
+          refreshProductTypesAndSuppliers();
         })
         .catch((error) => {
           console.error("Error creating supplier:", error.response?.data);

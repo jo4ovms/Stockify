@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Autocomplete, TextField, CircularProgress } from "@mui/material";
 import { debounce } from "lodash";
+import PropTypes from "prop-types";
+import { useState, useEffect, useCallback, useRef } from "react";
 import supplierService from "../../services/supplier.service";
 
 const SupplierFilter = ({ value, onChange }) => {
   const [suppliers, setSuppliers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const hasMoreSuppliers = useRef(true);
   const suppliersPage = useRef(0);
@@ -124,5 +125,8 @@ const SupplierFilter = ({ value, onChange }) => {
     />
   );
 };
-
+SupplierFilter.propTypes = {
+  value: PropTypes.number,
+  onChange: PropTypes.func.isRequired,
+};
 export default SupplierFilter;

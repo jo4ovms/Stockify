@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import { styled } from "@mui/material";
 import { Link } from "react-router-dom";
 import LogoDark from "../../../../assets/logos/dark-logo.svg?react";

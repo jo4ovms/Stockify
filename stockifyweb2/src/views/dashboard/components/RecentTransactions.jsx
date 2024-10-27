@@ -15,8 +15,8 @@ import {
   useTheme,
 } from "@mui/material";
 import { IconArrowRight } from "@tabler/icons-react";
-import { useQuery } from "react-query";
 import { useCallback, useMemo } from "react";
+import { useQuery } from "react-query";
 import { useNavigate } from "react-router-dom";
 import DashboardCard from "../../../components/shared/DashboardCard.jsx";
 import logService from "../../../services/logService";
@@ -80,8 +80,9 @@ const RecentTransactions = () => {
     if (isLoading) {
       return (
         <Box sx={{ mt: -3.2, p: 2 }}>
-          {Array.from(new Array(5)).map((_, index) => (
+          {Array.from(new Array(5)).map((_, i) => (
             <Box
+              key={i}
               display="flex"
               alignItems="center"
               sx={{

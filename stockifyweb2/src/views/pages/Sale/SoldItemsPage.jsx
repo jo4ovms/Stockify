@@ -6,18 +6,16 @@ import {
   TextField,
   Skeleton,
   Snackbar,
-  Autocomplete,
-  CircularProgress,
 } from "@mui/material";
-import { debounce } from "lodash";
 import Grid from "@mui/material/Grid2";
 import { IconSortAscending, IconSortDescending } from "@tabler/icons-react";
+import { debounce } from "lodash";
 import { useState, useEffect, useCallback } from "react";
 import PageContainer from "../../../components/container/PageContainer.jsx";
 import DashboardCard from "../../../components/shared/DashboardCard.jsx";
-import saleService from "../../../services/saleService";
 import Pagination from "../../../components/shared/Pagination.jsx";
 import SupplierFilter from "../../../components/shared/SupplierFilter.jsx";
+import saleService from "../../../services/saleService";
 
 let debounceTimeout = null;
 const SoldItemsPage = () => {
@@ -25,10 +23,8 @@ const SoldItemsPage = () => {
   const [size] = useState(10);
   const [soldItems, setSoldItems] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
   const [query, setQuery] = useState("");
-  const [suppliers, setSuppliers] = useState([]);
   const [supplierId, setSupplierId] = useState(null);
   const [sortDirection, setSortDirection] = useState("desc");
   const [startDate, setStartDate] = useState(null);

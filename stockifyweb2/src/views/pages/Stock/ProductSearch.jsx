@@ -14,7 +14,7 @@ const ProductSearch = ({
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [scrollPosition, setScrollPosition] = useState(0);
+  const [, setScrollPosition] = useState(0);
   const listboxRef = useRef(null);
 
   const fetchProducts = async (search = "", newPage = 0) => {
@@ -68,6 +68,7 @@ const ProductSearch = ({
         getOptionLabel={(option) => `${option.name} - ${option.supplierName}`}
         isOptionEqualToValue={(option, value) => option.id === value.id}
         value={selectedProduct}
+        noOptionsText="Nenhum produto encontrado."
         onInputChange={(e, newInputValue) => {
           setSearchTerm(newInputValue);
           setPage(0);
@@ -116,6 +117,10 @@ ProductSearch.propTypes = {
   setSelectedProduct: PropTypes.func.isRequired,
   setStock: PropTypes.func.isRequired,
   selectedProduct: PropTypes.object,
+  inputRef: PropTypes.oneOfType([
+    PropTypes.func,
+    PropTypes.shape({ current: PropTypes.instanceOf(Element) }),
+  ]),
 };
 
 export default ProductSearch;
