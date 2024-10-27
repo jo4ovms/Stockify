@@ -11,15 +11,26 @@ export const entityTranslationMap = {
   Sale: "Venda",
 };
 
+export const keyTranslationMap = {
+  name: "Nome",
+  value: "Valor",
+  supplierId: "ID do Fornecedor",
+  supplierName: "Fornecedor",
+  quantity: "Quantidade",
+  id: "ID",
+  phone: "Telefone",
+  email: "Email",
+  productType: "Tipo de Produto",
+  cnpj: "CNPJ",
+  available: "Disponível",
+  productName: "Nome do Produto",
+  productId: "ID do Produto",
+  stockId: "ID do Estoque",
+  stockValueAtSale: "Valor Unitário",
+};
+
 export const formatTimestamp = (timestamp) => {
-  return new Date(
-    timestamp[0],
-    timestamp[1] - 1,
-    timestamp[2],
-    timestamp[3],
-    timestamp[4],
-    timestamp[5]
-  ).toLocaleTimeString("pt-BR", {
+  return new Date(timestamp).toLocaleString("pt-BR", {
     day: "2-digit",
     month: "long",
     year: "numeric",

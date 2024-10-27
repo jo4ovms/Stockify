@@ -43,7 +43,6 @@ const StockForm = ({
 
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [originalProductName, setOriginalProductName] = useState("");
-  const [errorMessage, setErrorMessage] = useState(null);
   const inputRef = useRef(null);
 
   const loadStockById = async (stockId) => {
