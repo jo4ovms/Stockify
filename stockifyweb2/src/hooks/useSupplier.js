@@ -54,7 +54,7 @@ const useSupplier = () => {
   const [openProductDialog, setOpenProductDialog] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterProductType, setFilterProductType] = useState("");
+  const [filterProductType, setFilterProductType] = useState("All");
 
   const [allProductTypes, setAllProductTypes] = useState([]);
   const [targetPage, setTargetPage] = useState(page + 1);

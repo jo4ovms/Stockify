@@ -17,6 +17,8 @@ import {
   DialogContent,
   DialogActions,
   Alert,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -56,7 +58,8 @@ const StockPage = () => {
     id: null,
     productName: "",
   });
-
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   let debounceTimeout = useRef(null);
 
   const fetchLimits = async () => {
@@ -235,7 +238,7 @@ const StockPage = () => {
     <DashboardCard title="Gestão de Estoque">
       <Box component="form" noValidate autoComplete="off" mb={2}>
         <Grid container spacing={2} alignItems="center">
-          <Grid size={{ xs: 12, sm: 6, md: 12, width: "100%" }}>
+          <Grid size={{ xs: 12, md: 12 }}>
             <TextField
               label="Buscar por produto"
               variant="outlined"
@@ -247,7 +250,7 @@ const StockPage = () => {
         </Grid>
       </Box>
       <Box component="form" noValidate autoComplete="off">
-        <Grid container spacing={4} alignItems="center">
+        <Grid container spacing={isSmallScreen ? 2 : 4} alignItems="center">
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>
             <Button
               variant="contained"
@@ -261,49 +264,73 @@ const StockPage = () => {
 
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <SupplierFilter
+              fullWidth={isSmallScreen}
               value={selectedSupplier}
               onChange={(newSupplierId) => setSelectedSupplier(newSupplierId)}
             />
           </Grid>
+          <Box
+            display="flex"
+            flexDirection={isSmallScreen ? "row" : "row"}
+            gap={isSmallScreen ? 15 : 4}
+            justifyContent={isSmallScreen ? "center" : "flex-start"}
+            alignItems="center"
+            sx={{ width: isSmallScreen ? undefined : "31.3%" }}
+          >
+            <Box
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              sx={{
+                width: isSmallScreen ? "100%" : "200%",
+                mr: isSmallScreen ? 0 : 2,
+              }}
+            >
+              <FormControl fullWidth>
+                <Typography gutterBottom>Quantidade</Typography>
+                <Slider
+                  value={quantityRange}
+                  onChange={(event, newValue) => {
+                    if (!Array.isArray(newValue) || newValue.length < 2) return;
+                    if (newValue[1] > initialMinMaxQuantity[1]) {
+                      setQuantityRange([newValue[0], initialMinMaxQuantity[1]]);
+                    } else {
+                      setQuantityRange(newValue);
+                    }
+                  }}
+                  valueLabelDisplay="auto"
+                  min={initialMinMaxQuantity[0]}
+                  max={initialMinMaxQuantity[1]}
+                  sx={{ width: isSmallScreen ? "180%" : "100%" }}
+                />
+                <Typography variant="body2">
+                  {`${quantityRange[0]} - ${quantityRange[1]}`}
+                </Typography>
+              </FormControl>
+            </Box>
 
-          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-            <FormControl fullWidth>
-              <Typography gutterBottom>Quantidade</Typography>
-              <Slider
-                value={quantityRange}
-                onChange={(event, newValue) => {
-                  if (!Array.isArray(newValue) || newValue.length < 2) return;
-                  if (newValue[1] > initialMinMaxQuantity[1]) {
-                    setQuantityRange([newValue[0], initialMinMaxQuantity[1]]);
-                  } else {
-                    setQuantityRange(newValue);
-                  }
-                }}
-                valueLabelDisplay="auto"
-                min={initialMinMaxQuantity[0]}
-                max={initialMinMaxQuantity[1]}
-              />
-              <Typography variant="body2">
-                {`${quantityRange[0]} - ${quantityRange[1]}`}
-              </Typography>
-            </FormControl>
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-            <FormControl fullWidth>
-              <Typography gutterBottom>Valor</Typography>
-              <Slider
-                value={valueRange}
-                onChange={handleSliderChange}
-                valueLabelDisplay="auto"
-                min={initialMinMaxValue[0]}
-                max={initialMinMaxValue[1]}
-              />
-              <Typography variant="body2">
-                {`R$${valueRange[0]} - R$${valueRange[1]}`}
-              </Typography>
-            </FormControl>
-          </Grid>
+            <Box
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              sx={{ width: isSmallScreen ? "100%" : "200%" }}
+            >
+              <FormControl fullWidth>
+                <Typography gutterBottom>Valor</Typography>
+                <Slider
+                  value={valueRange}
+                  onChange={handleSliderChange}
+                  valueLabelDisplay="auto"
+                  min={initialMinMaxValue[0]}
+                  max={initialMinMaxValue[1]}
+                  sx={{ width: isSmallScreen ? "180%" : "100%" }}
+                />
+                <Typography variant="body2">
+                  {`R$${valueRange[0]} - R$${valueRange[1]}`}
+                </Typography>
+              </FormControl>
+            </Box>
+          </Box>
 
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <FormControl fullWidth>
@@ -344,14 +371,16 @@ const StockPage = () => {
             <Box
               key={stock.id}
               display="flex"
-              alignItems="center"
+              flexDirection={isSmallScreen ? "row" : "row"}
+              alignItems={"center"}
               justifyContent="space-between"
               p={2}
               borderBottom="1px solid #ccc"
+              gap={1}
             >
               <Box>
                 <Typography variant="h6">{stock.productName}</Typography>
-                <Typography variant="body2">Valor: {stock.value}</Typography>
+                <Typography variant="body2">Valor: R$ {stock.value}</Typography>
                 <Typography variant="body2">
                   Quantidade: {stock.quantity}
                 </Typography>
@@ -359,7 +388,7 @@ const StockPage = () => {
                   Fornecedor: {stock.supplierName}
                 </Typography>
               </Box>
-              <Box>
+              <Box display="flex" gap={1} alignItems={"center"}>
                 <IconButton
                   color="primary"
                   onClick={() => handleClickEdit(stock)}
