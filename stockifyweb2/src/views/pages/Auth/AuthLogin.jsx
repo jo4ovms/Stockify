@@ -7,108 +7,148 @@ import {
   FormGroup,
   FormControlLabel,
 } from "@mui/material";
-import { useState } from "react";
+
+import { Formik, Form, Field } from "formik";
 import { useNavigate, Link } from "react-router-dom";
+import * as Yup from "yup";
 import CustomTextField from "../../../components/forms/theme-elements/CustomTextField.jsx";
 import AuthService from "../../../services/AuthService";
 
+const validationSchema = Yup.object().shape({
+  username: Yup.string()
+    .required("Nome de usuário é obrigatório")
+    .min(4, "Nome de usuário deve ter pelo menos 4 caracteres"),
+  password: Yup.string()
+    .required("Senha é obrigatória")
+    .min(6, "Senha deve ter pelo menos 6 caracteres"),
+});
+
 const AuthLogin = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const initialValues = {
+    username: "",
+    password: "",
+    rememberMe: false,
+  };
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    setMessage("");
-    setLoading(true);
-
-    AuthService.login(username, password).then(
-      () => {
+  const handleLogin = (values, { setSubmitting, setFieldError }) => {
+    AuthService.login(values.username, values.password)
+      .then(() => {
         navigate("/dashboard");
         window.location.reload();
-      },
-      (error) => {
+      })
+      .catch((error) => {
         const resMessage =
           (error.response &&
             error.response.data &&
             error.response.data.message) ||
           error.message ||
           error.toString();
-        setLoading(false);
-        setMessage(resMessage);
-      }
-    );
+
+        setFieldError("general", resMessage);
+        setSubmitting(false);
+      });
   };
 
   return (
     <Box>
-      <Typography fontWeight="700" variant="h2" mb={1}>
+      <Typography fontWeight="700" variant="h2" mb={1} align="center">
         Entrar em uma conta
       </Typography>
-      <Stack>
-        <Box>
-          <Typography variant="subtitle1" fontWeight={600} mb="5px">
-            Nome de Usuário
-          </Typography>
-          <CustomTextField
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            variant="outlined"
-            fullWidth
-          />
-        </Box>
-        <Box mt="25px">
-          <Typography variant="subtitle1" fontWeight={600} mb="5px">
-            Senha
-          </Typography>
-          <CustomTextField
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            variant="outlined"
-            fullWidth
-          />
-        </Box>
-        <Stack
-          justifyContent="space-between"
-          direction="row"
-          alignItems="center"
-          my={2}
-        >
-          <FormGroup>
-            <FormControlLabel
-              control={<Checkbox defaultChecked />}
-              label="Lembrar desse dispositivo"
-            />
-          </FormGroup>
-        </Stack>
-      </Stack>
-      <Box>
-        <Button
-          color="primary"
-          variant="contained"
-          size="large"
-          fullWidth
-          onClick={handleLogin}
-          disabled={loading}
-        >
-          {loading ? "Loading..." : "Entrar"}
-        </Button>
-      </Box>
-      {message && (
-        <Typography color="error" mt={2}>
-          {message}
-        </Typography>
-      )}
+
+      <Formik
+        initialValues={initialValues}
+        validationSchema={validationSchema}
+        onSubmit={handleLogin}
+      >
+        {({ errors, touched, isSubmitting, handleChange, values }) => (
+          <Form>
+            <Stack spacing={2}>
+              <Box>
+                <Typography variant="subtitle1" fontWeight={600} mb="5px">
+                  Nome de Usuário
+                </Typography>
+                <Field
+                  as={CustomTextField}
+                  name="username"
+                  variant="outlined"
+                  fullWidth
+                  error={touched.username && Boolean(errors.username)}
+                  helperText={touched.username && errors.username}
+                />
+              </Box>
+
+              <Box mt="25px">
+                <Typography variant="subtitle1" fontWeight={600} mb="5px">
+                  Senha
+                </Typography>
+                <Field
+                  as={CustomTextField}
+                  type="password"
+                  name="password"
+                  variant="outlined"
+                  fullWidth
+                  error={touched.password && Boolean(errors.password)}
+                  helperText={touched.password && errors.password}
+                />
+              </Box>
+
+              <Stack
+                justifyContent="space-between"
+                direction="row"
+                alignItems="center"
+                mt={1}
+              >
+                <FormGroup>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        name="rememberMe"
+                        checked={values.rememberMe}
+                        onChange={handleChange}
+                      />
+                    }
+                    label="Lembrar desse dispositivo"
+                  />
+                </FormGroup>
+              </Stack>
+
+              <Box>
+                <Button
+                  color="primary"
+                  variant="contained"
+                  size="large"
+                  fullWidth
+                  type="submit"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Carregando..." : "Entrar"}
+                </Button>
+              </Box>
+
+              {errors.general && (
+                <Typography color="error" mt={2} align="center">
+                  {errors.general}
+                </Typography>
+              )}
+            </Stack>
+          </Form>
+        )}
+      </Formik>
+
       <Typography
         variant="subtitle1"
         textAlign="center"
         color="textSecondary"
         mt={2}
       >
-        Não possui uma conta? <Link to="/auth/register">Criar uma conta</Link>
+        Não possui uma conta?{" "}
+        <Link
+          to="/auth/register"
+          style={{ textDecoration: "none", color: "#5D87FF" }}
+        >
+          Criar uma conta
+        </Link>
       </Typography>
     </Box>
   );
