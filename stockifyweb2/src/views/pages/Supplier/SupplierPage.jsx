@@ -22,6 +22,8 @@ import {
   DialogContent,
   DialogActions,
   Skeleton,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import InputAdornment from "@mui/material/InputAdornment";
 import PageContainer from "../../../components/container/PageContainer.jsx";
@@ -84,17 +86,30 @@ const SupplierPage = () => {
     confirmDeleteSupplierDialog,
   } = useSupplier();
 
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+
   return (
     <PageContainer title="Suppliers" description="this is Suppliers page">
       <DashboardCard title="Fornecedores">
         <Box
           display="flex"
+          flexDirection={isSmallScreen ? "column" : "row"}
           justifyContent="space-between"
           alignItems="center"
           mb={2}
+          gap={isSmallScreen ? 2 : 0}
         >
-          <Box display="flex" gap={2}>
-            <FormControl sx={{ minWidth: 200 }}>
+          <Box
+            display="flex"
+            gap={2}
+            flexDirection={isSmallScreen ? "column" : "row"}
+            width="100%"
+          >
+            <FormControl
+              fullWidth={isSmallScreen}
+              sx={{ minWidth: isSmallScreen ? "auto" : 200 }}
+            >
               <InputLabel id="filter-tipo-produto-label">
                 Tipo de Produto
               </InputLabel>
@@ -121,7 +136,7 @@ const SupplierPage = () => {
               variant="outlined"
               value={searchTerm}
               onChange={handleSearchChange}
-              sx={{ minWidth: 200 }}
+              sx={{ minWidth: isSmallScreen ? "auto" : 200 }}
               slotProps={{
                 input: {
                   startAdornment: (
@@ -133,7 +148,7 @@ const SupplierPage = () => {
               }}
             />
 
-            <FormControl sx={{ minWidth: 150 }}>
+            <FormControl sx={{ minWidth: isSmallScreen ? "auto" : 150 }}>
               <InputLabel id="items-per-page-label">
                 Itens por Página
               </InputLabel>
@@ -151,7 +166,13 @@ const SupplierPage = () => {
             </FormControl>
           </Box>
 
-          <Button variant="contained" color="primary" onClick={handleClickOpen}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleClickOpen}
+            fullWidth={isSmallScreen}
+            sx={{ mt: isSmallScreen ? 2 : 0 }}
+          >
             Criar Fornecedor
           </Button>
         </Box>
@@ -181,7 +202,8 @@ const SupplierPage = () => {
               >
                 <Box
                   display="flex"
-                  alignItems="center"
+                  flexDirection={isSmallScreen ? "column" : "row"}
+                  alignItems={isSmallScreen ? "flex-start" : "center"}
                   justifyContent="space-between"
                   p={2}
                 >
@@ -200,7 +222,17 @@ const SupplierPage = () => {
                       Tipo de Produto: {supplier.productType}
                     </Typography>
                   </Box>
-                  <Box>
+                  <Box
+                    display="flex"
+                    flexDirection={"row"}
+                    alignItems="center"
+                    justifyContent="center"
+                    ml={isSmallScreen ? 6 : 0}
+                    gap={2}
+                    height={40}
+                    mt={isSmallScreen ? 1 : 0}
+                    sx={{ border: "1px solid transparent" }}
+                  >
                     <IconButton
                       color="primary"
                       onClick={() => handleClickEdit(supplier)}
@@ -242,7 +274,11 @@ const SupplierPage = () => {
                       onChange={(e) =>
                         handleSearchProductChange(supplier.id, e.target.value)
                       }
-                      sx={{ minWidth: 400, marginBottom: 3 }}
+                      fullWidth={isSmallScreen}
+                      sx={{
+                        minWidth: isSmallScreen ? "auto" : 400,
+                        marginBottom: 3,
+                      }}
                       slotProps={{
                         input: {
                           startAdornment: (
@@ -298,6 +334,7 @@ const SupplierPage = () => {
 
                     <Box
                       display="flex"
+                      flexDirection={isSmallScreen ? "column" : "row"}
                       justifyContent="space-between"
                       alignItems="center"
                       mt={3}
@@ -305,6 +342,8 @@ const SupplierPage = () => {
                       <Button
                         variant="contained"
                         color="primary"
+                        fullWidth={isSmallScreen}
+                        sx={{ mt: isSmallScreen ? 1 : 0 }}
                         onClick={() => {
                           retrieveProducts(
                             supplier,
@@ -324,6 +363,8 @@ const SupplierPage = () => {
                       <Button
                         variant="contained"
                         color="primary"
+                        fullWidth={isSmallScreen}
+                        sx={{ mt: isSmallScreen ? 1 : 0 }}
                         onClick={() => {
                           retrieveProducts(
                             supplier,

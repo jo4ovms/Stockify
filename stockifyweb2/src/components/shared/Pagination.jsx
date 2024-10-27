@@ -96,6 +96,7 @@ const Pagination = ({ page, totalPages, totalItems, onPageChange }) => {
           value={targetPage}
           onChange={handleTargetPageChange}
           sx={{ maxWidth: 100 }}
+          fullWidth={isSmallScreen}
           slotProps={{
             htmlInput: { min: 1, max: totalPages },
           }}
