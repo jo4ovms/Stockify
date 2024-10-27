@@ -9,7 +9,7 @@ spring:
             repositories:
                 enabled: true
     kafka:
-        bootstrap-servers: localhost:9092
+        bootstrap-servers: kafka:9092
         consumer:
             group-id: logging-group
             auto-offset-reset: earliest
