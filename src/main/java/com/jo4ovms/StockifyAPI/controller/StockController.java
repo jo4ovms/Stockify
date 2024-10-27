@@ -10,8 +10,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.EntityModel;
@@ -30,9 +28,6 @@ import java.util.Map;
 @RequestMapping("/api/stock")
 @Tag(name = "Stock", description = "Operations related to stock management")
 public class StockController {
-
-
-
     private final StockService stockService;
     private final PagedResourcesAssembler<StockDTO> pagedResourcesAssembler;
 
@@ -49,7 +44,6 @@ public class StockController {
             @ApiResponse(responseCode = "400", description = "Invalid input", content = @Content)
     })
     @PostMapping
-   // @CacheEvict(value = "stocks", allEntries = true)
     public ResponseEntity<StockDTO> createStock(@Valid @RequestBody StockDTO stockDTO) {
         StockDTO createdStock = stockService.createStock(stockDTO);
         return new ResponseEntity<>(createdStock, HttpStatus.CREATED);
@@ -63,7 +57,6 @@ public class StockController {
             @ApiResponse(responseCode = "404", description = "Stock not found", content = @Content)
     })
     @PutMapping("/{id}")
-  //  @CacheEvict(value = "stocks", allEntries = true)
     public ResponseEntity<StockDTO> updateStock(
             @PathVariable Long id,
             @Valid @RequestBody StockDTO stockDTO) {
@@ -99,7 +92,6 @@ public class StockController {
 
         PageRequest pageable = PageRequest.of(page, size);
 
-
         Page<StockDTO> stocks = stockService.getFilteredStocks(query, supplierId, minQty, maxQty, minVal, maxVal, pageable);
 
         PagedModel<EntityModel<StockDTO>> pagedModel = pagedResourcesAssembler.toModel(stocks);
@@ -114,7 +106,6 @@ public class StockController {
             @ApiResponse(responseCode = "404", description = "Stock not found", content = @Content)
     })
     @GetMapping("/{id}")
-  //  @Cacheable(value = "stocks", key = "#id")
     public ResponseEntity<StockDTO> getStockById(
             @PathVariable Long id) {
         StockDTO stock = stockService.getStockById(id);
@@ -127,7 +118,6 @@ public class StockController {
             @ApiResponse(responseCode = "404", description = "Stock not found", content = @Content)
     })
     @DeleteMapping("/{id}")
-  //  @CacheEvict(value = "stocks", allEntries = true)
     public ResponseEntity<Void> deleteStock(
             @PathVariable Long id) {
         stockService.deleteStock(id);
@@ -174,22 +164,18 @@ public class StockController {
             @RequestParam(required = false) Double minValue,
             @RequestParam(required = false) Double maxValue) {
 
-
         int maxQty = (maxQuantity != null) ? maxQuantity : (Integer) stockService.getMaxQuantity();
         double maxVal = (maxValue != null) ? maxValue : (Double) stockService.getMaxValue();
         int minQty = (minQuantity != null) ? minQuantity : 0;
         double minVal = (minValue != null) ? minValue : 0.0;
 
-
         Pageable pageable = PageRequest.of(page, size);
-
 
         Page<StockDTO> filteredStocks = stockService.getFilteredStocks(query, supplierId, minQty, maxQty, minVal, maxVal, pageable);
 
         PagedModel<EntityModel<StockDTO>> pagedModel = pagedResourcesAssembler.toModel(filteredStocks);
         return ResponseEntity.ok(pagedModel);
     }
-
 
     @Operation(summary = "Get min/max values for stock", description = "Retrieve minimum and maximum quantity and value in the stock")
     @GetMapping("/limits")
@@ -207,7 +193,6 @@ public class StockController {
 
         return ResponseEntity.ok(response);
     }
-
 
     @GetMapping("/summary")
     @ResponseBody

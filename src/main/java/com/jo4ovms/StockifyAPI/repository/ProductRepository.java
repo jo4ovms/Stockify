@@ -14,9 +14,7 @@ import java.util.List;
 public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findAll(Pageable pageable);
     Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
-    //@Cacheable(value = "productsBySupplier", key = "#supplier.id")
     Page<Product> findBySupplier(Supplier supplier, Pageable pageable);
-   // @Cacheable(value = "productsByQuantity", key = "#quantity")
     List<Product> findByQuantityGreaterThan(Integer quantity);
     Page<Product> findBySupplierAndNameContainingIgnoreCase(Supplier supplier, String name, Pageable pageable);
 

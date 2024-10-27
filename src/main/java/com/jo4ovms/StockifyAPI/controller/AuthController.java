@@ -36,7 +36,6 @@ public class AuthController {
     private final PasswordEncoder encoder;
     private final JwtUtils jwtUtils;
 
-
     public AuthController (AuthenticationManager authenticationManager,
                            UserRepository userRepository,
                            RoleRepository roleRepository,
@@ -70,7 +69,6 @@ public class AuthController {
                 userDetails.getEmail(),
                 roles));
     }
-
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {

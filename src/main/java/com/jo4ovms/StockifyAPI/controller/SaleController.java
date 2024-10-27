@@ -36,7 +36,6 @@ public class SaleController {
         return new ResponseEntity<>(bestSellingItems, HttpStatus.OK);
     }
 
-
     @GetMapping
     public ResponseEntity<Page<SaleSummaryDTO>> getAllSales(
             @RequestParam(required = false, defaultValue = "") String searchTerm,
@@ -53,11 +52,9 @@ public class SaleController {
         return ResponseEntity.ok(salesPage);
     }
 
-
     @GetMapping("/daily")
     public List<DailySalesDTO> getSalesGroupedByDay(@RequestParam("month") int month) {
         return saleService.getSalesGroupedByDay(month);
     }
-
 
 }

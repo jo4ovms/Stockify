@@ -29,9 +29,7 @@ public class LogService {
 
     public void createLog(LogDTO logDTO) {
         try {
-
             String logMessage = objectMapper.writeValueAsString(logDTO);
-
             kafkaProducerService.sendMessage(logMessage);
         } catch (Exception e) {
             e.printStackTrace();

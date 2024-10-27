@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface LogRepository extends JpaRepository<Log, Long> {
-
     Page<Log> findByEntityAndOperationType(String entity, Log.OperationType operationType, Pageable pageable);
     Page<Log> findByEntity(String entity, Pageable pageable);
     Page<Log> findByOperationType(Log.OperationType operationType, Pageable pageable);
