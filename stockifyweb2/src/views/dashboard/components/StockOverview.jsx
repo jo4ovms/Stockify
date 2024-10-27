@@ -8,8 +8,8 @@ import {
   useTheme,
   useMediaQuery,
 } from "@mui/material";
-
 import { IconAlertTriangle, IconCheck, IconBox } from "@tabler/icons-react";
+import PropTypes from "prop-types";
 import { useQuery } from "react-query";
 import { useNavigate } from "react-router-dom";
 import DashboardCard from "../../../components/shared/DashboardCard.jsx";
@@ -253,4 +253,11 @@ const StockOverview = () => {
   );
 };
 
+OverviewItem.propTypes = {
+  count: PropTypes.number.isRequired,
+  label: PropTypes.string.isRequired,
+  color: PropTypes.string.isRequired,
+  icon: PropTypes.node.isRequired,
+  navigatePath: PropTypes.string.isRequired,
+};
 export default StockOverview;

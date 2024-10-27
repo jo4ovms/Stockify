@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { ArrowBack, ArrowForward } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -6,7 +6,8 @@ import {
   TextField,
   useMediaQuery,
 } from "@mui/material";
-import { ArrowBack, ArrowForward } from "@mui/icons-material";
+import PropTypes from "prop-types";
+import { useState } from "react";
 
 const Pagination = ({ page, totalPages, totalItems, onPageChange }) => {
   const [targetPage, setTargetPage] = useState(page + 1);
@@ -105,6 +106,12 @@ const Pagination = ({ page, totalPages, totalItems, onPageChange }) => {
       </Box>
     </Box>
   );
+};
+Pagination.propTypes = {
+  page: PropTypes.number.isRequired,
+  totalPages: PropTypes.number.isRequired,
+  totalItems: PropTypes.number.isRequired,
+  onPageChange: PropTypes.func.isRequired,
 };
 
 export default Pagination;

@@ -26,10 +26,10 @@ import {
 import InputAdornment from "@mui/material/InputAdornment";
 import PageContainer from "../../../components/container/PageContainer.jsx";
 import DashboardCard from "../../../components/shared/DashboardCard.jsx";
+import Pagination from "../../../components/shared/Pagination.jsx";
 import useSupplier from "../../../hooks/useSupplier";
 import ProductForm from "./ProductForm.jsx";
 import SupplierForm from "./SupplierForm.jsx";
-import Pagination from "../../../components/shared/Pagination.jsx";
 
 const SupplierPage = () => {
   const {
@@ -73,10 +73,7 @@ const SupplierPage = () => {
     loading,
     errorMessage,
     size,
-    handleTargetPageChange,
-    goToSpecificPage,
     successMessage,
-    targetPage,
     confirmDeleteProduct,
     cancelDeleteProduct,
     handleDeleteProduct,

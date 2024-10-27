@@ -7,12 +7,12 @@ import {
   DialogActions,
   Box,
 } from "@mui/material";
+import { Formik, Form, Field, ErrorMessage } from "formik";
 import PropTypes from "prop-types";
 import { useState, useEffect, useRef } from "react";
+import * as Yup from "yup";
 import stockService from "../../../services/stockService";
 import ProductSearch from "./ProductSearch.jsx";
-import { Formik, Form, Field, ErrorMessage } from "formik";
-import * as Yup from "yup";
 
 const StockSchema = Yup.object().shape({
   productId: Yup.string().required("É obrigatório selecionar um produto."),
@@ -35,7 +35,7 @@ const StockForm = ({
   setSuccessMessage,
   fetchLimits,
 }) => {
-  const [stock, setStock] = useState({
+  const [, setStock] = useState({
     productId: "",
     quantity: "",
     value: "",
@@ -43,6 +43,7 @@ const StockForm = ({
 
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [originalProductName, setOriginalProductName] = useState("");
+  const [errorMessage, setErrorMessage] = useState(null);
   const inputRef = useRef(null);
 
   const loadStockById = async (stockId) => {
@@ -86,7 +87,7 @@ const StockForm = ({
     }
   }, [selectedProduct]);
 
-  const handleSubmit = (values) => {
+  const handleSubmit = (values, { setFieldError }) => {
     const action = editMode
       ? stockService.updateStock(currentStock.id, values)
       : stockService.createStock(values);
@@ -103,7 +104,18 @@ const StockForm = ({
         handleClose();
       })
       .catch((error) => {
-        console.error("Erro ao salvar o estoque:", error);
+        const backendMessage = error?.response?.data;
+        if (
+          backendMessage &&
+          backendMessage.includes("Insufficient product quantity")
+        ) {
+          setFieldError(
+            "quantity",
+            "Quantidade insuficiente no estoque do fornecedor."
+          );
+        } else {
+          console.error("Erro ao salvar o estoque:", error);
+        }
       });
   };
 
@@ -159,7 +171,7 @@ const StockForm = ({
                   onChange={handleChange}
                   onBlur={handleBlur}
                   error={touched.quantity && Boolean(errors.quantity)}
-                  helperText={<ErrorMessage name="quantity" />}
+                  helperText={<ErrorMessage name="quantity" component="div" />}
                 />
 
                 <Field

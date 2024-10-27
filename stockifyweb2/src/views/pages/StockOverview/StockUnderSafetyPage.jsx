@@ -2,10 +2,6 @@ import {
   Box,
   Button,
   Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   TextField,
   Avatar,
   IconButton,
@@ -21,10 +17,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import PageContainer from "../../../components/container/PageContainer.jsx";
 import DashboardCard from "../../../components/shared/DashboardCard.jsx";
-import stockOverviewService from "../../../services/stockOverviewService";
-import stockService from "../../../services/stockService";
 import Pagination from "../../../components/shared/Pagination.jsx";
 import SupplierFilter from "../../../components/shared/SupplierFilter.jsx";
+import stockOverviewService from "../../../services/stockOverviewService";
+import stockService from "../../../services/stockService";
 let debounceTimeout = null;
 
 const StockUnderSafetyPage = () => {

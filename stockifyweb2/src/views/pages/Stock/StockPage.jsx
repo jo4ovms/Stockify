@@ -22,17 +22,17 @@ import Grid from "@mui/material/Grid2";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import DashboardCard from "../../../components/shared/DashboardCard.jsx";
-import stockService from "../../../services/stockService";
-import StockForm from "./StockForm.jsx";
 import Pagination from "../../../components/shared/Pagination.jsx";
 import SupplierFilter from "../../../components/shared/SupplierFilter.jsx";
+import stockService from "../../../services/stockService";
+import StockForm from "./StockForm.jsx";
 
 const StockPage = () => {
   const { id } = useParams();
   const [, setStock] = useState(null);
   const [stocks, setStocks] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [suppliers, setSuppliers] = useState([]);
+  const [, setSuppliers] = useState([]);
   const [selectedSupplier, setSelectedSupplier] = useState("");
   const [open, setOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -50,7 +50,7 @@ const StockPage = () => {
   const [valueRange, setValueRange] = useState([0, 10000]);
   const [initialMinMaxQuantity, setInitialMinMaxQuantity] = useState([0, 100]);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [targetPage, setTargetPage] = useState(page + 1);
+  const [, setTargetPage] = useState(page + 1);
   const [confirmDelete, setConfirmDelete] = useState({
     open: false,
     id: null,

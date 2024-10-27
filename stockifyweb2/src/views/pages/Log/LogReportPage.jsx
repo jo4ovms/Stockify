@@ -20,8 +20,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import PageContainer from "../../../components/container/PageContainer.jsx";
 import DashboardCard from "../../../components/shared/DashboardCard.jsx";
-import logService from "../../../services/logService";
 import Pagination from "../../../components/shared/Pagination.jsx";
+import logService from "../../../services/logService";
 
 const tryParseJSON = (str) => {
   try {
@@ -171,7 +171,6 @@ const LogReportPage = () => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const { logId } = useParams();
-  const [targetPage, setTargetPage] = useState(page + 1);
   const [totalItems, setTotalItems] = useState(0);
 
   const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down("sm"));
@@ -445,19 +444,6 @@ const LogReportPage = () => {
     }
 
     return logs.map((log) => {
-      const newValue = tryParseJSON(log.newValue);
-      const oldValue = tryParseJSON(log.oldValue);
-
-      let changeSummary = "";
-      if (log.operationType === "UPDATE" && newValue && oldValue) {
-        for (const key in newValue) {
-          if (newValue[key] !== oldValue[key]) {
-            changeSummary = `Alteração de ${translateKey(key)}: de \"${oldValue[key] || "N/A"}\" para \"${newValue[key] || "N/A"}\"`;
-            break;
-          }
-        }
-      }
-
       return (
         <Box
           key={log.id}
@@ -517,13 +503,7 @@ const LogReportPage = () => {
                   textOverflow: "ellipsis",
                 }}
               >
-                {new Date(
-                  log.timestamp[0],
-                  log.timestamp[1] - 1,
-                  log.timestamp[2],
-                  log.timestamp[3],
-                  log.timestamp[4]
-                ).toLocaleString("pt-BR", {
+                {new Date(log.timestamp).toLocaleString("pt-BR", {
                   day: "2-digit",
                   month: "long",
                   year: "numeric",

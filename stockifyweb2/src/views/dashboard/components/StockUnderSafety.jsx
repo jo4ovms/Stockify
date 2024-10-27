@@ -10,12 +10,12 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { IconAlertTriangle } from "@tabler/icons-react";
+import PropTypes from "prop-types";
+import { useCallback, useMemo } from "react";
 import { useQuery } from "react-query";
 import { useNavigate } from "react-router-dom";
 import DashboardCard from "../../../components/shared/DashboardCard.jsx";
 import stockOverviewService from "../../../services/stockOverviewService";
-import { useCallback, useMemo } from "react";
-
 const fetchCriticalStock = async () => {
   try {
     const response = await stockOverviewService.getCriticalStockReport(
@@ -31,7 +31,7 @@ const fetchCriticalStock = async () => {
       products: response.data._embedded?.stockDTOList || [],
       totalCriticalProducts: response.data.page.totalElements,
     };
-  } catch (error) {
+  } catch {
     throw new Error("Failed to fetch critical stock data.");
   }
 };
@@ -226,5 +226,12 @@ const StockUnderSafety = () => {
     </DashboardCard>
   );
 };
-
+ProductItem.propTypes = {
+  product: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    productName: PropTypes.string.isRequired,
+    quantity: PropTypes.number.isRequired,
+  }).isRequired,
+  handleClick: PropTypes.func.isRequired,
+};
 export default StockUnderSafety;

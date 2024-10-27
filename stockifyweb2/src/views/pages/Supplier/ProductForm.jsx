@@ -6,8 +6,8 @@ import {
   TextField,
   Button,
 } from "@mui/material";
-import PropTypes from "prop-types";
 import { Formik, Form, Field, ErrorMessage } from "formik";
+import PropTypes from "prop-types";
 import * as Yup from "yup";
 
 const ProductSchema = Yup.object().shape({
@@ -151,6 +151,7 @@ ProductForm.propTypes = {
     id: PropTypes.number,
     name: PropTypes.string,
   }),
+  setErrorMessage: PropTypes.func.isRequired,
 };
 
 export default ProductForm;
