@@ -24,5 +24,4 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
             "FROM Sale s WHERE MONTH(s.saleDate) = :month GROUP BY DAY(s.saleDate) ORDER BY DAY(s.saleDate)")
     List<DailySalesDTO> findSalesGroupedByDay(int month);
 
-
 }

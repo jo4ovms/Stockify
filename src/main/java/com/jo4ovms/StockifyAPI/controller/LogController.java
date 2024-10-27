@@ -15,9 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/logs")
 public class LogController {
-
-
-
     private final LogService logService;
     private final PagedResourcesAssembler<LogDTO> pagedResourcesAssembler;
 
@@ -25,7 +22,6 @@ public class LogController {
         this.logService = logService;
         this.pagedResourcesAssembler = pagedResourcesAssembler;
     }
-
 
     @GetMapping("/recent")
     public ResponseEntity<PagedModel<EntityModel<LogDTO>>> getRecentActivities(

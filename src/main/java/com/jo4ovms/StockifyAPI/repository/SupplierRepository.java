@@ -15,9 +15,6 @@ import java.util.List;
 @Repository
 public interface SupplierRepository extends JpaRepository<Supplier, Long> {
 
-    @Query("SELECT s FROM Supplier s WHERE :search IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :search, '%'))")
-    Page<Supplier> findByNameContainingIgnoreCaseForAll(String search, Pageable pageable);
-
     Page<Supplier> findByNameContainingIgnoreCase(String name, Pageable pageable);
     boolean existsByCnpj(String cnpj);
 

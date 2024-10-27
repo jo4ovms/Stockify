@@ -22,12 +22,10 @@ public class StockDTO {
     @DecimalMin("0.0")
     private Double value;
 
-
     @NotNull(message = "Product ID is required.")
     private Long productId;
 
     private String productName;
-
     private Long supplierId;
     private String supplierName;
 }

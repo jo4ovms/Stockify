@@ -11,9 +11,6 @@ import com.jo4ovms.StockifyAPI.specification.SupplierSpecification;
 import com.jo4ovms.StockifyAPI.util.LogUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -50,8 +47,6 @@ public class SupplierService {
         return false;
     }
 
-
-    //@CachePut(value = "suppliers", key = "#result.id")
     @Transactional
     public SupplierDTO createSupplier(SupplierDTO supplierDTO) {
         if (supplierRepository.existsByCnpj(supplierDTO.getCnpj())) {
@@ -60,24 +55,22 @@ public class SupplierService {
         Supplier supplier = supplierMapper.toSupplier(supplierDTO);
         Supplier savedSupplier = supplierRepository.save(supplier);
 
-
         LogDTO logDTO = new LogDTO();
         logDTO.setTimestamp(savedSupplier.getCreatedAt());
          logUtils.populateLog(logDTO, "Supplier", savedSupplier.getId(), OperationType.CREATE.toString(),
                  supplierMapper.toSupplierDTO(savedSupplier), null, "Created new supplier");
-
          logService.createLog(logDTO);
+
         return supplierMapper.toSupplierDTO(savedSupplier);
     }
 
-    //@CachePut(value = "suppliers", key = "#id")
+
     @Transactional
     public SupplierDTO updateSupplier(Long id, SupplierDTO supplierDTO) {
         Supplier supplier = supplierRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Supplier with id " + id + " not found."));
 
         SupplierDTO oldSupplierDTO = supplierMapper.toSupplierDTO(supplier);
-
 
         boolean hasChanges = false;
 
@@ -91,20 +84,16 @@ public class SupplierService {
         }
         Supplier updatedSupplier = supplierRepository.save(supplier);
 
-
         LogDTO logDTO = new LogDTO();
         logDTO.setTimestamp(updatedSupplier.getUpdatedAt());
         logUtils.populateLog(logDTO, "Supplier", updatedSupplier.getId(), OperationType.UPDATE.toString(),
                 supplierMapper.toSupplierDTO(updatedSupplier), oldSupplierDTO, "Updated supplier");
-
 
         logService.createLog(logDTO);
 
         return supplierMapper.toSupplierDTO(updatedSupplier);
     }
 
-
-    //@Cacheable(value = "suppliers", key = "#page + '-' + #size")
     public Page<SupplierDTO> findAllSuppliers(int page, int size, String search) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Supplier> suppliers;
@@ -117,14 +106,12 @@ public class SupplierService {
         return suppliers.map(supplierMapper::toSupplierDTO);
     }
 
-   // @Cacheable(value = "suppliers", key = "#id")
     public SupplierDTO findSupplierById(Long id) {
         Supplier supplier = supplierRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Supplier with id " + id + " not found."));
         return supplierMapper.toSupplierDTO(supplier);
     }
 
-   // @CacheEvict(value = "suppliers", key = "#id")
    @Transactional
    public void deleteSupplier(Long id) {
        Supplier supplier = supplierRepository.findById(id)
@@ -132,7 +119,6 @@ public class SupplierService {
 
        SupplierDTO oldSupplierDTO = supplierMapper.toSupplierDTO(supplier);
        supplierRepository.delete(supplier);
-
 
        LogDTO logDTO = new LogDTO();
        logDTO.setTimestamp(supplier.getUpdatedAt());
@@ -142,8 +128,6 @@ public class SupplierService {
        logService.createLog(logDTO);
    }
 
-
-   // @Cacheable(value = "suppliersByName", key = "#name")
    public Page<SupplierDTO> findSuppliersByName(String name, int page, int size) {
        Pageable pageable = PageRequest.of(page, size);
        Page<Supplier> suppliers = supplierRepository.findByNameContainingIgnoreCase(name, pageable);
@@ -160,16 +144,12 @@ public class SupplierService {
 
         Page<Supplier> suppliers = supplierRepository.findAll(specification, pageable);
 
-            return suppliers.map(supplierMapper::toSupplierDTO);
-
-
+        return suppliers.map(supplierMapper::toSupplierDTO);
     }
-
 
     public List<String> findAllProductTypes() {
         return supplierRepository.findDistinctProductTypes();
     }
-
 
     public List<SupplierDTO> findAll() {
         return supplierRepository.findAll().stream().map(supplierMapper::toSupplierDTO).toList();

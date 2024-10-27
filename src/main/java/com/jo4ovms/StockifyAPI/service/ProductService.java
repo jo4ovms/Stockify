@@ -1,6 +1,5 @@
 package com.jo4ovms.StockifyAPI.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jo4ovms.StockifyAPI.exception.ResourceNotFoundException;
 import com.jo4ovms.StockifyAPI.exception.ValidationException;
 import com.jo4ovms.StockifyAPI.mapper.ProductMapper;
@@ -13,9 +12,6 @@ import com.jo4ovms.StockifyAPI.repository.SupplierRepository;
 import com.jo4ovms.StockifyAPI.util.LogUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -52,10 +48,7 @@ public class ProductService {
         return false;
     }
 
-
-
-
-    @Transactional//@CachePut(value = "products", key = "#result.id")
+    @Transactional
     public ProductDTO createProduct(ProductDTO productDTO) {
         Supplier supplier = supplierRepository.findById(productDTO.getSupplierId())
                 .orElseThrow(() -> new ResourceNotFoundException("Supplier with id " + productDTO.getSupplierId() + " not found."));
@@ -67,7 +60,6 @@ public class ProductService {
         product.setSupplier(supplier);
         Product savedProduct = productRepository.save(product);
 
-
         LogDTO logDTO = new LogDTO();
         logDTO.setTimestamp(savedProduct.getCreatedAt());
         logUtils.populateLog(logDTO, "Product", savedProduct.getId(), OperationType.CREATE.toString(),
@@ -78,7 +70,6 @@ public class ProductService {
         return productMapper.toProductDTO(savedProduct);
     }
 
-    //@CachePut(value = "products", key = "#id")
     @Transactional
     public ProductDTO updateProduct(Long id, ProductDTO productDTO) {
         Product product = productRepository.findById(id)
@@ -97,9 +88,7 @@ public class ProductService {
         if (!hasChanges) {
             return oldProductDTO;
         }
-
         Product updatedProduct = productRepository.save(product);
-
 
         LogDTO logDTO = new LogDTO();
         logDTO.setTimestamp(updatedProduct.getUpdatedAt());
@@ -116,15 +105,12 @@ public class ProductService {
         if (page < 0 || size <= 0) {
             throw new IllegalArgumentException("Page number or size must not be less than zero.");
         }
-
         Pageable pageable = PageRequest.of(page, size);
         Page<Product> products = productRepository.findByNameContainingIgnoreCase(searchTerm, pageable);
 
         return products.map(productMapper::toProductDTO);
     }
 
-
-    // @Cacheable(value = "products")
     public Page<ProductDTO> findAllProducts(int page, int size) {
         if (page < 0 || size <= 0) {
             throw new IllegalArgumentException("Page number or size must not be less than zero.");
@@ -135,14 +121,12 @@ public class ProductService {
         return products.map(productMapper::toProductDTO);
     }
 
-    //@Cacheable(value = "products", key = "#id")
     public ProductDTO findProductById(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found"));
         return productMapper.toProductDTO(product);
     }
 
-   // @CacheEvict(value = "products", key = "#id")
    @Transactional
    public void deleteProduct(Long id) {
        Product product = productRepository.findById(id)
@@ -158,8 +142,6 @@ public class ProductService {
        logService.createLog(logDTO);
    }
 
-
-   // @Cacheable(value = "productsByQuantity", key = "#quantity")
    public Page<ProductDTO> findProductsBySupplier(Long supplierId, int page, int size) {
        Supplier supplier = supplierRepository.findById(supplierId)
                .orElseThrow(() -> new ResourceNotFoundException("Supplier with id " + supplierId + " not found."));

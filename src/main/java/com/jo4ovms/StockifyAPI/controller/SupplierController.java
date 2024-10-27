@@ -9,8 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
@@ -42,7 +40,6 @@ public class SupplierController {
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content)
     })
     @PostMapping
-   // @CacheEvict(value = "suppliers", allEntries = true)
     public ResponseEntity<SupplierDTO> createSupplier(
             @Valid @RequestBody SupplierDTO supplierDTO) {
         SupplierDTO createdSupplier = supplierService.createSupplier(supplierDTO);
@@ -57,7 +54,6 @@ public class SupplierController {
             @ApiResponse(responseCode = "404", description = "Supplier not found", content = @Content)
     })
     @PutMapping("/{id}")
-   // @CacheEvict(value = "suppliers", allEntries = true)
     public ResponseEntity<SupplierDTO> updateSupplier(
             @PathVariable Long id,
             @Valid @RequestBody SupplierDTO supplierDTO) {
@@ -73,7 +69,6 @@ public class SupplierController {
     })
 
     @GetMapping
-   // @Cacheable(value = "suppliers")
     public ResponseEntity<PagedModel<EntityModel<SupplierDTO>>> getAllSuppliers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -94,7 +89,6 @@ public class SupplierController {
             @ApiResponse(responseCode = "404", description = "Supplier not found", content = @Content)
     })
     @GetMapping("/{id}")
-   // @Cacheable(value = "suppliers", key = "#id")
     public ResponseEntity<SupplierDTO> getSupplierById(
             @PathVariable Long id) {
         SupplierDTO supplier = supplierService.findSupplierById(id);
@@ -107,7 +101,6 @@ public class SupplierController {
             @ApiResponse(responseCode = "404", description = "Supplier not found", content = @Content)
     })
     @DeleteMapping("/{id}")
-    //@CacheEvict(value = "suppliers", allEntries = true)
     public ResponseEntity<Void> deleteSupplier(
             @PathVariable Long id) {
         supplierService.deleteSupplier(id);

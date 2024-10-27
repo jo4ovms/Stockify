@@ -15,5 +15,4 @@ public class KafkaProducerService {
         kafkaTemplate.send(TOPIC, message);
     }
 
-
 }

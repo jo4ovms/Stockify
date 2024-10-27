@@ -1,7 +1,6 @@
 package com.jo4ovms.StockifyAPI.controller;
 
 import com.jo4ovms.StockifyAPI.model.DTO.StockDTO;
-import com.jo4ovms.StockifyAPI.model.DTO.StockMovementDTO;
 import com.jo4ovms.StockifyAPI.service.stock.StockReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,7 +14,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDate;
+
 import java.util.Map;
 
 @RestController
@@ -33,14 +31,11 @@ public class StockReportController {
 
     private final StockReportService stockReportService;
     private final PagedResourcesAssembler<StockDTO> stockPagedResourcesAssembler;
-    private final PagedResourcesAssembler<StockMovementDTO> movementPagedResourcesAssembler;
 
     public StockReportController(StockReportService stockReportService,
-                                 PagedResourcesAssembler<StockDTO> stockPagedResourcesAssembler,
-                                 PagedResourcesAssembler<StockMovementDTO> movementPagedResourcesAssembler) {
+                                 PagedResourcesAssembler<StockDTO> stockPagedResourcesAssembler) {
         this.stockReportService = stockReportService;
         this.stockPagedResourcesAssembler = stockPagedResourcesAssembler;
-        this.movementPagedResourcesAssembler = movementPagedResourcesAssembler;
     }
 
     @Operation(summary = "Generate low stock report", description = "Generate a report for products with stock below a certain threshold.")
@@ -113,31 +108,6 @@ public class StockReportController {
 
         PagedModel<EntityModel<StockDTO>> pagedModel = stockPagedResourcesAssembler.toModel(filteredStock,
                 stockDTO -> EntityModel.of(stockDTO));
-
-        return ResponseEntity.ok(pagedModel);
-    }
-
-    @GetMapping("/movements-report")
-    public ResponseEntity<?> generateStockMovementReport(
-            @RequestParam LocalDate startDate,
-            @RequestParam LocalDate endDate,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-
-        PageRequest pageable = PageRequest.of(page, size);
-        Page<StockMovementDTO> report = stockReportService.generateStockMovementReport(startDate, endDate, pageable);
-
-        if (report.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", "No stock movements found for the specified period."));
-        }
-
-        PagedModel<EntityModel<StockMovementDTO>> pagedModel = movementPagedResourcesAssembler.toModel(report,
-                stockMovementDTO -> EntityModel.of(stockMovementDTO,
-                        WebMvcLinkBuilder.linkTo(
-                                        WebMvcLinkBuilder.methodOn(StockReportController.class)
-                                                .generateStockMovementReport(startDate, endDate, page, size))
-                                .withSelfRel()));
 
         return ResponseEntity.ok(pagedModel);
     }
