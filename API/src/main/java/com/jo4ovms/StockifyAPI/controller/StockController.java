@@ -82,13 +82,15 @@ public class StockController {
             @RequestParam(required = false) String query,
             @RequestParam(required = false) Long supplierId) {
 
-        Object maxQuantityFromBackend = stockService.getMaxQuantity();
-        Object maxValueFromBackend = stockService.getMaxValue();
+        Integer maxQuantityFromBackend = (Integer) stockService.getMaxQuantity();
+        Double maxValueFromBackend = (Double) stockService.getMaxValue();
+
 
         int minQty = (minQuantity != null) ? minQuantity : 0;
-        int maxQty = (maxQuantity != null) ? maxQuantity : (Integer) maxQuantityFromBackend;
+        int maxQty = (maxQuantity != null) ? maxQuantity : (maxQuantityFromBackend != null ? maxQuantityFromBackend : Integer.MAX_VALUE);
         double minVal = (minValue != null) ? minValue : 0.0;
-        double maxVal = (maxValue != null) ? maxValue : (Double) maxValueFromBackend;
+        double maxVal = (maxValue != null) ? maxValue : (maxValueFromBackend != null ? maxValueFromBackend : Double.MAX_VALUE);
+
 
         PageRequest pageable = PageRequest.of(page, size);
 

@@ -185,12 +185,14 @@ public class StockService {
         }
     }
 
-    public Object getMaxQuantity() {
-        return stockRepository.findMaxQuantity();
+    public Integer getMaxQuantity() {
+        Object maxQuantity = stockRepository.findMaxQuantity();
+        return (maxQuantity != null) ? (Integer) maxQuantity : 0;
     }
 
-    public Object getMaxValue() {
-        return stockRepository.findMaxValue();
+    public Double getMaxValue() {
+        Object maxValue = stockRepository.findMaxValue();
+        return (maxValue != null) ? (Double) maxValue : 0.0;
     }
 
     public StockSummaryDTO getStockSummary() {
