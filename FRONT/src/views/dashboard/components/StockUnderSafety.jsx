@@ -27,12 +27,17 @@ const fetchCriticalStock = async () => {
       "quantity",
       "asc"
     );
+
+    const products = response.data?._embedded?.stockDTOList || [];
+    const totalCriticalProducts = response.data?.page?.totalElements || 0;
+
     return {
-      products: response.data._embedded?.stockDTOList || [],
-      totalCriticalProducts: response.data.page.totalElements,
+      products,
+      totalCriticalProducts,
     };
-  } catch {
-    throw new Error("Failed to fetch critical stock data.");
+  } catch (error) {
+    console.error("Error fetching critical stock report:", error);
+    throw error;
   }
 };
 
@@ -84,6 +89,12 @@ const StockUnderSafety = () => {
       staleTime: 900000,
       cacheTime: 1800000,
       retry: 2,
+      onError: (error) => {
+        console.error("Error fetching critical stock:", error);
+      },
+      onSuccess: (response) => {
+        console.log("Critical stock response:", response);
+      },
     }
   );
 
@@ -156,44 +167,52 @@ const StockUnderSafety = () => {
       );
     }
 
+    if (data.products.length === 0) {
+      return (
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          sx={{
+            width: "550px",
+            padding: 2,
+            height: isSmallScreen ? "175px" : "100%",
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{
+              mt: isSmallScreen ? -1 : 2,
+              ml: 1,
+              textAlign: "center",
+              justifyContent: "center",
+              display: "flex",
+              fontWeight: "bold",
+            }}
+          >
+            Nenhum produto abaixo da quantidade crítica.
+          </Typography>
+        </Box>
+      );
+    }
+
     return (
       <>
         <Typography variant="h5" fontWeight="600" mb={1}>
           {data.totalCriticalProducts} produtos críticos
         </Typography>
         <Grid container spacing={2} sx={{ width: "100%" }}>
-          {data.products.length === 0 ? (
-            <Box
-              display="flex"
-              justifyContent="center"
-              alignItems="center"
-              height="100%"
-              width="85%"
-            >
-              <Typography
-                variant="subtitle1"
-                color="textSecondary"
-                sx={{ mt: 3, textAlign: "center" }}
-              >
-                Nenhum produto abaixo da quantidade crítica.
-              </Typography>
-            </Box>
-          ) : (
-            data.products
-              .slice(0, 2)
-              .map((product) => (
-                <ProductItem
-                  key={product.id}
-                  product={product}
-                  handleClick={handleProductClick}
-                />
-              ))
-          )}
+          {data.products.slice(0, 2).map((product) => (
+            <ProductItem
+              key={product.id}
+              product={product}
+              handleClick={handleProductClick}
+            />
+          ))}
         </Grid>
       </>
     );
   }, [data, isLoading, isError, handleProductClick]);
-
   return (
     <DashboardCard
       title="Produtos Críticos!"

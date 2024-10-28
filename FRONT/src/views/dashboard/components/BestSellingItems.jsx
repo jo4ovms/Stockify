@@ -75,7 +75,7 @@ const BestSellingItems = ({ sx }) => {
           >
             {isError
               ? "Falha ao carregar produtos mais vendidos."
-              : "Nenhum Produto Vendido."}
+              : "Nenhum produto vendido até o momento."}
           </Typography>
         </Box>
       );
