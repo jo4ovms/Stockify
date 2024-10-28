@@ -5,6 +5,8 @@ import {
   Avatar,
   IconButton,
   Skeleton,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import {
@@ -31,6 +33,8 @@ const OutOfStockPage = () => {
   const [query, setQuery] = useState("");
   const [supplierId, setSupplierId] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   let debounceTimeout = useRef(null);
 
   const getSupplierName = () => {
@@ -123,7 +127,11 @@ const OutOfStockPage = () => {
           <Grid container spacing={-5}>
             {[...Array(size)].map((_, index) => (
               <Grid size={{ xs: 12 }} key={index}>
-                <Skeleton variant="text" width={150} />
+                <Skeleton
+                  variant="text"
+                  width={isSmallScreen ? 340 : 1090}
+                  height={50}
+                />
               </Grid>
             ))}
           </Grid>
@@ -148,9 +156,11 @@ const OutOfStockPage = () => {
                   color="textSecondary"
                   sx={{ mt: 2 }}
                 >
-                  {query
-                    ? `Nenhum produto correspondente à pesquisa "${query}" foi encontrado para o fornecedor "${getSupplierName()}".`
-                    : `Nenhum produto do fornecedor "${getSupplierName()}" está fora de estoque.`}
+                  {query && !supplierId
+                    ? `Nenhum produto correspondente à pesquisa "${query}" foi encontrado.`
+                    : supplierId && products.length === 0
+                      ? `Nenhum produto do fornecedor "${getSupplierName()}" está fora de estoque.`
+                      : "Nenhum produto está sem estoque!"}
                 </Typography>
               </Box>
             ) : (
