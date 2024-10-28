@@ -70,16 +70,11 @@ const StockPage = () => {
         const maxQuantity = limits.maxQuantity;
         setInitialMinMaxQuantity([0, maxQuantity]);
         setQuantityRange([0, maxQuantity]);
-      } else {
-        setErrorMessage("Limites de quantidade não retornados corretamente.");
       }
-
       if (limits && typeof limits.maxValue === "number") {
         const maxValue = limits.maxValue;
         setInitialMinMaxValue([0, maxValue]);
         setValueRange([0, maxValue]);
-      } else {
-        setErrorMessage("Limites de valor não retornados corretamente.");
       }
     } catch (error) {
       setErrorMessage(`Erro ao obter os limites de estoque: ${error.message}`);
@@ -153,16 +148,18 @@ const StockPage = () => {
             setTotalPages(totalPagesFromResponse);
             setTotalItems(totalItemsFromResponse);
 
-            const maxQuantity = Math.max(
-              ...stocksData.map((stock) => stock.quantity),
-              0
-            );
-            const maxValue = Math.max(
-              ...stocksData.map((stock) => stock.value),
-              0
-            );
-            setMinMaxQuantity([0, maxQuantity]);
-            setMinMaxValue([0, maxValue]);
+            if (stocksData.length > 0) {
+              const maxQuantity = Math.max(
+                ...stocksData.map((stock) => stock.quantity),
+                0
+              );
+              const maxValue = Math.max(
+                ...stocksData.map((stock) => stock.value),
+                0
+              );
+              setMinMaxQuantity([0, maxQuantity]);
+              setMinMaxValue([0, maxValue]);
+            }
           })
           .catch(() => setErrorMessage("Erro ao carregar o estoque."))
           .finally(() => {
@@ -301,7 +298,7 @@ const StockPage = () => {
                   valueLabelDisplay="auto"
                   min={initialMinMaxQuantity[0]}
                   max={initialMinMaxQuantity[1]}
-                  sx={{ width: isSmallScreen ? "180%" : "100%" }}
+                  sx={{ width: isSmallScreen ? "160%" : "100%" }}
                 />
                 <Typography variant="body2">
                   {`${quantityRange[0]} - ${quantityRange[1]}`}
@@ -313,7 +310,7 @@ const StockPage = () => {
               display="flex"
               flexDirection="column"
               alignItems="center"
-              sx={{ width: isSmallScreen ? "100%" : "200%" }}
+              sx={{ width: isSmallScreen ? "160%" : "200%" }}
             >
               <FormControl fullWidth>
                 <Typography gutterBottom>Valor</Typography>
@@ -323,7 +320,7 @@ const StockPage = () => {
                   valueLabelDisplay="auto"
                   min={initialMinMaxValue[0]}
                   max={initialMinMaxValue[1]}
-                  sx={{ width: isSmallScreen ? "180%" : "100%" }}
+                  sx={{ width: isSmallScreen ? "150%" : "100%" }}
                 />
                 <Typography variant="body2">
                   {`R$${valueRange[0]} - R$${valueRange[1]}`}
