@@ -6,6 +6,8 @@ import {
   Avatar,
   IconButton,
   Skeleton,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import {
@@ -37,6 +39,8 @@ const StockUnderSafetyPage = () => {
   const [sortBy] = useState("quantity");
   const [sortDirection, setSortDirection] = useState("asc");
   const [totalItems, setTotalItems] = useState(0);
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   const getSupplierName = () => {
     const supplier = suppliers.find((sup) => sup.id === supplierId);
@@ -156,7 +160,11 @@ const StockUnderSafetyPage = () => {
           <Grid container spacing={-5}>
             {[...Array(size)].map((_, index) => (
               <Grid size={{ xs: 12 }} key={index}>
-                <Skeleton variant="text" width={150} />
+                <Skeleton
+                  variant="text"
+                  width={isSmallScreen ? 340 : 1090}
+                  height={50}
+                />
               </Grid>
             ))}
           </Grid>
@@ -181,9 +189,11 @@ const StockUnderSafetyPage = () => {
                   color="textSecondary"
                   sx={{ mt: 2 }}
                 >
-                  {query
-                    ? `Nenhum produto correspondente à pesquisa "${query}" foi encontrado para o fornecedor "${getSupplierName()}".`
-                    : `Nenhum produto do fornecedor "${getSupplierName()}" está abaixo da quantidade segura.`}
+                  {query && !supplierId
+                    ? `Nenhum produto correspondente à pesquisa "${query}" foi encontrado.`
+                    : supplierId && products.length === 0
+                      ? `Nenhum produto do fornecedor "${getSupplierName()}" está abaixo da quantidade crítica.`
+                      : `Nenhum produto está abaixo da quantidade crítica de ${threshold}.`}
                 </Typography>
               </Box>
             ) : (
