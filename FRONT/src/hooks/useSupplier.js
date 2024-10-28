@@ -92,9 +92,7 @@ const useSupplier = () => {
             setTotalItems(pageData.totalElements);
 
             if (suppliersData.length === 0) {
-              setErrorMessage(
-                "Nenhum fornecedor encontrado para os filtros aplicados."
-              );
+              setErrorMessage("");
             }
           })
           .catch(() => setErrorMessage("Erro ao carregar os fornecedores."))
