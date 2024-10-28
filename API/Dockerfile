@@ -1,12 +1,15 @@
-# Build stage
-FROM openjdk:17-oracle AS builder
+FROM maven:3.8.5-openjdk-17 as builder
 WORKDIR /app
 COPY . .
-RUN ./mvnw clean install -DskipTests
+RUN mvn dependency:resolve
+RUN mvn clean package -DskipTests
 
-# Package stage
-FROM openjdk:17-jdk-alpine
+FROM amazoncorretto:17
 WORKDIR /app
-COPY --from=builder /app/target/StockifyAPI-0.0.1-SNAPSHOT.jar /app/app.jar
+COPY --from=builder ./app/target/*.jar ./application.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+
+ENV POSTGRES_HOST=localhost
+RUN echo "the env var POSTGRES_HOST value is $POSTGRES_HOST"
+
+ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=production", "application.jar"]

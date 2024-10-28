@@ -1,16 +1,15 @@
-
 services:
   zookeeper:
-    image: 'bitnami/zookeeper:latest'
+    image: "bitnami/zookeeper:latest"
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
     ports:
-      - '2181:2181'
+      - "2181:2181"
     networks:
-      - stockify-network
+      - stockifynetwork
 
   kafka:
-    image: 'bitnami/kafka:latest'
+    image: "bitnami/kafka:latest"
     environment:
       - KAFKA_BROKER_ID=1
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
@@ -18,57 +17,73 @@ services:
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
       - ALLOW_PLAINTEXT_LISTENER=yes
     ports:
-      - '9092:9092'
+      - "9092:9092"
+    depends_on:
+      - zookeeper
     networks:
-      - stockify-network
+      - stockifynetwork
 
   postgres:
     image: postgres:latest
     container_name: postgres-db
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: stockify
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
     networks:
-      - stockify-network
+      - stockifynetwork
 
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "8080:80"
     depends_on:
       - postgres
     networks:
-      - stockify-network
+      - stockifynetwork
 
   stockify-api:
-    build: .
-    container_name: stockify-api
+    build:
+      dockerfile: Dockerfile
+      context: ./API
+    container_name: stockifyapi
+    restart: on-failure
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      POSTGRES_HOST: postgres
     ports:
-      - '8081:8080'
+      - "8081:8081"
     depends_on:
       - postgres
       - kafka
     networks:
-      - stockify-network
+      - stockifynetwork
+
+  stockify-frontend:
+    build:
+      dockerfile: Dockerfile
+      context: ./FRONT
+    container_name: stockify-frontend
+    restart: on-failure
+    ports:
+      - "4173:4173"
+    networks:
+      - stockifynetwork
+    expose:
+      - 4173
 
 volumes:
   postgres-data:
 
 networks:
-  stockify-network:
+  stockifynetwork:
     driver: bridge
