@@ -192,8 +192,12 @@ const LogReportPage = () => {
             setLogs(
               logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
             );
-            setTotalPages(response.data.page.totalPages);
-            setTotalItems(response.data.page.totalElements);
+            const pageData = response.data?.page || {
+              totalPages: 1,
+              totalElements: 0,
+            };
+            setTotalPages(pageData.totalPages);
+            setTotalItems(pageData.totalElements);
 
             if (logId) {
               setExpandedLogId(logId);
@@ -201,8 +205,8 @@ const LogReportPage = () => {
 
             setLoading(false);
           })
-          .catch(() => {
-            setErrorMessage("Erro ao buscar logs.");
+          .catch((error) => {
+            console.error("Error retrieving logs:", error);
             setLoading(false);
           });
       }, 300);
@@ -415,7 +419,24 @@ const LogReportPage = () => {
     }
 
     if (logs.length === 0) {
-      return <Typography variant="body2">Nenhum log encontrado.</Typography>;
+      return (
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          flexDirection="column"
+          sx={{
+            height: "20vh",
+            textAlign: "center",
+            margin: "0 auto",
+            maxWidth: "400px",
+          }}
+        >
+          <Typography variant="inherit" color="textSecondary">
+            Nenhum registro foi feito até o momento!
+          </Typography>
+        </Box>
+      );
     }
 
     return logs.map((log) => {

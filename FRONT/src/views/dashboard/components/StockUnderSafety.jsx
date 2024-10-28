@@ -92,9 +92,6 @@ const StockUnderSafety = () => {
       onError: (error) => {
         console.error("Error fetching critical stock:", error);
       },
-      onSuccess: (response) => {
-        console.log("Critical stock response:", response);
-      },
     }
   );
 

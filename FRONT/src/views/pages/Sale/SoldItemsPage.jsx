@@ -220,7 +220,22 @@ const SoldItemsPage = () => {
         ) : (
           <Grid container spacing={-5}>
             {soldItems.length === 0 ? (
-              <Typography>Nenhum produto encontrado</Typography>
+              <Box
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                flexDirection="column"
+                sx={{
+                  height: "20vh",
+                  textAlign: "center",
+                  margin: "0 auto",
+                  maxWidth: "400px",
+                }}
+              >
+                <Typography variant="inherit" color="textSecondary">
+                  Nenhum produto foi vendido até o momento!
+                </Typography>
+              </Box>
             ) : (
               soldItems.map((item) => (
                 <Grid size={{ xs: 12 }} key={item.productName}>
