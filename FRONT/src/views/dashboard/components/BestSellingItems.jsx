@@ -71,7 +71,7 @@ const BestSellingItems = ({ sx }) => {
         <Box sx={{ height: "255.5px" }}>
           <Typography
             variant="body2"
-            sx={{ mt: 2, textAlign: "center", fontWeight: "bold" }}
+            sx={{ mt: 4.6, textAlign: "center", fontWeight: "bold" }}
           >
             {isError
               ? "Falha ao carregar produtos mais vendidos."

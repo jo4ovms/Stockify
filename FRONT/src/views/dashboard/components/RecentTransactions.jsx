@@ -107,7 +107,7 @@ const RecentTransactions = () => {
 
     if (isError || logs.length === 0) {
       return (
-        <Box sx={{ height: "250px" }}>
+        <Box sx={{ height: isSmallScreen ? "250px" : "519px" }}>
           <Typography
             variant="body2"
             sx={{ mt: 2, textAlign: "center", fontWeight: "bold" }}

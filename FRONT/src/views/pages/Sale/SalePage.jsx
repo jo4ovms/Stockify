@@ -51,12 +51,17 @@ const SalePage = () => {
         }
         setHasMore(response.page.number + 1 < response.page.totalPages);
       } else {
-        setStocks([]);
+        if (newPage === 0) {
+          setStocks([]);
+        }
         setHasMore(false);
       }
     } catch (error) {
-      console.error("Error fetching stocks:", error);
-      setError("Erro ao carregar os produtos em estoque.");
+      if (error?.response?.status !== 500) {
+        console.error("Erro ao carregar produtos:", error);
+      } else {
+        setError("Erro no servidor ao carregar os produtos.");
+      }
     }
     setSearchLoading(false);
   };
@@ -126,6 +131,7 @@ const SalePage = () => {
         <Autocomplete
           id="stock-autocomplete"
           options={stocks}
+          noOptionsText="Nenhum produto encontrado."
           getOptionLabel={(stock) =>
             stock
               ? `${stock.productName} (Quantidade: ${stock.quantity}, Valor: ${stock.value})`
