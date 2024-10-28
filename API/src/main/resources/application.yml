@@ -9,7 +9,7 @@ spring:
       repositories:
         enabled: true
   kafka:
-    bootstrap-servers: kafka:9092
+    bootstrap-servers: 172.19.0.5:9092
     consumer:
       group-id: logging-group
       auto-offset-reset: earliest
@@ -22,10 +22,10 @@ spring:
   codec:
     max-in-memory-size: 10MB
   datasource:
-    url: jdbc:postgresql://postgres:5432/stockify_management_db
-    username: admin
-    password: admin123
-    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://autorack.proxy.rlwy.net:30733/railway
+    username: postgres
+    password: WoidLbMjSXHVhUdrtloUiatKMoBjsseV
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
@@ -45,4 +45,6 @@ spring:
     activate:
       on-profile: production
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST}:5432/stockify_management_db
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
