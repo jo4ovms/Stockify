@@ -1,42 +1,48 @@
 stockify:
-    app:
-        jwtSecret: ======================stockserviceecommerce830======================
-        jwtExpirationMs: 86400000
+  app:
+    jwtSecret: ======================stockserviceecommerce830======================
+    jwtExpirationMs: 86400000
 
 spring:
-    data:
-        jpa:
-            repositories:
-                enabled: true
-    kafka:
-        bootstrap-servers: kafka:9092
-        consumer:
-            group-id: logging-group
-            auto-offset-reset: earliest
-            key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-            value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-        producer:
-            key-serializer: org.apache.kafka.common.serialization.StringSerializer
-            value-serializer: org.apache.kafka.common.serialization.StringSerializer
-
-    codec:
-        max-in-memory-size: 10MB
-    datasource:
-        url: jdbc:postgresql://localhost:5432/stockify_management_db
-        username: admin
-        password: admin123
-        driverClassName: org.postgresql.Driver
+  data:
     jpa:
-        hibernate:
-            ddl-auto: update
-        properties:
-            hibernate:
-                format_sql: true
-                dialect: org.hibernate.dialect.PostgreSQLDialect
-                jdbc:
-                    time-zone: UTC
+      repositories:
+        enabled: true
+  kafka:
+    bootstrap-servers: kafka:9092
+    consumer:
+      group-id: logging-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+  codec:
+    max-in-memory-size: 10MB
+  datasource:
+    url: jdbc:postgresql://postgres:5432/stockify_management_db
+    username: admin
+    password: admin123
+    driverClassName: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time-zone: UTC
 server:
-    port: 8081
+  port: 8081
 
-
-
+# Production
+---
+spring:
+  config:
+    activate:
+      on-profile: production
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST}:5432/stockify_management_db
