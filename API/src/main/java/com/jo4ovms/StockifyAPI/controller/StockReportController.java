@@ -168,7 +168,7 @@ public class StockReportController {
         Page<StockDTO> filteredStock = stockReportService.getFilteredCriticalStock(query, supplierId, threshold, sortBy, sortDirection, pageable);
 
         if (filteredStock.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            return ResponseEntity.status(HttpStatus.OK)
                     .body(Map.of("message", "No products found below the specified threshold."));
         }
 
