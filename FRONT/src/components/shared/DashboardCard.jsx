@@ -57,7 +57,7 @@ const DashboardCard = ({
 };
 
 DashboardCard.propTypes = {
-  title: PropTypes.string,
+  title: PropTypes.node,
   subtitle: PropTypes.string,
   children: PropTypes.node,
   action: PropTypes.node,
