@@ -27,6 +27,9 @@ public class JwtUtils {
     @Value("${stockify.app.jwtExpirationMs}")
     private int jwtExpirationMs;
 
+    @Value("${stockify.app.jwtRefreshExpirationMs}")
+    private int jwtRefreshExpirationMs;
+
 
     public String generateJwtToken(Authentication authentication) {
 
@@ -34,6 +37,24 @@ public class JwtUtils {
 
         return Jwts.builder()
                 .subject((userPrincipal.getUsername()))
+                .issuedAt(new Date())
+                .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    public String generateRefreshToken(String username) {
+        return Jwts.builder()
+                .subject(username)
+                .issuedAt(new Date())
+                .expiration(new Date((new Date()).getTime() + jwtRefreshExpirationMs))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    public String generateTokenFromUsername(String username) {
+        return Jwts.builder()
+                .subject(username)
                 .issuedAt(new Date())
                 .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(getSigningKey())
