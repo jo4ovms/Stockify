@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import { useRoutes } from "react-router-dom";
 import Router from "./routes/Router.jsx";
 import { baselightTheme } from "./theme/DefaultColors";
+import { AnimatePresence } from "framer-motion";
 
 const queryClient = new QueryClient();
 
@@ -14,7 +15,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        {routing}
+        <AnimatePresence mode="wait" initial={false}>
+          <div key={location.pathname}>{routing}</div>
+        </AnimatePresence>
       </ThemeProvider>
     </QueryClientProvider>
   );
