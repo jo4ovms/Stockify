@@ -1,15 +1,15 @@
 stockify:
   app:
     jwtSecret: ======================stockserviceecommerce830======================
-    jwtExpirationMs: 86400000
-
+    jwtExpirationMs: 60000
+    jwtRefreshExpirationMs: 604800000
 spring:
   data:
     jpa:
       repositories:
         enabled: true
   kafka:
-    bootstrap-servers: 172.19.0.5:9092
+    bootstrap-servers: host.docker.internal:9092
     consumer:
       group-id: logging-group
       auto-offset-reset: earliest
