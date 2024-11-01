@@ -16,7 +16,7 @@ const AuthService = {
         response.data.tokenType
       ) {
         console.log("Login bem-sucedido. Armazenando tokens no localStorage.");
-        localStorage.setItem("user", JSON.stringify(response.data));
+        AuthService.storeUser(response.data);
       } else {
         console.error("Erro: Tokens de autenticação ausentes na resposta.");
       }
@@ -26,7 +26,11 @@ const AuthService = {
       throw new Error("Falha ao efetuar o login");
     }
   },
-
+  storeUser(data) {
+    localStorage.setItem("user", JSON.stringify(data));
+    const tokenPayload = JSON.parse(atob(data.accessToken.split(".")[1]));
+    localStorage.setItem("tokenExpiration", tokenPayload.exp * 1000);
+  },
   Logout() {
     console.log("Logout efetuado. Removendo usuário do localStorage.");
     localStorage.removeItem("user");
@@ -55,7 +59,7 @@ const AuthService = {
         if (response.data.accessToken) {
           //console.log("Token renovado com sucesso.");
           user.accessToken = response.data.accessToken;
-          localStorage.setItem("user", JSON.stringify(user));
+          this.storeUser(user);
           return response.data.accessToken;
         } else {
           console.error(
