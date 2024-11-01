@@ -423,6 +423,10 @@ const SupplierPage = () => {
           <Typography>
             Tem certeza de que deseja excluir o produto{" "}
             <strong>{confirmDeleteDialog.productName}</strong>?
+            <br />
+            <strong style={{ color: "#f44336" }}>
+              Esta operação irá apagar o produto em estoque também.
+            </strong>
           </Typography>
         </DialogContent>
         <DialogActions>
