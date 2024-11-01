@@ -23,20 +23,25 @@ import {
   DialogActions,
   Skeleton,
   useMediaQuery,
+  Collapse,
   useTheme,
+  CircularProgress,
 } from "@mui/material";
 import InputAdornment from "@mui/material/InputAdornment";
+import { Suspense, lazy } from "react";
 import PageContainer from "../../../components/container/PageContainer.jsx";
 import DashboardCard from "../../../components/shared/DashboardCard.jsx";
 import Pagination from "../../../components/shared/Pagination.jsx";
 import useSupplier from "../../../hooks/useSupplier";
-import ProductForm from "./ProductForm.jsx";
-import SupplierForm from "./SupplierForm.jsx";
+import ProductList from "../Product/ProductList.jsx";
+const ProductForm = lazy(() => import("./ProductForm.jsx"));
+const SupplierForm = lazy(() => import("./SupplierForm.jsx"));
 
 const SupplierPage = () => {
   const {
     suppliers,
     currentSupplier,
+    expandedSupplierId,
     productListRef,
     setSuccessMessage,
     setErrorMessage,
@@ -45,7 +50,6 @@ const SupplierPage = () => {
     productsBySupplier,
     productsPage,
     productsTotalPages,
-    visibleProducts,
     open,
     openProductDialog,
     editMode,
@@ -80,6 +84,7 @@ const SupplierPage = () => {
     cancelDeleteProduct,
     handleDeleteProduct,
     confirmDeleteDialog,
+    loadingProducts,
     confirmDeleteSupplier,
     cancelDeleteSupplier,
     handleDeleteSupplier,
@@ -116,7 +121,11 @@ const SupplierPage = () => {
               <Select
                 labelId="filter-tipo-produto-label"
                 id="filter-tipo-produto"
-                value={filterProductType}
+                value={
+                  allProductTypes.includes(filterProductType)
+                    ? filterProductType
+                    : ""
+                }
                 label="Tipo de Produto"
                 onChange={handleFilterProductTypeChange}
               >
@@ -265,125 +274,88 @@ const SupplierPage = () => {
                   </Box>
                 </Box>
 
-                {visibleProducts[supplier.id] && (
+                <Collapse
+                  in={expandedSupplierId === supplier.id}
+                  timeout={300}
+                  unmountOnExit
+                >
                   <Box mt={2} pl={2} pr={2} pb={2}>
-                    <TextField
-                      label={`Buscar produtos de ${supplier.name}`}
-                      variant="outlined"
-                      value={searchProductTermBySupplier[supplier.id] || ""}
-                      onChange={(e) =>
-                        handleSearchProductChange(supplier.id, e.target.value)
-                      }
-                      fullWidth={isSmallScreen}
-                      sx={{
-                        minWidth: isSmallScreen ? "auto" : 400,
-                        marginBottom: 3,
-                      }}
-                      slotProps={{
-                        input: {
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <SearchIcon sx={{ color: "#888" }} />
-                            </InputAdornment>
-                          ),
-                        },
-                      }}
-                    />
-                    {productsBySupplier[supplier.id]?.length > 0 ? (
-                      productsBySupplier[supplier.id].map((product) => (
+                    <Box minHeight="300px">
+                      {" "}
+                      {loadingProducts[supplier.id] ? (
                         <Box
-                          key={product.id}
+                          height="300px"
                           display="flex"
+                          justifyContent="center"
                           alignItems="center"
-                          justifyContent="space-between"
-                          p={2}
-                          borderBottom="1px solid #ccc"
                         >
-                          <Box>
-                            <Typography variant="h6">{product.name}</Typography>
-                            <Typography variant="body2">
-                              Valor: R$ {product.value}
-                            </Typography>
-                            <Typography variant="body2">
-                              Quantidade: {product.quantity}
-                            </Typography>
-                          </Box>
-                          <Box>
-                            <IconButton
-                              color="primary"
-                              onClick={() => editProduct(product)}
-                            >
-                              <EditIcon />
-                            </IconButton>
-                            <IconButton
-                              color="secondary"
-                              onClick={() =>
-                                handleDeleteProduct(product.id, product.name)
-                              }
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </Box>
+                          <CircularProgress />
                         </Box>
-                      ))
-                    ) : (
-                      <Typography variant="h6">
-                        Nenhum produto registrado ainda.
-                      </Typography>
-                    )}
+                      ) : (
+                        <>
+                          <TextField
+                            label={`Buscar produtos de ${supplier.name}`}
+                            variant="outlined"
+                            value={
+                              searchProductTermBySupplier[supplier.id] || ""
+                            }
+                            onChange={(e) =>
+                              handleSearchProductChange(
+                                supplier.id,
+                                e.target.value
+                              )
+                            }
+                            fullWidth={isSmallScreen}
+                            sx={{
+                              minWidth: isSmallScreen ? "auto" : 400,
+                              marginBottom: 3,
+                            }}
+                            slotProps={{
+                              input: {
+                                startAdornment: (
+                                  <InputAdornment position="start">
+                                    <SearchIcon sx={{ color: "#888" }} />
+                                  </InputAdornment>
+                                ),
+                              },
+                            }}
+                          />
 
-                    <Box
-                      display="flex"
-                      flexDirection={isSmallScreen ? "column" : "row"}
-                      justifyContent="space-between"
-                      alignItems="center"
-                      mt={3}
-                    >
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        fullWidth={isSmallScreen}
-                        sx={{ mt: isSmallScreen ? 1 : 0 }}
-                        onClick={() => {
-                          retrieveProducts(
-                            supplier,
-                            Math.max(productsPage[supplier.id] - 1, 0)
-                          );
-                        }}
-                        disabled={productsPage[supplier.id] === 0}
-                      >
-                        Página Anterior
-                      </Button>
-
-                      <Typography>
-                        Página {productsPage[supplier.id] + 1} de{" "}
-                        {productsTotalPages[supplier.id]}
-                      </Typography>
-
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        fullWidth={isSmallScreen}
-                        sx={{ mt: isSmallScreen ? 1 : 0 }}
-                        onClick={() => {
-                          retrieveProducts(
-                            supplier,
-                            Math.min(
-                              productsPage[supplier.id] + 1,
-                              productsTotalPages[supplier.id] - 1
-                            )
-                          );
-                        }}
-                        disabled={
-                          productsPage[supplier.id] >=
-                          productsTotalPages[supplier.id] - 1
-                        }
-                      >
-                        Próxima Página
-                      </Button>
+                          {productsBySupplier[supplier.id]?.length > 0 ? (
+                            <ProductList
+                              products={productsBySupplier[supplier.id] || []}
+                              productsPage={productsPage[supplier.id] || 0}
+                              productsTotalPages={
+                                productsTotalPages[supplier.id] || 1
+                              }
+                              onPreviousPage={() =>
+                                retrieveProducts(
+                                  supplier.id,
+                                  Math.max(productsPage[supplier.id] - 1, 0)
+                                )
+                              }
+                              onNextPage={() =>
+                                retrieveProducts(
+                                  supplier.id,
+                                  productsPage[supplier.id] + 1
+                                )
+                              }
+                              isSmallScreen={isSmallScreen}
+                              onEditProduct={(product) => editProduct(product)}
+                              onDeleteProduct={(productId, productName) =>
+                                handleDeleteProduct(productId, productName)
+                              }
+                            />
+                          ) : (
+                            <Typography variant="h6">
+                              Nenhum produto registrado ainda.
+                            </Typography>
+                          )}
+                        </>
+                      )}
                     </Box>
                   </Box>
-                )}
+                </Collapse>
               </Box>
             ))
           ) : (
@@ -402,28 +374,29 @@ const SupplierPage = () => {
           onPageChange={setPage}
         />
       </DashboardCard>
-      <SupplierForm
-        open={open}
-        handleClose={handleClose}
-        handleSave={saveSupplier}
-        supplier={currentSupplier}
-        editMode={editMode}
-        handleChange={handleChange}
-      />
-      {currentSupplier?.id && (
-        <ProductForm
-          open={openProductDialog}
-          handleClose={handleCloseProductDialog}
-          handleSave={saveProduct}
-          currentProduct={currentProduct}
+      <Suspense fallback={<div>Loading...</div>}>
+        <SupplierForm
+          open={open}
+          handleClose={handleClose}
+          handleSave={saveSupplier}
+          supplier={currentSupplier}
           editMode={editMode}
-          handleChange={handleChangeProduct}
-          currentSupplier={currentSupplier}
-          setSuccessMessage={setSuccessMessage}
-          setErrorMessage={setErrorMessage}
+          handleChange={handleChange}
         />
-      )}
-
+        {currentSupplier?.id && (
+          <ProductForm
+            open={openProductDialog}
+            handleClose={handleCloseProductDialog}
+            handleSave={saveProduct}
+            currentProduct={currentProduct}
+            editMode={editMode}
+            handleChange={handleChangeProduct}
+            currentSupplier={currentSupplier}
+            setSuccessMessage={setSuccessMessage}
+            setErrorMessage={setErrorMessage}
+          />
+        )}
+      </Suspense>
       <Snackbar
         open={!!errorMessage}
         autoHideDuration={6000}
@@ -431,7 +404,6 @@ const SupplierPage = () => {
         message={errorMessage}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       />
-
       <Snackbar
         open={!!successMessage}
         autoHideDuration={6000}
