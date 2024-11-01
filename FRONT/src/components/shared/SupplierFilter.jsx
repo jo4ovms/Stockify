@@ -126,7 +126,7 @@ const SupplierFilter = ({ value, onChange }) => {
   );
 };
 SupplierFilter.propTypes = {
-  value: PropTypes.number,
+  value: PropTypes.node,
   onChange: PropTypes.func.isRequired,
 };
 export default SupplierFilter;
