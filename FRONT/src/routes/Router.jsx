@@ -1,6 +1,8 @@
 import { lazy } from "react";
 import { Navigate } from "react-router-dom";
 import PrivateRoute from "../components/PrivateRoute.jsx";
+import PageTransition from "../layouts/PageTransition.jsx";
+import { isAuthenticated } from "../views/dashboard/components/utils.js";
 import LogReportPage from "../views/pages/Log/LogReportPage.jsx";
 import Roadmap from "../views/pages/RoadMap/RoadMap.jsx";
 import SalePage from "../views/pages/Sale/SalePage.jsx";
@@ -9,7 +11,6 @@ import CriticalStockPage from "../views/pages/StockOverview/CriticalStockPage.js
 import OutOfStockPage from "../views/pages/StockOverview/OutOfStockPage.jsx";
 import StockSafetyPage from "../views/pages/StockOverview/StockSafetyPage.jsx";
 import StockUnderSafetyPage from "../views/pages/StockOverview/StockUnderSafetyPage.jsx";
-import { isAuthenticated } from "../views/dashboard/components/utils.js";
 const LandingPage = lazy(() => import("../views/LandingPage/LandingPage.jsx"));
 const FullLayout = lazy(() => import("../layouts/full/FullLayout.jsx"));
 const BlankLayout = lazy(() => import("../layouts/Blank/BlankLayout.jsx"));
@@ -34,7 +35,11 @@ const Router = [
       },
       {
         path: "/landing",
-        element: <LandingPage />,
+        element: (
+          <PageTransition>
+            <LandingPage />
+          </PageTransition>
+        ),
       },
     ],
   },
@@ -115,7 +120,9 @@ const Router = [
         element: isAuthenticated() ? (
           <Navigate to="/dashboard" replace />
         ) : (
-          <Login />
+          <PageTransition>
+            <Login />
+          </PageTransition>
         ),
       },
       {
@@ -123,7 +130,9 @@ const Router = [
         element: isAuthenticated() ? (
           <Navigate to="/dashboard" replace />
         ) : (
-          <Register />
+          <PageTransition>
+            <Register />
+          </PageTransition>
         ),
       },
     ],

@@ -1,8 +1,11 @@
 import { Outlet } from "react-router-dom";
+import PageTransition from "../PageTransition.jsx";
 const BlankLayout = () => {
   return (
     <>
-      <Outlet />
+      <PageTransition>
+        <Outlet />
+      </PageTransition>
     </>
   );
 };
