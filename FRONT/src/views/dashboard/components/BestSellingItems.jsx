@@ -35,8 +35,8 @@ const BestSellingItems = ({ sx }) => {
     isLoading,
     isError,
   } = useQuery("bestSellingItems", fetchBestSellingItems, {
-    staleTime: 60000,
-    cacheTime: 300000,
+    staleTime: 0,
+    cacheTime: 0,
   });
 
   const renderContent = useMemo(() => {

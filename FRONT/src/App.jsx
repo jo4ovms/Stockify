@@ -1,9 +1,9 @@
 import { CssBaseline, ThemeProvider } from "@mui/material";
+import { AnimatePresence } from "framer-motion";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { useRoutes } from "react-router-dom";
 import Router from "./routes/Router.jsx";
 import { baselightTheme } from "./theme/DefaultColors";
-import { AnimatePresence } from "framer-motion";
 
 const queryClient = new QueryClient();
 

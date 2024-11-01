@@ -27,7 +27,6 @@ import {
   useCallback,
   lazy,
   Suspense,
-  useMemo,
 } from "react";
 import { useParams } from "react-router-dom";
 import DashboardCard from "../../../components/shared/DashboardCard.jsx";
@@ -40,7 +39,7 @@ const DeleteIcon = lazy(() => import("@mui/icons-material/Delete"));
 
 const StockPage = () => {
   const { id } = useParams();
-  const [, setStock] = useState(null);
+
   const [stocks, setStocks] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
@@ -55,15 +54,14 @@ const StockPage = () => {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [, setMinMaxQuantity] = useState([0, 100]);
+
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-  const [, setMinMaxValue] = useState([0, 10000]);
+
   const [quantityRange, setQuantityRange] = useState([0, 100]);
   const [initialMinMaxValue, setInitialMinMaxValue] = useState([0, 10000]);
   const [valueRange, setValueRange] = useState([0, 10000]);
   const [initialMinMaxQuantity, setInitialMinMaxQuantity] = useState([0, 100]);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [, setTargetPage] = useState(page + 1);
   const [confirmDelete, setConfirmDelete] = useState({
     open: false,
     id: null,
@@ -121,7 +119,6 @@ const StockPage = () => {
   const retrieveStocks = async () => {
     setLoading(true);
     const controller = new AbortController();
-    const signal = controller.signal;
     try {
       const params = {
         page,
@@ -223,18 +220,6 @@ const StockPage = () => {
           : newValue
       );
     }
-  };
-  const handleStockCreation = (newStock) => {
-    if (newStock && newStock.productName) {
-      setStocks((prevStocks) => [newStock, ...prevStocks]);
-      setSuccessMessage(
-        `Estoque de ${newStock.productName} criado com sucesso.`
-      );
-      retrieveStocks();
-    } else {
-      setErrorMessage("Erro ao criar o novo produto.");
-    }
-    setOpen(false);
   };
 
   const handlePageChange = (newPage) => {
