@@ -9,9 +9,22 @@ const axiosInstance = axios.create({
 });
 
 axiosInstance.interceptors.request.use(
-  (config) => {
+  async (config) => {
     const user = AuthService.getCurrentUser();
-    if (user && user.accessToken) {
+
+    if (user && user.accessToken && AuthService.isTokenExpiringSoon()) {
+      try {
+        const newAccessToken = await AuthService.renewToken();
+        if (newAccessToken) {
+          config.headers["Authorization"] = "Bearer " + newAccessToken;
+        }
+      } catch (error) {
+        console.error("Erro ao renovar o token antes da requisição:", error);
+        AuthService.Logout();
+        window.location.href = "/auth/login";
+        return Promise.reject(error);
+      }
+    } else if (user && user.accessToken) {
       config.headers["Authorization"] = "Bearer " + user.accessToken;
     }
     return config;

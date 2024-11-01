@@ -71,5 +71,19 @@ const AuthService = {
     }
     throw new Error("Refresh token inválido");
   },
+
+  isTokenExpiringSoon(bufferTimeInSeconds = 30) {
+    const user = this.getCurrentUser();
+    if (user && user.accessToken) {
+      const tokenPayload = JSON.parse(atob(user.accessToken.split(".")[1]));
+      const expirationTime = tokenPayload.exp * 1000;
+      const currentTime = Date.now();
+      const bufferTime = bufferTimeInSeconds * 1000;
+
+      return expirationTime - currentTime < bufferTime;
+    }
+    return true;
+  },
 };
+
 export default AuthService;
