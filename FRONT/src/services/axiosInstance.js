@@ -13,7 +13,7 @@ axiosInstance.interceptors.request.use(
     const user = AuthService.getCurrentUser();
     if (user && user.accessToken) {
       config.headers["Authorization"] = "Bearer " + user.accessToken;
-      console.log("Access token adicionado ao cabeçalho da requisição.");
+      // console.log("Access token adicionado ao cabeçalho da requisição.");
     }
     return config;
   },
@@ -30,15 +30,15 @@ axiosInstance.interceptors.response.use(
       error.response.status === 401 &&
       !originalRequest._retry
     ) {
-      console.log("Token expirado. Tentando renovar...");
+      //console.log("Token expirado. Tentando renovar...");
       originalRequest._retry = true;
 
       try {
         const newAccessToken = await AuthService.renewToken();
         if (newAccessToken) {
-          console.log(
-            "Token atualizado com sucesso. Reenviando a requisição original."
-          );
+          //console.log(
+          //   "Token atualizado com sucesso. Reenviando a requisição original."
+          // );
           axiosInstance.defaults.headers["Authorization"] =
             "Bearer " + newAccessToken;
           originalRequest.headers["Authorization"] = "Bearer " + newAccessToken;
