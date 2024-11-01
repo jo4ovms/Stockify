@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import PropTypes from "prop-types";
-import InputMask from "react-input-mask";
+
 import * as Yup from "yup";
 
 const SupplierSchema = Yup.object().shape({
@@ -22,14 +22,40 @@ const SupplierSchema = Yup.object().shape({
     .max(100, "O email deve ter no máximo 100 caracteres.")
     .required("É obrigatório informar o email."),
   cnpj: Yup.string()
-    .required("É obrigatório informar o CNPJ.")
-    .matches(/^\d{14}$/, "CNPJ deve ter 14 dígitos."),
-  phone: Yup.string().required("É obrigatório informar o telefone."),
+    .test("cnpj", "CNPJ deve ter 14 dígitos.", (value) => {
+      const cleanedValue = value ? value.replace(/\D/g, "") : "";
+      return cleanedValue.length === 14;
+    })
+    .required("É obrigatório informar o CNPJ."),
+  phone: Yup.string()
+    .matches(
+      /^\(\d{2}\) \d{5}-\d{4}$/,
+      "Telefone inválido. Use o formato (99) 99999-9999."
+    )
+    .required("É obrigatório informar o telefone."),
   productType: Yup.string().required(
     "É obrigatório informar o tipo de produto."
   ),
 });
+const formatPhoneNumber = (value) => {
+  if (!value) return value;
+  const cleaned = value.replace(/\D/g, "");
+  const match = cleaned.match(/^(\d{2})(\d{5})(\d{4})$/);
+  if (match) {
+    return `(${match[1]}) ${match[2]}-${match[3]}`;
+  }
+  return value;
+};
 
+const formatCNPJ = (value) => {
+  if (!value) return value;
+  const cleaned = value.replace(/\D/g, "");
+  const match = cleaned.match(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/);
+  if (match) {
+    return `${match[1]}.${match[2]}.${match[3]}/${match[4]}-${match[5]}`;
+  }
+  return value;
+};
 const SupplierForm = ({
   open,
   handleClose,
@@ -46,7 +72,7 @@ const SupplierForm = ({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose}>
+    (<Dialog open={open} onClose={handleClose}>
       <DialogTitle>
         {editMode ? "Editar Fornecedor" : "Criar Fornecedor"}
       </DialogTitle>
@@ -66,7 +92,14 @@ const SupplierForm = ({
         }}
         enableReinitialize
       >
-        {({ values, handleChange, handleBlur, errors, touched }) => (
+        {({
+          values,
+          handleChange,
+          handleBlur,
+          errors,
+          touched,
+          setFieldValue,
+        }) => (
           <Form>
             <DialogContent>
               <Field
@@ -97,40 +130,45 @@ const SupplierForm = ({
                 helperText={<ErrorMessage name="email" />}
               />
 
-              <Field
-                as={TextField}
-                margin="dense"
+              <TextField
                 name="cnpj"
                 label="CNPJ"
-                type="text"
                 fullWidth
+                margin="dense"
                 value={values.cnpj}
-                onChange={handleChange}
+                onChange={(e) => {
+                  const formattedCNPJ = formatCNPJ(e.target.value);
+                  setFieldValue("cnpj", formattedCNPJ);
+                }}
                 onBlur={handleBlur}
                 error={touched.cnpj && Boolean(errors.cnpj)}
                 helperText={<ErrorMessage name="cnpj" />}
                 disabled={editMode}
+                slotProps={{
+                  htmlInput: {
+                    maxLength: 18,
+                  }
+                }}
               />
-
-              <InputMask
-                mask="(99) 99999-9999"
-                value={values.phone}
-                onChange={handleChange}
+              <TextField
+                name="phone"
+                label="Telefone"
+                fullWidth
+                margin="dense"
+                value={formatPhoneNumber(values.phone)}
+                onChange={(e) => {
+                  const formatted = formatPhoneNumber(e.target.value);
+                  setFieldValue("phone", formatted);
+                }}
                 onBlur={handleBlur}
-              >
-                {() => (
-                  <Field
-                    as={TextField}
-                    margin="dense"
-                    name="phone"
-                    label="Número de Telefone"
-                    type="text"
-                    fullWidth
-                    error={touched.phone && Boolean(errors.phone)}
-                    helperText={<ErrorMessage name="phone" />}
-                  />
-                )}
-              </InputMask>
+                error={touched.phone && Boolean(errors.phone)}
+                helperText={<ErrorMessage name="phone" />}
+                slotProps={{
+                  htmlInput: {
+                    maxLength: 15,
+                  }
+                }}
+              />
 
               <Field
                 as={TextField}
@@ -158,7 +196,7 @@ const SupplierForm = ({
           </Form>
         )}
       </Formik>
-    </Dialog>
+    </Dialog>)
   );
 };
 
