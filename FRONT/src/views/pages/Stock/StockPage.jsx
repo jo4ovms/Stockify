@@ -1,4 +1,3 @@
-import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -21,19 +20,30 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
-import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  lazy,
+  Suspense,
+  useMemo,
+} from "react";
 import { useParams } from "react-router-dom";
 import DashboardCard from "../../../components/shared/DashboardCard.jsx";
 import Pagination from "../../../components/shared/Pagination.jsx";
 import SupplierFilter from "../../../components/shared/SupplierFilter.jsx";
 import stockService from "../../../services/stockService";
-import StockForm from "./StockForm.jsx";
+const StockForm = lazy(() => import("./StockForm.jsx"));
+const EditIcon = lazy(() => import("@mui/icons-material/Edit"));
+const DeleteIcon = lazy(() => import("@mui/icons-material/Delete"));
 
 const StockPage = () => {
   const { id } = useParams();
   const [, setStock] = useState(null);
   const [stocks, setStocks] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
   const [, setSuppliers] = useState([]);
   const [selectedSupplier, setSelectedSupplier] = useState("");
   const [open, setOpen] = useState(false);
@@ -42,10 +52,11 @@ const StockPage = () => {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [, setMinMaxQuantity] = useState([0, 100]);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [, setMinMaxValue] = useState([0, 10000]);
   const [quantityRange, setQuantityRange] = useState([0, 100]);
   const [initialMinMaxValue, setInitialMinMaxValue] = useState([0, 10000]);
@@ -62,67 +73,59 @@ const StockPage = () => {
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   let debounceTimeout = useRef(null);
 
-  const fetchLimits = async () => {
-    try {
-      const limits = await stockService.getStockLimits();
-
-      if (limits && typeof limits.maxQuantity === "number") {
-        const maxQuantity = limits.maxQuantity;
-        setInitialMinMaxQuantity([0, maxQuantity]);
-        setQuantityRange([0, maxQuantity]);
-      }
-      if (limits && typeof limits.maxValue === "number") {
-        const maxValue = limits.maxValue;
-        setInitialMinMaxValue([0, maxValue]);
-        setValueRange([0, maxValue]);
-      }
-    } catch (error) {
-      setErrorMessage(`Erro ao obter os limites de estoque: ${error.message}`);
-    }
-  };
-
   useEffect(() => {
+    const fetchLimits = async () => {
+      try {
+        const limits = await stockService.getStockLimits();
+        if (limits && typeof limits.maxQuantity === "number") {
+          setInitialMinMaxQuantity([0, limits.maxQuantity]);
+          setQuantityRange([0, limits.maxQuantity]);
+        }
+        if (limits && typeof limits.maxValue === "number") {
+          setInitialMinMaxValue([0, limits.maxValue]);
+          setValueRange([0, limits.maxValue]);
+        }
+      } catch (error) {
+        setErrorMessage(
+          `Erro ao obter os limites de estoque: ${error.message}`
+        );
+      }
+    };
     fetchLimits();
   }, []);
 
   useEffect(() => {
+    const handler = setTimeout(() => setDebouncedQuery(searchQuery), 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  useEffect(() => {
     if (id) {
+      setLoading(true);
       stockService
         .getStockById(id)
         .then((response) => {
-          setStock(response);
           setEditMode(true);
           setCurrentStock(response);
           setOpen(true);
         })
-        .catch(() => setErrorMessage("Erro ao carregar o estoque."));
+        .catch(() => setErrorMessage("Erro ao carregar o estoque."))
+        .finally(() => setLoading(false));
     }
   }, [id]);
-
-  useEffect(() => {
-    retrieveSuppliers();
-  }, []);
 
   useEffect(() => {
     setPage(0);
   }, [searchQuery, selectedSupplier]);
 
-  useEffect(() => {
-    retrieveStocks(page, itemsPerPage);
-  }, [
-    page,
-    searchQuery,
-    selectedSupplier,
-    quantityRange,
-    valueRange,
-    itemsPerPage,
-  ]);
-
-  const retrieveStocks = useCallback(
-    (pageNumber = 0, size = itemsPerPage) => {
+  const retrieveStocks = async () => {
+    setLoading(true);
+    const controller = new AbortController();
+    const signal = controller.signal;
+    try {
       const params = {
-        page: pageNumber,
-        size,
+        page,
+        size: itemsPerPage,
         minQuantity: quantityRange[0],
         maxQuantity: quantityRange[1],
         minValue: valueRange[0],
@@ -131,53 +134,56 @@ const StockPage = () => {
         supplierId: selectedSupplier || undefined,
       };
 
-      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
-
-      setLoading(true);
-
-      debounceTimeout.current = setTimeout(() => {
-        stockService
-          .getAllStock(params)
-          .then((response) => {
-            const stocksData = response._embedded?.stockDTOList || [];
-            setStocks(stocksData);
-
-            const totalPagesFromResponse = response.page?.totalPages || 1;
-            const totalItemsFromResponse = response.page?.totalElements || 0;
-
-            setTotalPages(totalPagesFromResponse);
-            setTotalItems(totalItemsFromResponse);
-
-            if (stocksData.length > 0) {
-              const maxQuantity = Math.max(
-                ...stocksData.map((stock) => stock.quantity),
-                0
-              );
-              const maxValue = Math.max(
-                ...stocksData.map((stock) => stock.value),
-                0
-              );
-              setMinMaxQuantity([0, maxQuantity]);
-              setMinMaxValue([0, maxValue]);
-            }
-          })
-          .catch(() => setErrorMessage("Erro ao carregar o estoque."))
-          .finally(() => {
-            setLoading(false);
-          });
-      }, 500);
-    },
-    [searchQuery, selectedSupplier, quantityRange, valueRange, itemsPerPage]
-  );
-
-  const retrieveSuppliers = () => {
-    stockService
-      .getAllWithoutPagination()
-      .then((response) =>
-        setSuppliers(Array.isArray(response.data) ? response.data : [])
-      )
-      .catch(() => setSuppliers([]));
+      const response = await stockService.getAllStock(params);
+      setStocks(response._embedded?.stockDTOList || []);
+      setTotalPages(response.page?.totalPages || 1);
+      setTotalItems(response.page?.totalElements || 0);
+      setInitialLoadComplete(true);
+    } catch {
+      setErrorMessage("Erro ao carregar o estoque.");
+    } finally {
+      setLoading(false);
+      setInitialLoadComplete(true);
+    }
+    return () => controller.abort();
   };
+
+  useEffect(() => {
+    retrieveStocks();
+    setInitialLoadComplete(true);
+  }, []);
+
+  useEffect(() => {
+    if (!initialLoadComplete) return;
+
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+
+    debounceTimeout.current = setTimeout(() => {
+      retrieveStocks();
+    }, 500);
+
+    return () => clearTimeout(debounceTimeout.current);
+  }, [
+    page,
+    itemsPerPage,
+    quantityRange,
+    valueRange,
+    debouncedQuery,
+    selectedSupplier,
+  ]);
+  useEffect(() => {
+    const retrieveSuppliers = async () => {
+      try {
+        const response = await stockService.getAllWithoutPagination();
+        setSuppliers(Array.isArray(response.data) ? response.data : []);
+      } catch {
+        setSuppliers([]);
+      }
+    };
+    retrieveSuppliers();
+  }, []);
 
   const handleClickOpen = () => {
     setEditMode(false);
@@ -185,25 +191,23 @@ const StockPage = () => {
     setOpen(true);
   };
 
-  const handleClickEdit = (stock) => {
+  const handleClickEdit = useCallback((stock) => {
     setEditMode(true);
     setCurrentStock(stock);
     setOpen(true);
-  };
+  }, []);
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     const { id, productName } = confirmDelete;
-    stockService
-      .deleteStock(id)
-      .then(() => {
-        setSuccessMessage(`Produto ${productName} deletado com sucesso.`);
-        retrieveStocks(page, itemsPerPage);
-        fetchLimits();
-      })
-      .catch(() => setErrorMessage("Erro ao deletar o produto em estoque."))
-      .finally(() =>
-        setConfirmDelete({ open: false, id: null, productName: "" })
-      );
+    try {
+      await stockService.deleteStock(id);
+      setSuccessMessage(`Produto ${productName} deletado com sucesso.`);
+      setPage(0);
+    } catch {
+      setErrorMessage("Erro ao deletar o produto em estoque.");
+    } finally {
+      setConfirmDelete({ open: false, id: null, productName: "" });
+    }
   };
 
   const handleOpenDeleteDialog = (id, productName) => {
@@ -211,13 +215,26 @@ const StockPage = () => {
   };
 
   const handleSliderChange = (event, newValue) => {
-    if (!Array.isArray(newValue) || newValue.length < 2) return;
-
-    if (newValue[1] > initialMinMaxValue[1]) {
-      setValueRange([newValue[0], initialMinMaxValue[1]]);
-    } else {
-      setValueRange(newValue);
+    if (Array.isArray(newValue) && newValue.length === 2) {
+      setLoading(true);
+      setValueRange(
+        newValue[1] > initialMinMaxValue[1]
+          ? [newValue[0], initialMinMaxValue[1]]
+          : newValue
+      );
     }
+  };
+  const handleStockCreation = (newStock) => {
+    if (newStock && newStock.productName) {
+      setStocks((prevStocks) => [newStock, ...prevStocks]);
+      setSuccessMessage(
+        `Estoque de ${newStock.productName} criado com sucesso.`
+      );
+      retrieveStocks();
+    } else {
+      setErrorMessage("Erro ao criar o novo produto.");
+    }
+    setOpen(false);
   };
 
   const handlePageChange = (newPage) => {
@@ -227,13 +244,11 @@ const StockPage = () => {
   const handleItemsPerPageChange = (event) => {
     setItemsPerPage(event.target.value);
     setPage(0);
-    setTargetPage(1);
-    retrieveStocks(0, event.target.value);
   };
 
   return (
     <DashboardCard title="Gestão de Estoque">
-      <Box component="form" noValidate autoComplete="off" mb={2}>
+      <Box sx={{ padding: theme.spacing(2, 0) }}>
         <Grid container spacing={2} alignItems="center">
           <Grid size={{ xs: 12, md: 12 }}>
             <TextField
@@ -376,13 +391,17 @@ const StockPage = () => {
               gap={1}
             >
               <Box>
-                <Typography variant="h6">{stock.productName}</Typography>
-                <Typography variant="body2">Valor: R$ {stock.value}</Typography>
-                <Typography variant="body2">
-                  Quantidade: {stock.quantity}
+                <Typography variant="h6">
+                  {stock.productName || "Nome do produto não disponível"}
                 </Typography>
                 <Typography variant="body2">
-                  Fornecedor: {stock.supplierName}
+                  Valor: R$ {stock.value || "0,00"}
+                </Typography>
+                <Typography variant="body2">
+                  Quantidade: {stock.quantity || "0"}
+                </Typography>
+                <Typography variant="body2">
+                  Fornecedor: {stock.supplierName || "Desconhecido"}
                 </Typography>
               </Box>
               <Box display="flex" gap={1} alignItems={"center"}>
@@ -404,6 +423,7 @@ const StockPage = () => {
             </Box>
           ))
         ) : (
+          initialLoadComplete &&
           !loading && (
             <Alert severity="info" sx={{ mt: 10, justifyContent: "center" }}>
               Nenhum item no estoque —{" "}
@@ -418,15 +438,21 @@ const StockPage = () => {
         totalItems={totalItems}
         onPageChange={handlePageChange}
       />
-      <StockForm
-        open={open}
-        handleClose={() => setOpen(false)}
-        editMode={editMode}
-        currentStock={currentStock}
-        retrieveStocks={() => retrieveStocks(page, itemsPerPage)}
-        setSuccessMessage={setSuccessMessage}
-        fetchLimits={fetchLimits}
-      />
+      <Suspense
+        fallback={
+          <Skeleton variant="rectangular" height={60} animation="wave" />
+        }
+      >
+        <StockForm
+          open={open}
+          handleClose={() => setOpen(false)}
+          editMode={editMode}
+          currentStock={currentStock}
+          retrieveStocks={retrieveStocks}
+          setSuccessMessage={(message) => setSuccessMessage(message)}
+          fetchLimits={() => setPage(0)}
+        />
+      </Suspense>
       <Snackbar
         open={!!errorMessage}
         autoHideDuration={6000}
