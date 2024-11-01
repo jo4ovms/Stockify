@@ -224,10 +224,10 @@ const StockUnderSafety = () => {
         </Fab>
       }
       sx={{
-        width: isSmallScreen ? "150%" : "120%",
+        width: isSmallScreen ? "150%" : "550px",
         height: isSmallScreen ? "100%" : "300px",
-        minWidth: isSmallScreen ? "100%" : "124%",
-        maxWidth: isSmallScreen ? "100%" : "130%",
+        minWidth: isSmallScreen ? "100%" : "550px",
+        maxWidth: isSmallScreen ? "100%" : "550px",
       }}
     >
       <Box
