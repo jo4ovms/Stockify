@@ -9,7 +9,7 @@ import {
 import PropTypes from "prop-types";
 import { NavLink } from "react-router-dom";
 
-const NavItem = ({ item, level, pathDirect, onClick }) => {
+const NavItem = ({ item, level, pathDirect, onClick = () => {} }) => {
   const Icon = item.icon;
   const theme = useTheme();
   const itemIcon = <Icon stroke={1.5} size="1.3rem" />;
