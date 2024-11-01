@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import productService from "../services/productService";
+import { debounce } from "lodash";
 import supplierService from "../services/supplier.service";
 
 const useSupplier = () => {
@@ -14,6 +15,11 @@ const useSupplier = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [suppliers, setSuppliers] = useState([]);
   const [productsBySupplier, setProductsBySupplier] = useState({});
+  const [errorDialog, setErrorDialog] = useState({
+    open: false,
+    message: "",
+  });
+  const [loadingProducts, setLoadingProducts] = useState({});
   const [searchProductTermBySupplier, setSearchProductTermBySupplier] =
     useState({});
   const [productsPage, setProductsPage] = useState({});
@@ -31,7 +37,6 @@ const useSupplier = () => {
       supplierName: "",
     });
 
-  const debounceTimeout = useRef(null);
   const [currentSupplier, setCurrentSupplier] = useState({
     id: null,
     name: "",
@@ -55,52 +60,62 @@ const useSupplier = () => {
   const [editMode, setEditMode] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterProductType, setFilterProductType] = useState("All");
-
+  const [expandedSupplierId, setExpandedSupplierId] = useState(null);
   const [allProductTypes, setAllProductTypes] = useState([]);
   const [targetPage, setTargetPage] = useState(page + 1);
-
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const retrieveSuppliers = useCallback(
     (pageNumber = 0, newSize = size) => {
-      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
-
       setLoading(true);
       setErrorMessage("");
 
-      debounceTimeout.current = setTimeout(() => {
-        const name = searchTerm || null;
-        const productType = filterProductType || null;
+      const name = debouncedSearchTerm || null;
+      const productType = filterProductType || null;
 
-        supplierService
-          .filterSuppliers(
-            name,
-            productType,
-            pageNumber,
-            newSize,
-            sortBy,
-            sortDirection
-          )
-          .then((response) => {
-            const suppliersData =
-              response.data._embedded?.supplierDTOList || [];
-            const pageData = response.data.page || {
-              totalPages: 1,
-              totalElements: 0,
-            };
+      supplierService
+        .filterSuppliers(
+          name,
+          productType,
+          pageNumber,
+          newSize,
+          sortBy,
+          sortDirection
+        )
+        .then((response) => {
+          const suppliersData = response.data._embedded?.supplierDTOList || [];
+          const pageData = response.data.page || {
+            totalPages: 1,
+            totalElements: 0,
+          };
 
-            setSuppliers(suppliersData);
-            setTotalPages(pageData.totalPages);
-            setTotalItems(pageData.totalElements);
+          setSuppliers(suppliersData);
+          setTotalPages(pageData.totalPages);
+          setTotalItems(pageData.totalElements);
 
-            if (suppliersData.length === 0) {
-              setErrorMessage("");
-            }
-          })
-          .catch(() => setErrorMessage("Erro ao carregar os fornecedores."))
-          .finally(() => setLoading(false));
-      }, 500);
+          if (suppliersData.length === 0) {
+            setErrorMessage("");
+          }
+        })
+        .catch(() => setErrorMessage("Erro ao carregar os fornecedores."))
+        .finally(() => setLoading(false));
     },
-    [sortBy, sortDirection, searchTerm, filterProductType]
+    [debouncedSearchTerm, filterProductType, size, sortBy, sortDirection]
   );
+  useEffect(() => {
+    const handler = debounce(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+
+    handler();
+
+    return () => {
+      handler.cancel();
+    };
+  }, [searchTerm]);
+
+  useEffect(() => {
+    retrieveSuppliers(page, size);
+  }, [debouncedSearchTerm, filterProductType, page, size, retrieveSuppliers]);
 
   const handleTargetPageChange = (event) => {
     setTargetPage(event.target.value);
@@ -113,19 +128,6 @@ const useSupplier = () => {
     );
     window.scrollTo(0, 0);
     setPage(newPage);
-  };
-
-  const scrollToProductListTop = (supplierId) => {
-    const interval = setInterval(() => {
-      if (productListRef.current[supplierId]) {
-        const offsetTop = productListRef.current[supplierId].offsetTop;
-        window.scrollTo({
-          top: offsetTop - 60,
-          behavior: "smooth",
-        });
-        clearInterval(interval);
-      }
-    }, 100);
   };
 
   useEffect(() => {
@@ -147,37 +149,46 @@ const useSupplier = () => {
   }, []);
 
   useEffect(() => {
-    retrieveSuppliers(page, size);
-  }, [page, size, searchTerm, filterProductType, retrieveSuppliers]);
-
-  useEffect(() => {
     setVisibleProducts({});
   }, [page]);
 
-  const retrieveProducts = (supplier, page = 0, size = 10) => {
-    productService
-      .getProductsBySupplier(supplier.id, page, size)
-      .then(({ products, totalPages }) => {
-        setProductsBySupplier((prev) => ({
-          ...prev,
-          [supplier.id]: products,
-        }));
+  const retrieveProducts = useCallback(
+    (supplierId, page = 0, size = 10) => {
+      if (loadingProducts[supplierId]) return;
+      setTimeout(() => {
+        if (productListRef.current[supplierId]) {
+          const offsetTop = productListRef.current[supplierId].offsetTop;
+          window.scrollTo({
+            top: offsetTop - 150,
+            behavior: "smooth",
+          });
+        }
+      }, 100);
 
-        setProductsPage((prev) => ({
-          ...prev,
-          [supplier.id]: page,
-        }));
+      setLoadingProducts((prev) => ({ ...prev, [supplierId]: true }));
+      productService
+        .getProductsBySupplier(supplierId, page, size)
+        .then((response) => {
+          const { products = [], totalPages = 1 } = response;
+          setProductsBySupplier((prev) => ({
+            ...prev,
+            [supplierId]: products.filter((product) => product && product.name),
+          }));
+          setProductsPage((prev) => ({ ...prev, [supplierId]: page }));
+          setProductsTotalPages((prev) => ({
+            ...prev,
+            [supplierId]: totalPages,
+          }));
+          setVisibleProducts((prev) => ({ ...prev, [supplierId]: true }));
+        })
 
-        setProductsTotalPages((prev) => ({
-          ...prev,
-          [supplier.id]: totalPages,
-        }));
-
-        setVisibleProducts((prev) => ({ ...prev, [supplier.id]: true }));
-        scrollToProductListTop(supplier.id);
-      })
-      .catch(() => setErrorMessage("Erro ao buscar produtos."));
-  };
+        .catch(() => setErrorMessage("Erro ao buscar produtos."))
+        .finally(() => {
+          setLoadingProducts((prev) => ({ ...prev, [supplierId]: false }));
+        });
+    },
+    [loadingProducts, productsBySupplier]
+  );
 
   const searchProductsForSupplier = (
     supplierId,
@@ -246,26 +257,27 @@ const useSupplier = () => {
   };
 
   const handleClickShowProducts = (supplier) => {
-    setVisibleProducts((prev) => {
-      const updatedVisibleProducts = Object.keys(prev).reduce((acc, key) => {
-        acc[key] = false;
-        return acc;
-      }, {});
+    const supplierId = supplier.id;
+    setExpandedSupplierId((prevId) => {
+      const isSameSupplier = prevId === supplierId;
 
-      updatedVisibleProducts[supplier.id] = !prev[supplier.id];
+      if (!isSameSupplier) {
+        retrieveProducts(supplierId, productsPage[supplierId] || 0);
 
-      return updatedVisibleProducts;
-    });
+        setTimeout(() => {
+          if (productListRef.current[supplierId]) {
+            const offsetTop = productListRef.current[supplierId].offsetTop;
 
-    if (!visibleProducts[supplier.id]) {
-      const searchTerm = searchProductTermBySupplier[supplier.id] || "";
-      if (searchTerm) {
-        searchProductsForSupplier(supplier.id, searchTerm);
-      } else {
-        retrieveProducts(supplier);
+            window.scrollTo({
+              top: offsetTop - 150,
+              behavior: "smooth",
+            });
+          }
+        }, 200);
       }
-      setCurrentSupplier(supplier);
-    }
+
+      return isSameSupplier ? null : supplierId;
+    });
   };
 
   const handleClose = () => setOpen(false);
@@ -327,13 +339,17 @@ const useSupplier = () => {
       supplierService
         .update(currentSupplier.id, formattedSupplier)
         .then(({ data: updatedSupplier }) => {
+          setSuppliers((prev) =>
+            prev.map((supplier) =>
+              supplier.id === updatedSupplier.id ? updatedSupplier : supplier
+            )
+          );
           setSuccessMessage(
             `Fornecedor ${updatedSupplier.name} atualizado com sucesso.`
           );
           refreshProductTypesAndSuppliers();
         })
         .catch((error) => {
-          console.error("Error updating supplier:", error.response?.data);
           const backendError =
             error?.response?.data?.message || "Erro ao atualizar o fornecedor.";
           setErrorMessage(backendError);
@@ -343,13 +359,14 @@ const useSupplier = () => {
       supplierService
         .create(formattedSupplier)
         .then(({ data: createdSupplier }) => {
+          setSuppliers((prev) => [createdSupplier, ...prev]);
           setSuccessMessage(
             `Fornecedor ${createdSupplier.name} criado com sucesso.`
           );
           refreshProductTypesAndSuppliers();
+          handleClose();
         })
         .catch((error) => {
-          console.error("Error creating supplier:", error.response?.data);
           const backendError =
             error?.response?.data?.message || "Erro ao criar o fornecedor.";
           setErrorMessage(backendError);
@@ -365,7 +382,7 @@ const useSupplier = () => {
 
     const productData = {
       ...product,
-      name: product.name ? product.name : null,
+      name: product.name || null,
       value: product.value ? parseFloat(product.value) : null,
       quantity: product.quantity ? parseInt(product.quantity, 10) : null,
     };
@@ -375,28 +392,25 @@ const useSupplier = () => {
       return;
     }
 
-    if (editMode) {
-      productService
-        .updateProduct(productData.id, productData)
-        .then(() => {
-          retrieveProducts(currentSupplier);
-          handleCloseProductDialog();
-          setSuccessMessage(
-            `Produto ${productData.name} atualizado com sucesso.`
-          );
-        })
-        .catch(() => setErrorMessage("Erro ao atualizar o produto."));
-    } else {
-      productService
-        .createProduct(productData)
-        .then(() => {
-          retrieveProducts(currentSupplier);
-          handleCloseProductDialog();
-          setSuccessMessage(`Produto ${productData.name} criado com sucesso.`);
-        })
-        .catch(() => setErrorMessage("Erro ao criar o produto."));
-    }
+    const serviceCall = editMode
+      ? productService.updateProduct(productData.id, productData)
+      : productService.createProduct(productData);
+
+    serviceCall
+      .then(() => {
+        retrieveProducts(productData.supplierId);
+        handleCloseProductDialog();
+        setSuccessMessage(
+          `Produto ${productData.name} ${editMode ? "atualizado" : "criado"} com sucesso.`
+        );
+      })
+      .catch(() =>
+        setErrorMessage(
+          `Erro ao ${editMode ? "atualizar" : "criar"} o produto.`
+        )
+      );
   };
+
   const handleDeleteSupplier = (supplierId, supplierName) => {
     setConfirmDeleteSupplierDialog({
       open: true,
@@ -447,7 +461,7 @@ const useSupplier = () => {
       .deleteProduct(productId)
       .then(() => {
         setSuccessMessage(`Produto ${productName} excluído com sucesso.`);
-        retrieveProducts(currentSupplier);
+        retrieveProducts(currentSupplier.id);
         getAllProductTypes();
       })
       .catch(() => setErrorMessage("Erro ao excluir o produto."))
@@ -497,6 +511,7 @@ const useSupplier = () => {
     allProductTypes,
     setSuccessMessage,
     setErrorMessage,
+    expandedSupplierId,
     setVisibleProducts,
     retrieveProducts,
     currentSupplier,
@@ -512,6 +527,7 @@ const useSupplier = () => {
     searchTerm,
     filterProductType,
     handleClickOpen,
+    loadingProducts,
     handleClickEdit,
     handleClickCreateProduct,
     handleClickShowProducts,
@@ -523,6 +539,8 @@ const useSupplier = () => {
     handleFilterProductTypeChange,
     handleItemsPerPageChange,
     saveSupplier,
+    errorDialog,
+    setErrorDialog,
     saveProduct,
     editProduct,
     page,
