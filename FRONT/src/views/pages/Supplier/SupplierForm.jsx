@@ -5,9 +5,11 @@ import {
   DialogActions,
   TextField,
   Button,
+  CircularProgress,
 } from "@mui/material";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import PropTypes from "prop-types";
+import { useState } from "react";
 
 import * as Yup from "yup";
 
@@ -63,6 +65,8 @@ const SupplierForm = ({
   supplier = {},
   editMode,
 }) => {
+  const [loading, setLoading] = useState(false);
+
   const initialValues = {
     name: supplier.name || "",
     email: supplier.email || "",
@@ -72,7 +76,7 @@ const SupplierForm = ({
   };
 
   return (
-    (<Dialog open={open} onClose={handleClose}>
+    <Dialog open={open} onClose={handleClose}>
       <DialogTitle>
         {editMode ? "Editar Fornecedor" : "Criar Fornecedor"}
       </DialogTitle>
@@ -80,6 +84,7 @@ const SupplierForm = ({
         initialValues={initialValues}
         validationSchema={SupplierSchema}
         onSubmit={(values, { resetForm }) => {
+          setLoading(true);
           const cleanedValues = {
             ...values,
             cnpj: values.cnpj.replace(/\D/g, ""),
@@ -87,6 +92,7 @@ const SupplierForm = ({
           };
 
           handleSave(cleanedValues);
+          setLoading(false);
           resetForm();
           handleClose();
         }}
@@ -147,7 +153,7 @@ const SupplierForm = ({
                 slotProps={{
                   htmlInput: {
                     maxLength: 18,
-                  }
+                  },
                 }}
               />
               <TextField
@@ -166,7 +172,7 @@ const SupplierForm = ({
                 slotProps={{
                   htmlInput: {
                     maxLength: 15,
-                  }
+                  },
                 }}
               />
 
@@ -189,14 +195,20 @@ const SupplierForm = ({
               <Button onClick={handleClose} color="primary">
                 Cancelar
               </Button>
-              <Button type="submit" color="primary">
-                {editMode ? "Salvar" : "Criar"}
+              <Button type="submit" color="primary" disabled={loading}>
+                {loading ? (
+                  <CircularProgress size={24} />
+                ) : editMode ? (
+                  "Salvar"
+                ) : (
+                  "Criar"
+                )}
               </Button>
             </DialogActions>
           </Form>
         )}
       </Formik>
-    </Dialog>)
+    </Dialog>
   );
 };
 

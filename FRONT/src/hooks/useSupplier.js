@@ -1,6 +1,6 @@
+import { debounce } from "lodash";
 import { useEffect, useState, useRef, useCallback } from "react";
 import productService from "../services/productService";
-import { debounce } from "lodash";
 import supplierService from "../services/supplier.service";
 
 const useSupplier = () => {
