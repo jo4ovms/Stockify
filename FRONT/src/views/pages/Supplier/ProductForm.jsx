@@ -5,9 +5,11 @@ import {
   DialogActions,
   TextField,
   Button,
+  CircularProgress,
 } from "@mui/material";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import PropTypes from "prop-types";
+import { useState } from "react";
 import * as Yup from "yup";
 
 const ProductSchema = Yup.object().shape({
@@ -35,6 +37,7 @@ const ProductForm = ({
   currentSupplier = {},
   setErrorMessage,
 }) => {
+  const [loading, setLoading] = useState(false);
   const initialValues = {
     name: currentProduct.name || "",
     value: currentProduct.value !== undefined ? currentProduct.value : "",
@@ -56,8 +59,9 @@ const ProductForm = ({
       setErrorMessage("Todos os campos são obrigatórios.");
       return;
     }
-
+    setLoading(true);
     handleSave(productData);
+    setLoading(false);
     resetForm();
     handleClose();
   };
@@ -126,8 +130,14 @@ const ProductForm = ({
               <Button onClick={handleClose} color="primary">
                 Cancelar
               </Button>
-              <Button type="submit" color="primary">
-                {editMode ? "Salvar" : "Criar"}
+              <Button type="submit" color="primary" disabled={loading}>
+                {loading ? (
+                  <CircularProgress size={24} />
+                ) : editMode ? (
+                  "Salvar"
+                ) : (
+                  "Criar"
+                )}
               </Button>
             </DialogActions>
           </Form>
