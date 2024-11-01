@@ -35,7 +35,6 @@ const AuthLogin = () => {
     AuthService.login(values.username, values.password)
       .then(() => {
         navigate("/dashboard");
-        window.location.reload();
       })
       .catch((error) => {
         const resMessage =
