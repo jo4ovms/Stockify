@@ -27,12 +27,10 @@ const ProductSearch = ({
           newPage,
           10
         );
-        const allProducts = [...products, ...newProducts];
-        const uniqueProducts = Array.from(
-          new Map(allProducts.map((product) => [product.id, product])).values()
-        );
 
-        setProducts(newPage === 0 ? newProducts : uniqueProducts);
+        setProducts((prevProducts) =>
+          newPage === 0 ? newProducts : [...prevProducts, ...newProducts]
+        );
         setHasMore(newProducts.length === 10);
       } catch (error) {
         console.error("Error loading products:", error);
@@ -42,12 +40,11 @@ const ProductSearch = ({
   ).current;
 
   useEffect(() => {
-    if (selectedProduct && !searchTerm) {
-      setProducts([selectedProduct]);
-    }
+    setProducts([]);
+    setPage(0);
     debouncedFetchProducts(searchTerm, 0);
     return () => debouncedFetchProducts.cancel();
-  }, [searchTerm, selectedProduct]);
+  }, [searchTerm]);
 
   const handleScroll = (event) => {
     const { scrollTop, scrollHeight, clientHeight } = event.target;
