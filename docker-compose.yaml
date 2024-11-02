@@ -32,9 +32,9 @@ services:
     environment:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      SPRING_DATASOURCE_URL: jdbc:postgresql://stockify-db.c9m6swcaq3om.sa-east-1.rds.amazonaws.com:5432/stockify-db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: 5lxN12o5p0EZRnVrKlMD
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
     ports:
       - "8081:8081"
@@ -62,3 +62,6 @@ volumes:
 networks:
   stockifynetwork:
     driver: bridge
+
+env_file:
+  - .env
