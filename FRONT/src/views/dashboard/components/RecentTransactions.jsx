@@ -15,7 +15,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { IconArrowRight } from "@tabler/icons-react";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { useQuery } from "react-query";
 import { useNavigate } from "react-router-dom";
 import DashboardCard from "../../../components/shared/DashboardCard.jsx";
@@ -46,6 +46,8 @@ const RecentTransactions = () => {
     cacheTime: 300000,
   });
 
+  const logRefs = useRef({});
+
   const translateEntity = (entity) => {
     return entityTranslationMap[entity] || entity;
   };
@@ -67,13 +69,24 @@ const RecentTransactions = () => {
 
   const handleViewReportClick = useCallback(
     (logId) => {
+      window.scrollTo({ top: 0, behavior: "auto" });
+
       navigate(`/report-logs/${logId}`);
+
+      setTimeout(() => {
+        if (logRefs.current[logId]) {
+          logRefs.current[logId].scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
+      }, 100);
     },
     [navigate]
   );
+
   const handleViewLogsPageClick = useCallback(() => {
     navigate("/report-logs");
-    window.scrollTo(0, 0);
   }, [navigate]);
 
   const renderLogs = useMemo(() => {
@@ -132,6 +145,7 @@ const RecentTransactions = () => {
         {logs.slice(0, 5).map((log, index) => (
           <Card
             key={index}
+            ref={(el) => (logRefs.current[log.id] = el)}
             sx={{
               mb: 1,
               p: 2,
