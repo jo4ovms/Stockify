@@ -29,6 +29,4 @@ public class LogDTO {
     private String newValue;
 
     private String details;
-
-    private Boolean available;
 }
