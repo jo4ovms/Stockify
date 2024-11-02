@@ -1,7 +1,7 @@
 stockify:
   app:
     jwtSecret: ======================stockserviceecommerce830======================
-    jwtExpirationMs: 60000
+    jwtExpirationMs: 86400000
     jwtRefreshExpirationMs: 604800000
 spring:
   data:
@@ -22,11 +22,18 @@ spring:
   codec:
     max-in-memory-size: 10MB
   datasource:
-    url: jdbc:postgresql://autorack.proxy.rlwy.net:30733/railway
+    url: jdbc:postgresql://stockify-db.c9m6swcaq3om.sa-east-1.rds.amazonaws.com:5432/stockify-db
     username: postgres
-    password: WoidLbMjSXHVhUdrtloUiatKMoBjsseV
-    driver-class-name: org.postgresql.Driver
+    password: 5lxN12o5p0EZRnVrKlMD
+    driverClassName: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 30000
+      max-lifetime: 1800000
+      connection-timeout: 30000
   jpa:
+    show-sql: true
     hibernate:
       ddl-auto: update
     properties:
@@ -48,3 +55,9 @@ spring:
     url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

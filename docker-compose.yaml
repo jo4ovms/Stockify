@@ -14,7 +14,7 @@ services:
       - KAFKA_BROKER_ID=1
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
       - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://host.docker.internal:9092
       - ALLOW_PLAINTEXT_LISTENER=yes
     ports:
       - "9092:9092"
@@ -22,33 +22,6 @@ services:
       - zookeeper
     networks:
       - stockifynetwork
-
-  # postgres:
-  #   image: postgres:latest
-  #   container_name: postgres-db
-  #   environment:
-  #     POSTGRES_DB: postgres
-  #     POSTGRES_USER: postgres
-  #     POSTGRES_PASSWORD: stockify
-  #   ports:
-  #     - "5432:5432"
-  #   volumes:
-  #     - ./postgres-data:/var/lib/postgresql/data
-  #   networks:
-  #     - stockifynetwork
-
-  # pgadmin:
-  #   image: dpage/pgadmin4
-  #   container_name: pgadmin
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: admin@admin.com
-  #     PGADMIN_DEFAULT_PASSWORD: admin
-  #   ports:
-  #     - "8080:80"
-  #   depends_on:
-  #     - postgres
-  #   networks:
-  #     - stockifynetwork
 
   stockify-api:
     build:
@@ -59,9 +32,9 @@ services:
     environment:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      SPRING_DATASOURCE_URL: jdbc:postgresql://autorack.proxy.rlwy.net:30733/railway
+      SPRING_DATASOURCE_URL: jdbc:postgresql://stockify-db.c9m6swcaq3om.sa-east-1.rds.amazonaws.com:5432/stockify-db
       SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: WoidLbMjSXHVhUdrtloUiatKMoBjsseV
+      SPRING_DATASOURCE_PASSWORD: 5lxN12o5p0EZRnVrKlMD
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
     ports:
       - "8081:8081"
