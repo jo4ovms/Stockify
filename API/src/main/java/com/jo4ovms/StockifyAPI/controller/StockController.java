@@ -161,19 +161,21 @@ public class StockController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String query,
             @RequestParam(required = false) Long supplierId,
-            @RequestParam(required = false) Integer minQuantity,
-            @RequestParam(required = false) Integer maxQuantity,
-            @RequestParam(required = false) Double minValue,
-            @RequestParam(required = false) Double maxValue) {
+            @RequestParam(defaultValue = "0", required = false) Integer minQuantity,
+            @RequestParam(defaultValue = "999999",required = false) Integer maxQuantity,
+            @RequestParam(defaultValue = "0", required = false) Double minValue,
+            @RequestParam(defaultValue = "999999",required = false) Double maxValue) {
 
-        int maxQty = (maxQuantity != null) ? maxQuantity : (Integer) stockService.getMaxQuantity();
-        double maxVal = (maxValue != null) ? maxValue : (Double) stockService.getMaxValue();
-        int minQty = (minQuantity != null) ? minQuantity : 0;
-        double minVal = (minValue != null) ? minValue : 0.0;
+        if (minQuantity != null && maxQuantity != null && minQuantity > maxQuantity) {
+            throw new IllegalArgumentException("minQuantity cannot be greater than maxQuantity.");
+        }
+        if (minValue != null && maxValue != null && minValue > maxValue) {
+            throw new IllegalArgumentException("minValue cannot be greater than maxValue.");
+        }
 
         Pageable pageable = PageRequest.of(page, size);
 
-        Page<StockDTO> filteredStocks = stockService.getFilteredStocks(query, supplierId, minQty, maxQty, minVal, maxVal, pageable);
+        Page<StockDTO> filteredStocks = stockService.getFilteredStocks(query, supplierId, minQuantity, maxQuantity, minValue, maxValue, pageable);
 
         PagedModel<EntityModel<StockDTO>> pagedModel = pagedResourcesAssembler.toModel(filteredStocks);
         return ResponseEntity.ok(pagedModel);
