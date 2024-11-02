@@ -11,6 +11,7 @@ import com.jo4ovms.StockifyAPI.model.Stock;
 import com.jo4ovms.StockifyAPI.repository.ProductRepository;
 import com.jo4ovms.StockifyAPI.repository.StockRepository;
 import com.jo4ovms.StockifyAPI.service.LogService;
+import com.jo4ovms.StockifyAPI.specification.StockSpecifications;
 import com.jo4ovms.StockifyAPI.util.LogUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -166,24 +167,12 @@ public class StockService {
     }
 
     public Page<StockDTO> getFilteredStocks(String query, Long supplierId, int minQuantity, int maxQuantity, double minValue, double maxValue, Pageable pageable) {
-        if (query != null && supplierId != null) {
-
-            return stockRepository.searchByProductNameAndSupplierAndQuantityAndValue(query, supplierId, minQuantity, maxQuantity, minValue, maxValue, pageable)
-                    .map(stockMapper::toStockDTO);
-        } else if (query != null) {
-
-            return stockRepository.searchByProductNameAndQuantityAndValue(query, minQuantity, maxQuantity, minValue, maxValue, pageable)
-                    .map(stockMapper::toStockDTO);
-        } else if (supplierId != null) {
-
-            return stockRepository.findBySupplierAndQuantityAndValue(supplierId, minQuantity, maxQuantity, minValue, maxValue, pageable)
-                    .map(stockMapper::toStockDTO);
-        } else {
-
-            return stockRepository.findByQuantityAndValueRange(minQuantity, maxQuantity, minValue, maxValue, pageable)
-                    .map(stockMapper::toStockDTO);
-        }
+        return stockRepository.findAll(
+                StockSpecifications.withFilters(query, supplierId, minQuantity, maxQuantity, minValue, maxValue),
+                pageable
+        ).map(stockMapper::toStockDTO);
     }
+
 
     public Integer getMaxQuantity() {
         Object maxQuantity = stockRepository.findMaxQuantity();
