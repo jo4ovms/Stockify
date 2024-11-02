@@ -1,4 +1,5 @@
 import { CircularProgress, TextField, Box, Autocomplete } from "@mui/material";
+import { debounce } from "lodash";
 import PropTypes from "prop-types";
 import { useRef, useState, useEffect } from "react";
 import productService from "../../../services/productService";
@@ -17,33 +18,35 @@ const ProductSearch = ({
   const [, setScrollPosition] = useState(0);
   const listboxRef = useRef(null);
 
-  const fetchProducts = async (search = "", newPage = 0) => {
-    setLoading(true);
-    try {
-      const newProducts = await productService.searchProducts(
-        search,
-        newPage,
-        10
-      );
+  const debouncedFetchProducts = useRef(
+    debounce(async (search, newPage = 0) => {
+      setLoading(true);
+      try {
+        const newProducts = await productService.searchProducts(
+          search,
+          newPage,
+          10
+        );
+        const allProducts = [...products, ...newProducts];
+        const uniqueProducts = Array.from(
+          new Map(allProducts.map((product) => [product.id, product])).values()
+        );
 
-      const allProducts = [...products, ...newProducts];
-      const uniqueProducts = Array.from(
-        new Map(allProducts.map((product) => [product.id, product])).values()
-      );
-
-      setProducts(newPage === 0 ? newProducts : uniqueProducts);
-      setHasMore(newProducts.length === 10);
-    } catch (error) {
-      console.error("Error loading products:", error);
-    }
-    setLoading(false);
-  };
+        setProducts(newPage === 0 ? newProducts : uniqueProducts);
+        setHasMore(newProducts.length === 10);
+      } catch (error) {
+        console.error("Error loading products:", error);
+      }
+      setLoading(false);
+    }, 300)
+  ).current;
 
   useEffect(() => {
     if (selectedProduct && !searchTerm) {
       setProducts([selectedProduct]);
     }
-    fetchProducts(searchTerm, 0);
+    debouncedFetchProducts(searchTerm, 0);
+    return () => debouncedFetchProducts.cancel();
   }, [searchTerm, selectedProduct]);
 
   const handleScroll = (event) => {
@@ -55,7 +58,7 @@ const ProductSearch = ({
     if (bottomReached && hasMore && !loading) {
       const nextPage = page + 1;
       setPage(nextPage);
-      fetchProducts(searchTerm, nextPage);
+      debouncedFetchProducts(searchTerm, nextPage);
     }
   };
 
@@ -72,7 +75,7 @@ const ProductSearch = ({
         onInputChange={(e, newInputValue) => {
           setSearchTerm(newInputValue);
           setPage(0);
-          fetchProducts(newInputValue, 0);
+          debouncedFetchProducts(newInputValue, 0);
         }}
         onChange={(e, newValue) => {
           setSelectedProduct(newValue);

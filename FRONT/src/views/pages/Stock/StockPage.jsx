@@ -39,11 +39,9 @@ const DeleteIcon = lazy(() => import("@mui/icons-material/Delete"));
 
 const StockPage = () => {
   const { id } = useParams();
-
   const [stocks, setStocks] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
-  const [, setSuppliers] = useState([]);
   const [selectedSupplier, setSelectedSupplier] = useState("");
   const [open, setOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -71,26 +69,21 @@ const StockPage = () => {
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   let debounceTimeout = useRef(null);
 
-  useEffect(() => {
-    const fetchLimits = async () => {
-      try {
-        const limits = await stockService.getStockLimits();
-        if (limits && typeof limits.maxQuantity === "number") {
-          setInitialMinMaxQuantity([0, limits.maxQuantity]);
-          setQuantityRange([0, limits.maxQuantity]);
-        }
-        if (limits && typeof limits.maxValue === "number") {
-          setInitialMinMaxValue([0, limits.maxValue]);
-          setValueRange([0, limits.maxValue]);
-        }
-      } catch (error) {
-        setErrorMessage(
-          `Erro ao obter os limites de estoque: ${error.message}`
-        );
+  const fetchLimits = async () => {
+    try {
+      const limits = await stockService.getStockLimits();
+      if (limits && typeof limits.maxQuantity === "number") {
+        setInitialMinMaxQuantity([0, limits.maxQuantity]);
+        setQuantityRange([0, limits.maxQuantity]);
       }
-    };
-    fetchLimits();
-  }, []);
+      if (limits && typeof limits.maxValue === "number") {
+        setInitialMinMaxValue([0, limits.maxValue]);
+        setValueRange([0, limits.maxValue]);
+      }
+    } catch (error) {
+      setErrorMessage(`Erro ao obter os limites de estoque: ${error.message}`);
+    }
+  };
 
   useEffect(() => {
     const handler = setTimeout(() => setDebouncedQuery(searchQuery), 300);
@@ -118,6 +111,7 @@ const StockPage = () => {
 
   const retrieveStocks = async () => {
     setLoading(true);
+
     const controller = new AbortController();
     try {
       const params = {
@@ -146,7 +140,7 @@ const StockPage = () => {
   };
 
   useEffect(() => {
-    retrieveStocks();
+    fetchLimits();
     setInitialLoadComplete(true);
   }, []);
 
@@ -159,7 +153,7 @@ const StockPage = () => {
 
     debounceTimeout.current = setTimeout(() => {
       retrieveStocks();
-    }, 500);
+    }, 300);
 
     return () => clearTimeout(debounceTimeout.current);
   }, [
@@ -170,17 +164,6 @@ const StockPage = () => {
     debouncedQuery,
     selectedSupplier,
   ]);
-  useEffect(() => {
-    const retrieveSuppliers = async () => {
-      try {
-        const response = await stockService.getAllWithoutPagination();
-        setSuppliers(Array.isArray(response.data) ? response.data : []);
-      } catch {
-        setSuppliers([]);
-      }
-    };
-    retrieveSuppliers();
-  }, []);
 
   const handleClickOpen = () => {
     setEditMode(false);
@@ -198,8 +181,8 @@ const StockPage = () => {
     const { id, productName } = confirmDelete;
     try {
       await stockService.deleteStock(id);
+      retrieveStocks();
       setSuccessMessage(`Produto ${productName} deletado com sucesso.`);
-      setPage(0);
     } catch {
       setErrorMessage("Erro ao deletar o produto em estoque.");
     } finally {

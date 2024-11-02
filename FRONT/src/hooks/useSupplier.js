@@ -154,6 +154,10 @@ const useSupplier = () => {
 
   const retrieveProducts = useCallback(
     (supplierId, page = 0, size = 10) => {
+      if (!supplierId) {
+        console.warn("supplierId é invalido:", supplierId);
+        return;
+      }
       if (loadingProducts[supplierId]) return;
       setTimeout(() => {
         if (productListRef.current[supplierId]) {
@@ -376,7 +380,7 @@ const useSupplier = () => {
   };
   const saveProduct = (product) => {
     if (!product.supplierId) {
-      setErrorMessage("Supplier ID is required.");
+      setErrorMessage("ID do fornecedor ausente.");
       return;
     }
 
@@ -461,7 +465,12 @@ const useSupplier = () => {
       .deleteProduct(productId)
       .then(() => {
         setSuccessMessage(`Produto ${productName} excluído com sucesso.`);
-        retrieveProducts(currentSupplier.id);
+        const supplierId = currentSupplier?.id;
+        if (supplierId) {
+          retrieveProducts(supplierId);
+        } else {
+          console.error("ID do Fornecedor nulo.");
+        }
         getAllProductTypes();
       })
       .catch(() => setErrorMessage("Erro ao excluir o produto."))

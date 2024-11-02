@@ -12,16 +12,6 @@ const SupplierFilter = ({ value, onChange }) => {
   const suppliersPage = useRef(0);
   const supplierSearch = useRef("");
 
-  const debouncedSupplierSearch = useCallback(
-    debounce((searchTerm) => {
-      supplierSearch.current = searchTerm;
-      suppliersPage.current = 0;
-      hasMoreSuppliers.current = true;
-      fetchSuppliers(0, false, searchTerm);
-    }, 250),
-    []
-  );
-
   const fetchSuppliers = useCallback(
     (currentPage, append = false, searchTerm = "") => {
       if (!hasMoreSuppliers.current) return;
@@ -48,10 +38,19 @@ const SupplierFilter = ({ value, onChange }) => {
     },
     []
   );
+  const debouncedSupplierSearch = useCallback(
+    debounce((searchTerm) => {
+      supplierSearch.current = searchTerm;
+      suppliersPage.current = 0;
+      hasMoreSuppliers.current = true;
+      fetchSuppliers(0, false, searchTerm);
+    }, 250),
+    []
+  );
 
   useEffect(() => {
     fetchSuppliers(0);
-  }, [fetchSuppliers]);
+  }, []);
 
   const handleScroll = (event) => {
     const listboxNode = event.currentTarget;
