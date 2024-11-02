@@ -44,6 +44,31 @@ const formatCurrency = (value) => {
   }).format(value);
 };
 
+const translateDetails = (details, operationType, entity) => {
+  const translations = {
+    Stock: {
+      CREATE: "Estoque criado.",
+      UPDATE: "Estoque atualizado.",
+      DELETE: "Estoque excluído.",
+    },
+    Product: {
+      CREATE: "Produto registrado.",
+      UPDATE: "Produto atualizado.",
+      DELETE: "Produto excluído.",
+    },
+    Sale: {
+      CREATE: "Venda registrada.",
+    },
+  };
+
+  const entityTranslations = translations[entity];
+  const operationTranslation = entityTranslations
+    ? entityTranslations[operationType]
+    : null;
+
+  return operationTranslation || details;
+};
+
 const renderSummary = (log) => {
   const newValue = tryParseJSON(log.newValue);
   const oldValue = tryParseJSON(log.oldValue);
@@ -281,9 +306,13 @@ const LogReportPage = () => {
                     maxWidth: "200px",
                   }}
                 >
-                  {typeof value === "string" || typeof value === "number"
+                  {key === "available"
                     ? value
-                    : "N/A"}
+                      ? "Sim"
+                      : "Não"
+                    : typeof value === "string" || typeof value === "number"
+                      ? value
+                      : "N/A"}
                 </Typography>
               </Tooltip>
             </Box>
@@ -579,8 +608,10 @@ const LogReportPage = () => {
                   <Divider sx={{ my: 2 }} />
                 </>
               )}
+
               <Typography variant="body2">
-                <strong>Detalhes:</strong> {log.details || "N/A"}
+                <strong>Detalhes:</strong>{" "}
+                {translateDetails(log.details, log.operationType, log.entity)}
               </Typography>
             </Box>
           </Collapse>
