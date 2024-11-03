@@ -212,9 +212,11 @@ const CriticalStockPage = () => {
                   color="textSecondary"
                   sx={{ mt: 2 }}
                 >
-                  {query
-                    ? `Nenhum produto correspondente à pesquisa "${query}" foi encontrado para o fornecedor "${getSupplierName()}".`
-                    : `Nenhum produto do fornecedor "${getSupplierName()}" está em baixo estoque.`}
+                  {query && !supplierId
+                    ? `Nenhum produto correspondente à pesquisa "${query}" foi encontrado.`
+                    : supplierId && products.length === 0
+                      ? `Nenhum produto do fornecedor "${getSupplierName()}" está em baixo estoque.`
+                      : "Nenhum produto está em baixo estoque."}
                 </Typography>
               </Box>
             ) : (
