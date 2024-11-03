@@ -6,6 +6,7 @@ import {
   Button,
   DialogActions,
   Box,
+  Typography,
 } from "@mui/material";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import PropTypes from "prop-types";
@@ -44,6 +45,8 @@ const StockForm = ({
 
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [originalProductName, setOriginalProductName] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isProductExisting, setIsProductExisting] = useState(false);
   const inputRef = useRef(null);
 
   const loadStockById = async (stockId) => {
@@ -149,9 +152,20 @@ const StockForm = ({
             }) => (
               <Form>
                 <ProductSearch
-                  setSelectedProduct={(product) => {
+                  setSelectedProduct={async (product) => {
                     setSelectedProduct(product);
                     setFieldValue("productId", product?.id || "");
+                    const productExists = await stockService.checkIfStockExists(
+                      product?.id
+                    );
+
+                    if (productExists) {
+                      setErrorMessage("Este produto já está no estoque.");
+                      setIsProductExisting(productExists);
+                    } else {
+                      setErrorMessage("");
+                      setIsProductExisting(false);
+                    }
                   }}
                   setStock={(stock) => {
                     setFieldValue("quantity", stock.quantity);
@@ -160,6 +174,15 @@ const StockForm = ({
                   selectedProduct={selectedProduct}
                   inputRef={inputRef}
                 />
+                {errorMessage && (
+                  <Typography
+                    variant="body2"
+                    color="error"
+                    style={{ marginTop: "8px" }}
+                  >
+                    {errorMessage}
+                  </Typography>
+                )}
 
                 <Field
                   as={TextField}
@@ -193,7 +216,11 @@ const StockForm = ({
                   <Button onClick={handleClose} color="primary">
                     Cancelar
                   </Button>
-                  <Button type="submit" color="primary">
+                  <Button
+                    type="submit"
+                    color="primary"
+                    disabled={isProductExisting}
+                  >
                     {editMode ? "Salvar" : "Adicionar"}
                   </Button>
                 </DialogActions>

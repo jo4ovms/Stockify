@@ -53,9 +53,21 @@ const getStockLimits = async () => {
     throw error;
   }
 };
+const checkIfStockExists = async (productId) => {
+  try {
+    const response = await axiosInstance.get(`${API_URL}/exists`, {
+      params: { productId },
+    });
+    return response.data.exists;
+  } catch (error) {
+    console.error("Erro ao verificar existência do produto no estoque:", error);
+    return false;
+  }
+};
 
 export default {
   getAllStock,
+  checkIfStockExists,
   getStockLimits,
   createStock,
   updateStock,
