@@ -3,6 +3,14 @@ import {
   IconLayoutDashboard,
   IconInfoCircle,
   IconReload,
+  IconShoppingCartFilled,
+  IconClipboardText,
+  IconUserPlus,
+  IconShoppingBagPlus,
+  IconStack3Filled,
+  IconAlertCircle,
+  IconAlertCircleFilled,
+  IconAlertTriangleFilled,
 } from "@tabler/icons-react";
 
 import { uniqueId } from "lodash";
@@ -26,7 +34,7 @@ const Menuitems = [
   {
     id: uniqueId(),
     title: "Fornecedores",
-    icon: IconAperture,
+    icon: IconUserPlus,
     href: "/supplier",
   },
 
@@ -40,14 +48,50 @@ const Menuitems = [
   {
     id: uniqueId(),
     title: "Relatórios",
-    icon: IconAperture,
+    icon: IconClipboardText,
     href: "/report-logs",
   },
   {
     id: uniqueId(),
     title: "Registrar Venda",
-    icon: IconAperture,
+    icon: IconShoppingBagPlus,
     href: "/register-sale",
+  },
+  {
+    id: uniqueId(),
+    title: "Vendas",
+    icon: IconShoppingCartFilled,
+    href: "/sold-items",
+  },
+  {
+    navlabel: true,
+    subheader: "Estoque",
+  },
+
+  {
+    id: uniqueId(),
+    title: "Estoque Suficiente",
+    icon: IconStack3Filled,
+    href: "/stock/safety",
+  },
+  {
+    id: uniqueId(),
+    title: "Em Baixo Estoque",
+    icon: IconAlertCircle,
+    href: "/stock/under-safety",
+  },
+  {
+    id: uniqueId(),
+    title: "Estoque Crítico",
+    icon: IconAlertCircleFilled,
+    href: "/stock/critical-stock",
+  },
+
+  {
+    id: uniqueId(),
+    title: "Esgotado",
+    icon: IconAlertTriangleFilled,
+    href: "/stock/out-of-stock",
   },
   {
     navlabel: true,
