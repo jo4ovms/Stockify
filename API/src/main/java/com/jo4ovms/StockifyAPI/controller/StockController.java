@@ -209,4 +209,12 @@ public class StockController {
         }
     }
 
+    @GetMapping("/exists")
+    public ResponseEntity<Map<String, Boolean>> checkIfStockExists(@RequestParam Long productId) {
+        boolean exists = stockService.existsInStock(productId);
+        Map<String, Boolean> response = new HashMap<>();
+        response.put("exists", exists);
+        return ResponseEntity.ok(response);
+    }
+
 }

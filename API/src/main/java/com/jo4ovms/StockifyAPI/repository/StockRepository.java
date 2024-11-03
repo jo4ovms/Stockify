@@ -66,6 +66,7 @@ public interface StockRepository extends JpaRepository<Stock, Long>, JpaSpecific
             Pageable pageable);
 
     Optional<Stock> findByProductId(Long productId);
+    boolean existsByProductId(Long productId);
 }
 
 

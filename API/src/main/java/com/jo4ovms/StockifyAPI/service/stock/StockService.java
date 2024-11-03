@@ -194,4 +194,8 @@ public class StockService {
         return new StockSummaryDTO(totalProducts, zeroQuantity, aboveThreshold, betweenThreshold);
     }
 
+    public boolean existsInStock(Long productId) {
+        return stockRepository.existsByProductId(productId);
+    }
+
 }
