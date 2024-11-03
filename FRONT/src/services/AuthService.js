@@ -22,6 +22,13 @@ const AuthService = {
       }
       return response.data;
     } catch (error) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        throw new Error(error.response.data.message);
+      }
       console.error("Erro ao efetuar o login:", error);
       throw new Error("Falha ao efetuar o login");
     }
