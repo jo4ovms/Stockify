@@ -16,24 +16,20 @@ import java.time.LocalDate;
 
 @Service
 public class AggregatedSaleService {
-    private final StockRepository stockRepository;
     private final AggregatedSaleRepository aggregatedSaleRepository;
     private final ProductRepository productRepository;
 
-    public AggregatedSaleService(AggregatedSaleRepository aggregatedSaleRepository, StockRepository stockRepository, ProductRepository productRepository) {
+    public AggregatedSaleService(AggregatedSaleRepository aggregatedSaleRepository, ProductRepository productRepository) {
         this.aggregatedSaleRepository = aggregatedSaleRepository;
-        this.stockRepository = stockRepository;
         this.productRepository = productRepository;
     }
 
     @Transactional
-    public void updateAggregatedSales(Long stockId, Long productId, Long quantitySold) {
-
-        AggregatedSale aggregatedSale = aggregatedSaleRepository.findByProductIdAndStockId(productId, stockId)
+    public void updateAggregatedSales(Long productId, Long quantitySold) {
+        AggregatedSale aggregatedSale = aggregatedSaleRepository.findByProductId(productId)
                 .orElse(new AggregatedSale());
 
         if (aggregatedSale.getId() == null) {
-            aggregatedSale.setStock(stockRepository.findById(stockId).orElseThrow());
             aggregatedSale.setProduct(productRepository.findById(productId).orElseThrow());
             aggregatedSale.setTotalQuantitySold(0L);
         }

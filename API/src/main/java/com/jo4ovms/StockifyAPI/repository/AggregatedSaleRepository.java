@@ -13,24 +13,27 @@ import java.util.Optional;
 
 public interface AggregatedSaleRepository extends JpaRepository<AggregatedSale, Long> {
 
-    @Query("SELECT new com.jo4ovms.StockifyAPI.model.DTO.SaleSummaryDTO(a.stock.product.name, a.totalQuantitySold) " +
+    @Query("SELECT new com.jo4ovms.StockifyAPI.model.DTO.SaleSummaryDTO(a.product.name, a.totalQuantitySold) " +
             "FROM AggregatedSale a " +
-            "WHERE (:searchTerm IS NULL OR LOWER(a.stock.product.name) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) " +
-            "AND (:supplierId IS NULL OR a.stock.product.supplier.id = :supplierId)")
-    Page<SaleSummaryDTO> findSalesGroupedByProductAndSupplier(String searchTerm, Long supplierId, Pageable pageable);
+            "WHERE (:searchTerm IS NULL OR LOWER(a.product.name) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) " +
+            "AND (:supplierId IS NULL OR a.product.supplier.id = :supplierId)")
+    Page<SaleSummaryDTO> findSalesGroupedByProductAndSupplier(
+            @Param("searchTerm") String searchTerm,
+            @Param("supplierId") Long supplierId,
+            Pageable pageable);
 
-    Optional<AggregatedSale> findByProductIdAndStockId(Long productId, Long stockId);
+    Optional<AggregatedSale> findByProductId(Long productId);
 
-    @Query("SELECT new com.jo4ovms.StockifyAPI.model.DTO.SaleSummaryDTO(a.stock.product.name, a.totalQuantitySold) " +
+    @Query("SELECT new com.jo4ovms.StockifyAPI.model.DTO.SaleSummaryDTO(a.product.name, a.totalQuantitySold) " +
             "FROM AggregatedSale a " +
-            "WHERE (:searchTerm IS NULL OR LOWER(a.stock.product.name) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) " +
-            "AND (:supplierId IS NULL OR a.stock.product.supplier.id = :supplierId) " +
+            "WHERE (:searchTerm IS NULL OR LOWER(a.product.name) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) " +
+            "AND (:supplierId IS NULL OR a.product.supplier.id = :supplierId) " +
             "AND (CAST(a.saleDate AS date) BETWEEN :startDate AND :endDate)")
     Page<SaleSummaryDTO> findSalesGroupedByProductAndSupplierAndDate(
             @Param("searchTerm") String searchTerm,
             @Param("supplierId") Long supplierId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
-            Pageable pageable
-    );
+            Pageable pageable);
 }
+

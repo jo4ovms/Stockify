@@ -73,7 +73,7 @@ public class SaleService {
                         ", Quantity: " + saleDTO.getQuantity());
 
         logService.createLog(logDTO);
-        aggregatedSaleService.updateAggregatedSales(stock.getId(), stock.getProduct().getId(), saleDTO.getQuantity().longValue());
+        aggregatedSaleService.updateAggregatedSales(stock.getProduct().getId(), saleDTO.getQuantity().longValue());
 
         return saleLogDTO;
     }
