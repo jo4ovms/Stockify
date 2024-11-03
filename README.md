@@ -10,12 +10,13 @@ Stockify é uma aplicação para o gerenciamento eficiente de estoque voltada pa
 - [Instalação](#instalação)
 - [Como Usar](#como-usar)
 - [Contribuição](#contribuição)
+- [Licença](#licença)
 
 ## Visão Geral
 Este projeto visa facilitar o controle de estoque para e-commerce, permitindo o registro, atualização e exclusão de itens, com interface amigável e operação fluida. Está estruturado em um backend (API) e frontend que se comunicam através de contêineres Docker.
 
 ## Tecnologias
-- **Backend:** Java com Spring Boot
+- **Backend:** Java com Spring Boot e KAFKA
 - **Frontend:** React, Material UI, Framer Motion
 - **Banco de Dados:** PostgreSQL local
 - **Contêineres:** Docker, Docker Compose
@@ -53,7 +54,10 @@ docker-compose up --build
 1. Crie uma conta.
 2. Registro de Fornecedores, Produtos e Estoques: Acesse a página de Fornecedores para começar a gerenciar e criar produtos.
 
-### Contribuição
+## Contribuição
 1. Faça um fork do repositório.
 2. Crie uma branch para sua feature (git checkout -b feature/MinhaFeature).
 3. Envie um Pull Request após realizar os testes e revisões.
+
+## Licença
+Este projeto está licenciado sob a Licença MIT. Veja o arquivo LICENSE para mais detalhes.
