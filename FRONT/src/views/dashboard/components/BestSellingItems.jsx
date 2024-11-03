@@ -185,6 +185,7 @@ const BestSellingItems = ({ sx }) => {
         </Fab>
       }
       sx={{
+        minHeight: isSmallScreen ? "255.5px" : undefined,
         height: isSmallScreen ? "auto" : "660px",
         width: isSmallScreen ? "100%" : "124%",
         overflow: "hidden",
