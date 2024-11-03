@@ -52,9 +52,9 @@ const StockPage = () => {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-
+  const [firstLoad, setFirstLoad] = useState(true);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-
+  const [formSubmitted, setFormSubmitted] = useState(false);
   const [quantityRange, setQuantityRange] = useState([0, 100]);
   const [initialMinMaxValue, setInitialMinMaxValue] = useState([0, 10000]);
   const [valueRange, setValueRange] = useState([0, 10000]);
@@ -73,12 +73,12 @@ const StockPage = () => {
     try {
       const limits = await stockService.getStockLimits();
       if (limits && typeof limits.maxQuantity === "number") {
-        setInitialMinMaxQuantity([0, limits.maxQuantity]);
-        setQuantityRange([0, limits.maxQuantity]);
+        setInitialMinMaxQuantity([0, limits.maxQuantity || 100]);
+        setQuantityRange([0, limits.maxQuantity || 100]);
       }
       if (limits && typeof limits.maxValue === "number") {
-        setInitialMinMaxValue([0, limits.maxValue]);
-        setValueRange([0, limits.maxValue]);
+        setInitialMinMaxValue([0, limits.maxValue || 10000]);
+        setValueRange([0, limits.maxValue || 10000]);
       }
     } catch (error) {
       setErrorMessage(`Erro ao obter os limites de estoque: ${error.message}`);
@@ -126,10 +126,19 @@ const StockPage = () => {
       };
 
       const response = await stockService.getAllStock(params);
-      setStocks(response._embedded?.stockDTOList || []);
+      const newStocks = response._embedded?.stockDTOList || [];
+      setStocks(newStocks);
+      // setStocks(response._embedded?.stockDTOList || []);
+      if (firstLoad && newStocks.length === 1) {
+        setFirstLoad(false);
+      }
+
+      if (formSubmitted) {
+        setFormSubmitted(false);
+      }
       setTotalPages(response.page?.totalPages || 1);
       setTotalItems(response.page?.totalElements || 0);
-      setInitialLoadComplete(true);
+      // setInitialLoadComplete(true);
     } catch {
       setErrorMessage("Erro ao carregar o estoque.");
     } finally {
@@ -137,6 +146,15 @@ const StockPage = () => {
       setInitialLoadComplete(true);
     }
     return () => controller.abort();
+  };
+
+  const handleFormClose = () => {
+    setOpen(false);
+    if (formSubmitted) {
+      fetchLimits();
+      retrieveStocks();
+      setFormSubmitted(false);
+    }
   };
 
   useEffect(() => {
@@ -413,12 +431,16 @@ const StockPage = () => {
       >
         <StockForm
           open={open}
-          handleClose={() => setOpen(false)}
+          handleClose={handleFormClose}
           editMode={editMode}
           currentStock={currentStock}
-          retrieveStocks={retrieveStocks}
+          retrieveStocks={() => {
+            setFormSubmitted(true);
+            retrieveStocks();
+          }}
           setSuccessMessage={(message) => setSuccessMessage(message)}
           fetchLimits={() => setPage(0)}
+          setFormSubmitted={setFormSubmitted}
         />
       </Suspense>
       <Snackbar

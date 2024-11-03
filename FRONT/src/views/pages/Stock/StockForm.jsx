@@ -34,6 +34,7 @@ const StockForm = ({
   retrieveStocks,
   setSuccessMessage,
   fetchLimits,
+  setFormSubmitted,
 }) => {
   const [, setStock] = useState({
     productId: "",
@@ -93,6 +94,7 @@ const StockForm = ({
 
     action
       .then(() => {
+        setFormSubmitted(true);
         retrieveStocks();
         fetchLimits();
         setSuccessMessage(
