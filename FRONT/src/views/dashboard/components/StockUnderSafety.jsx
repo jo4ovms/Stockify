@@ -86,8 +86,6 @@ const StockUnderSafety = () => {
     "criticalStock",
     fetchCriticalStock,
     {
-      staleTime: 900000,
-      cacheTime: 1800000,
       retry: 2,
       onError: (error) => {
         console.error("Error fetching critical stock:", error);

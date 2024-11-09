@@ -41,10 +41,7 @@ const RecentTransactions = () => {
     data: logs = [],
     isLoading,
     isError,
-  } = useQuery("recentLogs", fetchLogs, {
-    staleTime: 60000,
-    cacheTime: 300000,
-  });
+  } = useQuery("recentLogs", fetchLogs);
 
   const logRefs = useRef({});
 
@@ -218,7 +215,7 @@ const RecentTransactions = () => {
           <IconArrowRight width={24} />
         </Fab>
       }
-      sx={{ height: "auto", width: "100%", overflow: "hidden" }}
+      sx={{ height: "100%", width: "100%", overflow: "hidden" }}
     >
       <Box
         sx={{
