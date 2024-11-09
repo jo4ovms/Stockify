@@ -34,6 +34,8 @@ services:
       - "5432:5432"
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
+      - ./database/stockifydb_dump.sql:/docker-entrypoint-initdb.d/stockifydb_dump.sql
+      - ./database/restore.sh:/docker-entrypoint-initdb.d/restore.sh
     networks:
       - stockifynetwork
 
